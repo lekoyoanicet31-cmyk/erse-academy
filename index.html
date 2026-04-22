@@ -47,6 +47,18 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 .user-avatar-nav:hover{transform:scale(1.08);}
 .hamburger{display:none;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px;}
 
+/* ── LOADING SCREEN ── */
+#loading-screen{position:fixed;inset:0;background:var(--b9);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;transition:opacity .4s;}
+#loading-screen.hide{opacity:0;pointer-events:none;}
+.loading-logo{width:64px;height:64px;background:var(--gold);border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--b9);animation:loadPulse 1.5s infinite;}
+@keyframes loadPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+.loading-title{font-family:var(--font-display);font-size:22px;color:#fff;font-weight:600;}
+.loading-title span{color:var(--gold-l);}
+.loading-bar{width:200px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden;}
+.loading-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--b4));border-radius:2px;animation:loadBar 1.8s ease-in-out infinite;}
+@keyframes loadBar{0%{width:0%;margin-left:0;}50%{width:60%;margin-left:20%;}100%{width:0%;margin-left:100%;}}
+.loading-txt{font-size:12px;color:rgba(255,255,255,0.45);}
+
 /* ── MOBILE NAV ── */
 .mobile-menu{display:none;position:fixed;top:62px;left:0;right:0;background:var(--nav-bg);z-index:399;padding:.5rem;border-bottom:1px solid rgba(255,255,255,0.1);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
 .mobile-menu.open{display:block;}
@@ -562,6 +574,14 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
     <div id="search-results" style="max-height:340px;overflow-y:auto;"></div>
   </div>
 </div>
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="loading-logo">EA</div>
+  <div class="loading-title">ERSE <span>ACADEMY</span></div>
+  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  <div class="loading-txt" id="loading-txt">Connexion à Firebase...</div>
+</div>
+
 <!-- AUTH -->
 <div id="auth-screen" class="auth-screen" style="display:flex;">
   <div class="auth-card">
@@ -1128,6 +1148,11 @@ async function fbDeleteExam(examId){
   try{
     await db.collection('exams').doc(String(examId)).delete();
   }catch(e){console.warn('fbDeleteExam error:',e);}
+}
+
+function hideLoadingScreen(){
+  const el = document.getElementById('loading-screen');
+  if(el){ el.classList.add('hide'); setTimeout(()=>el.remove(), 400); }
 }
 
 async function initFirebase(){
@@ -3363,9 +3388,12 @@ loadData();
 updateNotifDot();
 // Initialiser Firebase après chargement
 setTimeout(initFirebase, 500);
+// Fallback: cacher le loading après 6 secondes max
+setTimeout(hideLoadingScreen, 6000);
 
 // ── Écouter l'état de connexion Firebase Auth ──
 auth.onAuthStateChanged(async (firebaseUser) => {
+  hideLoadingScreen();
   if(firebaseUser){
     const email = firebaseUser.email;
     let user = DB.users.find(u=>u.email===email);
