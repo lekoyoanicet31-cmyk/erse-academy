@@ -1216,6 +1216,21 @@ async function initFirebase(){
       });
     });
 
+
+    // ── Écoute notifications admin en temps réel ──
+    let lastNotifTs = 0;
+    db.collection('meta').doc('platformNotif').onSnapshot(doc=>{
+      if(!doc.exists) return;
+      const data = doc.data();
+      if(!data || !data.ts) return;
+      if(data.by === currentUser?.email) return;
+      if(data.ts <= lastNotifTs) return;
+      lastNotifTs = data.ts;
+      DB.notifications.unshift({id:DB.nextId++,title:data.title,sub:data.sub,ic:data.ic,bg:data.bg,unread:true,time:'Maintenant'});
+      updateNotifDot();
+      toast('📣 '+data.sub,'ok');
+    });
+
     fbReady = true;
     startAutoRefresh();
     lastKnownUpdate = Date.now();
@@ -2506,26 +2521,32 @@ function editSubject(id){
   document.getElementById('s-desc').value=s.desc||'';
   openModal('modal-subj');
 }
-function saveSubject(){
+async function saveSubject(){
   const name=document.getElementById('s-name').value.trim();
   if(!name){toast('Nom requis','err');return;}
   if(editSubjectId){
     const s=DB.subjects.find(x=>x.id===editSubjectId);
     Object.assign(s,{name,icon:document.getElementById('s-icon').value||'📚',level:+document.getElementById('s-level').value,docs:+document.getElementById('s-docs').value||1,desc:document.getElementById('s-desc').value});
-    toast('Matière modifiée !','ok');
+    saveData();
+    if(fbReady){ try{ await fbSaveSubject(s); await pushToRTDB(); }catch(e){console.warn(e);} }
+    toast('Matière modifiée et synchronisée !','ok');
   } else {
-    DB.subjects.push({id:DB.nextId++,name,icon:document.getElementById('s-icon').value||'📚',level:+document.getElementById('s-level').value,docs:+document.getElementById('s-docs').value||1,active:true,desc:document.getElementById('s-desc').value,files:[]});
-    toast('Matière ajoutée !','ok');
+    const newSubj={id:DB.nextId++,name,icon:document.getElementById('s-icon').value||'📚',level:+document.getElementById('s-level').value,docs:+document.getElementById('s-docs').value||1,active:true,desc:document.getElementById('s-desc').value,files:[]};
+    DB.subjects.push(newSubj);
+    saveData();
+    if(fbReady){ try{ await fbSaveSubject(newSubj); await pushToRTDB(); }catch(e){console.warn(e);} }
+    toast('Matière ajoutée et synchronisée !','ok');
   }
-  saveData();
-  if(fbReady){
-    const s=editSubjectId?DB.subjects.find(x=>x.id===editSubjectId):DB.subjects[DB.subjects.length-1];
-    if(s) fbSaveSubject(s).catch(e=>console.warn(e));
-  }
-  pushToRTDB();
   closeModal('modal-subj');renderAdminSubjects();
 }
-function toggleSubj(id){const s=DB.subjects.find(x=>x.id===id);s.active=!s.active;if(fbReady)fbSaveSubject(s).catch(e=>console.warn(e));saveData();pushToRTDB();toast(s.name+' '+(s.active?'activée':'désactivée'),'ok');renderAdminSubjects();}
+async function toggleSubj(id){
+  const s=DB.subjects.find(x=>x.id===id);
+  s.active=!s.active;
+  saveData();
+  if(fbReady){ try{ await fbSaveSubject(s); await pushToRTDB(); }catch(e){console.warn(e);} }
+  toast(s.name+' '+(s.active?'activée':'désactivée')+' — synchronisé !','ok');
+  renderAdminSubjects();
+}
 
 function renderAdminExams(){
   document.getElementById('at-exams-a').innerHTML=`
@@ -2565,7 +2586,7 @@ function addQuestion(){
       <input name="opt" placeholder="Option ${l}..." style="font-size:12px;flex:1;padding:5px 9px;border:1px solid var(--border);border-radius:7px;font-family:var(--font-body);background:var(--input-bg);color:var(--text);"></div>`).join('')}`;
   document.getElementById('q-list').appendChild(div);
 }
-function saveExam(){
+async function saveExam(){
   const subjectId=+document.getElementById('e-subj').value;
   const difficulty=document.getElementById('e-diff').value;
   const questions=[];
@@ -2577,14 +2598,22 @@ function saveExam(){
     questions.push({q:qtxt,opts,ans:ansEl?+ansEl.value:0});
   });
   if(!questions.length){toast('Ajoutez au moins une question','err');return;}
-  DB.exams.push({id:DB.nextId++,subjectId,difficulty,questions});
+  const newExam={id:DB.nextId++,subjectId,difficulty,questions};
+  DB.exams.push(newExam);
   saveData();
-  const newExam=DB.exams[DB.exams.length-1];
-  if(fbReady && newExam){ fbSaveExam(newExam).catch(e=>console.warn(e)); }
-  pushToRTDB();
-  closeModal('modal-exam');toast('Examen créé ('+questions.length+' questions) !','ok');renderAdminExams();
+  if(fbReady){ try{ await fbSaveExam(newExam); await pushToRTDB(); }catch(e){console.warn(e);} }
+  closeModal('modal-exam');
+  toast('Examen créé ('+questions.length+' questions) — synchronisé !','ok');
+  renderAdminExams();
 }
-function deleteExam(id){if(confirm('Supprimer cet examen ?')){DB.exams=DB.exams.filter(e=>e.id!==id);if(fbReady){fbDeleteExam(id).catch(e=>console.warn(e));}saveData();pushToRTDB();renderAdminExams();toast('Supprimé','ok');}}
+async function deleteExam(id){
+  if(!confirm('Supprimer cet examen ?')) return;
+  DB.exams=DB.exams.filter(e=>e.id!==id);
+  saveData();
+  if(fbReady){ try{ await fbDeleteExam(id); await pushToRTDB(); }catch(e){console.warn(e);} }
+  toast('Examen supprimé et synchronisé !','ok');
+  renderAdminExams();
+}
 
 function renderAdminStudents(){
   document.getElementById('at-students').innerHTML=`
@@ -2665,9 +2694,31 @@ function renderAdminLB(){
       </tr>`).join('')}</tbody>
     </table>`;
 }
-function updScore(id,v){const s=DB.students.find(x=>x.id===id);if(s)s.avgScore=Math.min(100,Math.max(0,+v||0));}
-function addCert(id){const s=DB.students.find(x=>x.id===id);if(s){s.certs++;toast(s.name+' : +1 cert','ok');renderAdminLB();}}
-function addExam(id){const s=DB.students.find(x=>x.id===id);if(s){s.passed++;toast(s.name+' : +1 exam','ok');renderAdminLB();}}
+async function updScore(id,v){
+  const s=DB.students.find(x=>x.id===id);
+  if(!s) return;
+  s.avgScore=Math.min(100,Math.max(0,+v||0));
+  saveData();
+  if(fbReady && s.email){ try{ await fbSaveUser(s); await pushToRTDB(); }catch(e){console.warn(e);} }
+}
+async function addCert(id){
+  const s=DB.students.find(x=>x.id===id);
+  if(!s) return;
+  s.certs++;
+  saveData();
+  if(fbReady && s.email){ try{ await fbSaveUser(s); await pushToRTDB(); }catch(e){console.warn(e);} }
+  toast(s.name+' : +1 cert — synchronisé !','ok');
+  renderAdminLB();
+}
+async function addExam(id){
+  const s=DB.students.find(x=>x.id===id);
+  if(!s) return;
+  s.passed++;
+  saveData();
+  if(fbReady && s.email){ try{ await fbSaveUser(s); await pushToRTDB(); }catch(e){console.warn(e);} }
+  toast(s.name+' : +1 exam — synchronisé !','ok');
+  renderAdminLB();
+}
 
 function renderAdminNotifs(){
   document.getElementById('at-notifs-a').innerHTML=`
@@ -2691,11 +2742,22 @@ function resetAllData(){
   toast('Données réinitialisées. Rechargez la page.','ok');
   setTimeout(()=>location.reload(),2000);
 }
-function sendPlatformNotif(){
+async function sendPlatformNotif(){
   const msg=prompt('Message de notification à envoyer à tous les étudiants :');
-  if(!msg)return;
-  pushNotif('Message de l\'administration',msg,'📣','#b0d4f4');
-  toast('Notification envoyée !','ok');
+  if(!msg) return;
+  const notif={id:DB.nextId++,title:"Message de l'administration",sub:msg,ic:'📣',bg:'#b0d4f4',unread:true,time:'Maintenant'};
+  DB.notifications.unshift(notif);
+  updateNotifDot();
+  saveData();
+  if(fbReady){
+    try{
+      await db.collection('meta').doc('platformNotif').set({
+        title:notif.title,sub:notif.sub,ic:notif.ic,bg:notif.bg,
+        ts:Date.now(),by:currentUser?.email||'admin'
+      });
+    }catch(e){console.warn(e);}
+  }
+  toast('Notification envoyée à tous !','ok');
   renderAdminNotifs();
 }
 
