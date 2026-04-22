@@ -2201,7 +2201,7 @@ function renderForum(posts){
         </div>`).join('')}
       <div style="display:flex;gap:6px;margin-top:.8rem;">
         <input id="reply-${p.id}" placeholder="Écrire une réponse..." style="flex:1;padding:7px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:var(--font-body);background:var(--input-bg);color:var(--text);outline:none;">
-        <button onclick="submitReply(${p.id})" style="background:var(--b9);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Répondre</button>
+        <button onclick="submitReply('${p.id}')" style="background:var(--b9);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Répondre</button>
       </div>
     </div>
   `).join('');
