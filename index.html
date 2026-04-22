@@ -2156,20 +2156,20 @@ function checkAndNotifyBadges(user){
 function renderBadgesSection(user){
   const badges = getUserBadges(user);
   const earned = badges.filter(b=>b.earned).length;
-  return \`
+  return `
     <div class="profile-card" style="margin-top:1rem;">
-      <h3>🏅 Badges <span style="font-size:12px;color:var(--muted);font-weight:400;">\${earned}/\${badges.length} obtenus</span></h3>
+      <h3>🏅 Badges <span style="font-size:12px;color:var(--muted);font-weight:400;">${earned}/${badges.length} obtenus</span></h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:.8rem;">
-        \${badges.map(b=>\`
-          <div style="background:\${b.earned?'var(--gold-p)':'var(--bg)'};border:1px solid \${b.earned?'rgba(200,155,60,0.4)':'var(--border)'};border-radius:10px;padding:.8rem;text-align:center;opacity:\${b.earned?1:0.45};transition:all .2s;" title="\${b.desc}">
-            <div style="font-size:24px;margin-bottom:4px;">\${b.icon}</div>
-            <div style="font-size:11px;font-weight:500;color:\${b.earned?'var(--gold-d)':'var(--muted)'};">\${b.name}</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px;">\${b.earned?'✅ Obtenu':'🔒 Verrouillé'}</div>
+        ${badges.map(b=>`
+          <div style="background:${b.earned?'var(--gold-p)':'var(--bg)'};border:1px solid ${b.earned?'rgba(200,155,60,0.4)':'var(--border)'};border-radius:10px;padding:.8rem;text-align:center;opacity:${b.earned?1:0.45};transition:all .2s;" title="${b.desc}">
+            <div style="font-size:24px;margin-bottom:4px;">${b.icon}</div>
+            <div style="font-size:11px;font-weight:500;color:${b.earned?'var(--gold-d)':'var(--muted)'};">${b.name}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">${b.earned?'✅ Obtenu':'🔒 Verrouillé'}</div>
           </div>
-        \`).join('')}
+        `).join('')}
       </div>
     </div>
-  \`;
+  `;
 }
 
 /* ═══════════════ REALTIME DATABASE ═══════════════ */
