@@ -578,6 +578,9 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
       <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="login-email" type="email" placeholder="votre@email.com" value="etudiant@erse.ac"></div>
       <div class="form-group"><label class="form-label">Mot de passe</label><input class="form-input" id="login-pwd" type="password" placeholder="••••••••" value="erse2024"></div>
       <button class="btn-auth" id="login-btn" onclick="doLogin()">Se connecter</button>
+      <button class="btn-auth" onclick="doLoginGoogle()" style="background:#fff;color:#333;border:1px solid #ddd;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <span style="font-size:16px;">G</span> Continuer avec Google
+      </button>
     <div style="text-align:center;margin-top:.8rem;">
       <span onclick="forgotPassword()" style="font-size:12px;color:var(--b6);cursor:pointer;">Mot de passe oublié ?</span>
     </div>
@@ -1034,6 +1037,8 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
 let fbReady = false;
 
 /* ═══════════════ FIREBASE HELPERS ═══════════════ */
@@ -1374,34 +1379,46 @@ function switchAuthTab(tab,btn){
 }
 
 let loginAttempts=0;let loginBlocked=false;let loginBlockTimer=null;
-function doLogin(){
+
+async function doLogin(){
   if(loginBlocked){toast('Trop de tentatives. Attendez 30 secondes.','err');return;}
   const email=document.getElementById('login-email').value.trim();
   const pwd=document.getElementById('login-pwd').value.trim();
   if(!email||!pwd){toast('Veuillez remplir tous les champs','err');return;}
-  const user=DB.users.find(u=>u.email===email&&u.pwd===pwd);
-  if(!user){
+  const btn=document.getElementById('login-btn');
+  if(btn){btn.disabled=true;btn.textContent='Connexion...';}
+  try{
+    await auth.signInWithEmailAndPassword(email, pwd);
+    loginAttempts=0;
+    // onAuthStateChanged va s'occuper du reste
+  }catch(e){
     loginAttempts++;
     const rest=5-loginAttempts;
     if(loginAttempts>=5){
       loginBlocked=true;
-      const btn=document.getElementById('login-btn');
-      if(btn){btn.disabled=true;btn.textContent='Bloqué 30s...';}
+      if(btn){btn.textContent='Bloqué 30s...';}
       loginBlockTimer=setTimeout(()=>{
-        loginBlocked=true;loginAttempts=0;loginBlocked=false;
+        loginBlocked=false;loginAttempts=0;
         if(btn){btn.disabled=false;btn.textContent='Se connecter';}
       },30000);
-      toast('Compte bloqué 30 secondes après trop de tentatives','err');
+      toast('Compte bloqué 30 secondes','err');
     } else {
+      if(btn){btn.disabled=false;btn.textContent='Se connecter';}
       toast('Email ou mot de passe incorrect ('+rest+' essai(s) restant(s))','err');
     }
-    return;
   }
-  loginAttempts=0;
-  loginUser(user);
 }
 
-function doRegister(){
+async function doLoginGoogle(){
+  try{
+    await auth.signInWithPopup(googleProvider);
+    // onAuthStateChanged va s'occuper du reste
+  }catch(e){
+    toast('Connexion Google annulée','err');
+  }
+}
+
+async function doRegister(){
   const name=document.getElementById('reg-name').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const pwd=document.getElementById('reg-pwd').value.trim();
@@ -1412,16 +1429,26 @@ function doRegister(){
   if(pwd.length<8){toast('Mot de passe trop court (minimum 8 caractères)','err');return;}
   if(!/[A-Z]/.test(pwd)){toast('Le mot de passe doit contenir au moins une majuscule','err');return;}
   if(!/[0-9]/.test(pwd)){toast('Le mot de passe doit contenir au moins un chiffre','err');return;}
-  if(DB.users.find(u=>u.email.toLowerCase()===email.toLowerCase())){toast('Email déjà utilisé','err');return;}
-  const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'??';
-  const newUser={id:DB.nextId++,name,email,pwd,level,spec:'',initials,color:DB.COLORS[DB.users.length%DB.COLORS.length],role:'student',passed:0,avgScore:0,certs:0,activity:[]};
-  DB.users.push(newUser);
-  DB.students.push({id:newUser.id,name,initials:newUser.initials,color:newUser.color,level,passed:0,avgScore:0,certs:0,email});
-  // Sauvegarder dans Firebase
-  if(fbReady){ fbSaveUser(newUser).catch(e=>console.warn(e)); }
-  saveData();
-  toast('Compte créé ! Bienvenue '+name+' 🎉','ok');
-  loginUser(newUser);
+  const btn=document.querySelector('#register-form .btn-auth');
+  if(btn){btn.disabled=true;btn.textContent='Création...';}
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email, pwd);
+    // Sauvegarder les infos supplémentaires dans Firestore
+    const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'??';
+    const color=DB.COLORS[DB.users.length%DB.COLORS.length];
+    const newUser={id:DB.nextId++,name,email,level,spec:'',initials,color,role:'student',passed:0,avgScore:0,certs:0,activity:[]};
+    DB.users.push(newUser);
+    DB.students.push({id:newUser.id,name,initials,color,level,passed:0,avgScore:0,certs:0,email});
+    await db.collection('users').doc(email).set({name,email,level,initials,color,role:'student',passed:0,avgScore:0,certs:0});
+    saveData();
+    toast('Compte créé ! Bienvenue '+name+' 🎉','ok');
+    // onAuthStateChanged va connecter automatiquement
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='Créer mon compte';}
+    if(e.code==='auth/email-already-in-use') toast('Email déjà utilisé','err');
+    else if(e.code==='auth/weak-password') toast('Mot de passe trop faible','err');
+    else toast('Erreur : '+e.message,'err');
+  }
 }
 
 
@@ -1475,16 +1502,16 @@ async function loginUser(user){
   startRTDBListener();
 }
 
-function doLogout(){
+async function doLogout(){
   stopAutoRefresh();
-  stopJsonBinSync();
   stopRTDBListener();
+  try{ await auth.signOut(); }catch(e){console.warn(e);}
   currentUser=null;
   document.querySelectorAll('.admin-nav-btn').forEach(b=>b.style.setProperty('display','none','important'));
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('main-app').style.display='none';
-  document.getElementById('login-email').value='etudiant@erse.ac';
-  document.getElementById('login-pwd').value='erse2024';
+  document.getElementById('login-email').value='';
+  document.getElementById('login-pwd').value='';
 }
 
 function saveProfile(){
@@ -3336,6 +3363,66 @@ loadData();
 updateNotifDot();
 // Initialiser Firebase après chargement
 setTimeout(initFirebase, 500);
+
+// ── Écouter l'état de connexion Firebase Auth ──
+auth.onAuthStateChanged(async (firebaseUser) => {
+  if(firebaseUser){
+    const email = firebaseUser.email;
+    let user = DB.users.find(u=>u.email===email);
+    if(!user){
+      try{
+        const doc = await db.collection('users').doc(email).get();
+        if(doc.exists){
+          const d = doc.data();
+          user = {
+            id:DB.nextId++, name:d.name||firebaseUser.displayName||email.split('@')[0],
+            email, level:d.level||1, spec:d.spec||'',
+            initials:d.initials||email[0].toUpperCase(),
+            color:d.color||DB.COLORS[0], role:d.role||'student',
+            passed:d.passed||0, avgScore:d.avgScore||0, certs:d.certs||0, activity:[]
+          };
+          if(email==='lekoyoanicet31@gmail.com') user.role='admin';
+          DB.users.push(user);
+          if(user.role!=='admin') DB.students.push({...user});
+        } else {
+          const name = firebaseUser.displayName || email.split('@')[0];
+          const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'??';
+          const color = DB.COLORS[DB.users.length%DB.COLORS.length];
+          user = {
+            id:DB.nextId++, name, email, level:1, spec:'', initials, color,
+            role: email==='lekoyoanicet31@gmail.com'?'admin':'student',
+            passed:0, avgScore:0, certs:0, activity:[]
+          };
+          DB.users.push(user);
+          if(user.role==='student') DB.students.push({...user});
+          await db.collection('users').doc(email).set({
+            name, email, level:1, initials, color, role:user.role,
+            passed:0, avgScore:0, certs:0
+          });
+        }
+      }catch(e){
+        console.warn('Erreur chargement profil:', e);
+        const name = firebaseUser.displayName || email.split('@')[0];
+        user = {
+          id:DB.nextId++, name, email, level:1, spec:'',
+          initials:name[0].toUpperCase(), color:DB.COLORS[0],
+          role: email==='lekoyoanicet31@gmail.com'?'admin':'student',
+          passed:0, avgScore:0, certs:0, activity:[]
+        };
+        DB.users.push(user);
+      }
+    }
+    if(email==='lekoyoanicet31@gmail.com') user.role='admin';
+    saveData();
+    loginUser(user);
+  } else {
+    if(currentUser){
+      currentUser=null;
+      document.getElementById('auth-screen').style.display='flex';
+      document.getElementById('main-app').style.display='none';
+    }
+  }
+});
 </script>
 </body>
 </html>
