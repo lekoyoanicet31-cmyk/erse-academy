@@ -2069,8 +2069,9 @@ function renderXPBar(user){
   `;
 }
 
-/* ═══════════════ FORUM ═══════════════ */
+/* ═══════════════ FORUM — Firebase Firestore ═══════════════ */
 const FORUM = {posts:[]};
+let forumListener = null;
 
 function openNewPost(){
   document.getElementById('forum-new-post').style.display='';
@@ -2080,28 +2081,41 @@ function openNewPost(){
   document.getElementById('post-title').focus();
 }
 
-function submitPost(){
+async function submitPost(){
   const title=document.getElementById('post-title').value.trim();
-  const content=document.getElementById('post-content').value.trim();
+  const postContent=document.getElementById('post-content').value.trim();
   const subject=document.getElementById('post-subject').value;
-  if(!title||!content){toast('Remplissez le titre et le contenu','err');return;}
-  FORUM.posts.unshift({
-    id:DB.nextId++,
-    title,content,subject,
+  if(!title||!postContent){toast('Remplissez le titre et le contenu','err');return;}
+  const post={
+    title, content:postContent, subject,
     author:currentUser.name,
     authorInitials:currentUser.initials,
     authorColor:currentUser.color,
     date:new Date().toLocaleDateString('fr-FR'),
-    replies:[],
-    likes:0,
-    likedBy:[]
-  });
+    createdAt:Date.now(),
+    replies:[], likes:0, likedBy:[]
+  };
   document.getElementById('forum-new-post').style.display='none';
   document.getElementById('post-title').value='';
   document.getElementById('post-content').value='';
-  saveForumData();
-  toast('Discussion publiée !','ok');
-  renderForum(FORUM.posts);
+  if(fbReady){
+    try{
+      await db.collection('forum').add(post);
+      toast('Discussion publiée !','ok');
+    }catch(e){
+      console.warn(e);
+      // Fallback localStorage
+      FORUM.posts.unshift({...post, id:DB.nextId++});
+      saveForumData();
+      toast('Discussion publiée (local)','ok');
+      renderForum(FORUM.posts);
+    }
+  } else {
+    FORUM.posts.unshift({...post, id:DB.nextId++});
+    saveForumData();
+    toast('Discussion publiée (hors ligne)','ok');
+    renderForum(FORUM.posts);
+  }
   pushNotif('Nouvelle discussion','Votre question a été publiée dans le forum','💬','#b0d4f4');
 }
 
@@ -2110,9 +2124,30 @@ function saveForumData(){
 }
 
 function loadForumData(){
+  if(fbReady){
+    // Écouter le forum en temps réel depuis Firestore
+    if(forumListener) forumListener();
+    forumListener = db.collection('forum')
+      .orderBy('createdAt','desc')
+      .limit(50)
+      .onSnapshot(snap=>{
+        FORUM.posts=[];
+        snap.forEach(doc=>{
+          const d=doc.data();
+          FORUM.posts.push({...d, id:doc.id, replies:Array.isArray(d.replies)?d.replies:[]});
+        });
+        renderForum(FORUM.posts);
+      }, e=>{ console.warn('Forum listener error:',e); loadForumFallback(); });
+  } else {
+    loadForumFallback();
+  }
+}
+
+function loadForumFallback(){
   try{
     const d=localStorage.getItem('erse_forum');
     if(d) FORUM.posts=JSON.parse(d);
+    renderForum(FORUM.posts);
   }catch(e){}
 }
 
@@ -2172,21 +2207,36 @@ function renderForum(posts){
   `).join('');
 }
 
-function submitReply(postId){
+async function submitReply(postId){
   const input=document.getElementById('reply-'+postId);
   if(!input||!input.value.trim()){toast('Écrivez une réponse','err');return;}
-  const post=FORUM.posts.find(p=>p.id===postId);
-  if(!post) return;
-  post.replies.push({
+  const reply={
     content:input.value.trim(),
     author:currentUser.name,
     authorInitials:currentUser.initials,
     authorColor:currentUser.color,
     date:new Date().toLocaleDateString('fr-FR')
-  });
-  saveForumData();
-  toast('Réponse publiée !','ok');
-  renderForum(FORUM.posts);
+  };
+  input.value='';
+  if(fbReady){
+    try{
+      const post=FORUM.posts.find(p=>p.id===postId);
+      if(!post) return;
+      const updatedReplies=[...(post.replies||[]), reply];
+      await db.collection('forum').doc(String(postId)).update({replies:updatedReplies});
+      toast('Réponse publiée !','ok');
+      // Le listener onSnapshot va rafraîchir automatiquement
+    }catch(e){
+      console.warn(e);
+      const post=FORUM.posts.find(p=>p.id===postId);
+      if(post){ post.replies.push(reply); saveForumData(); renderForum(FORUM.posts); }
+      toast('Réponse publiée (local)','ok');
+    }
+  } else {
+    const post=FORUM.posts.find(p=>p.id===postId);
+    if(post){ post.replies.push(reply); saveForumData(); renderForum(FORUM.posts); }
+    toast('Réponse publiée (hors ligne)','ok');
+  }
 }
 
 /* ═══════════════ BADGES & RÉCOMPENSES ═══════════════ */
