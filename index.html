@@ -1167,13 +1167,15 @@ async function initFirebase(){
       else DB.students.push(fs);
     });
 
-    // ── Matières : écoute temps réel ──
+    // ── Matières : chargement complet depuis Firestore ──
     const snapSubj = await db.collection('subjects').get();
     if(!snapSubj.empty){
+      // Vider et recharger complètement depuis Firebase
+      DB.subjects = [];
       snapSubj.forEach(doc=>{
         const d=doc.data();
-        const idx=DB.subjects.findIndex(s=>String(s.id)===doc.id);
-        if(idx!==-1) DB.subjects[idx]={...DB.subjects[idx],...d,id:parseInt(doc.id)||DB.subjects[idx].id};
+        const id=parseInt(doc.id)||doc.id;
+        DB.subjects.push({...d, id, files:Array.isArray(d.files)?d.files:[]});
       });
     } else {
       for(const s of DB.subjects) await fbSaveSubject(s);
@@ -1181,16 +1183,11 @@ async function initFirebase(){
 
     // Listener temps réel matières
     db.collection('subjects').onSnapshot(snap=>{
-      snap.docChanges().forEach(change=>{
-        const d=change.doc.data();
-        const id=parseInt(change.doc.id);
-        const idx=DB.subjects.findIndex(s=>s.id===id);
-        if(change.type==='removed'){
-          if(idx!==-1) DB.subjects[idx].active=false;
-        } else {
-          if(idx!==-1) DB.subjects[idx]={...DB.subjects[idx],...d,id};
-          else DB.subjects.push({...d,id});
-        }
+      DB.subjects = [];
+      snap.forEach(doc=>{
+        const d=doc.data();
+        const id=parseInt(doc.id)||doc.id;
+        DB.subjects.push({...d, id, files:Array.isArray(d.files)?d.files:[]});
       });
       // Rafraîchir la page courante si on est sur courses ou home
       const activePage=document.querySelector('.page.on');
@@ -1200,31 +1197,28 @@ async function initFirebase(){
       }
     });
 
-    // ── Examens : écoute temps réel ──
+    // ── Examens : chargement complet depuis Firestore ──
     const snapExam = await db.collection('exams').get();
     if(!snapExam.empty){
+      // Vider et recharger complètement depuis Firebase
+      DB.exams = [];
       snapExam.forEach(doc=>{
         const d=doc.data();
-        const idx=DB.exams.findIndex(e=>String(e.id)===doc.id);
-        if(idx!==-1) DB.exams[idx]={...DB.exams[idx],...d};
-        else DB.exams.push({id:parseInt(doc.id)||DB.nextId++,...d});
+        const id=parseInt(doc.id)||doc.id;
+        DB.exams.push({...d, id, questions:Array.isArray(d.questions)?d.questions:[]});
       });
     } else {
+      // Firebase vide — uploader le contenu local
       for(const e of DB.exams) await fbSaveExam(e);
     }
 
     // Listener temps réel examens
     db.collection('exams').onSnapshot(snap=>{
-      snap.docChanges().forEach(change=>{
-        const d=change.doc.data();
-        const id=parseInt(change.doc.id);
-        const idx=DB.exams.findIndex(e=>e.id===id);
-        if(change.type==='removed'){
-          DB.exams=DB.exams.filter(e=>e.id!==id);
-        } else {
-          if(idx!==-1) DB.exams[idx]={...DB.exams[idx],...d,id};
-          else DB.exams.push({...d,id,questions:d.questions||[]});
-        }
+      DB.exams = [];
+      snap.forEach(doc=>{
+        const d=doc.data();
+        const id=parseInt(doc.id)||doc.id;
+        DB.exams.push({...d, id, questions:Array.isArray(d.questions)?d.questions:[]});
       });
       // Rafraîchir examens si on est sur la page
       const activePage=document.querySelector('.page.on');
