@@ -1723,18 +1723,21 @@ function renderExamList(){
 
 let examTimerInterval = null;
 let examTimeLeft = 0;
+let examSeconds = 0; // temps écoulé pour showScore
 
 function startExamTimer(){
   if(examTimerInterval) clearInterval(examTimerInterval);
   const ex = DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
   if(!ex) return;
   examTimeLeft = ex.questions.length * 120; // 2 min par question
+  examSeconds = 0;
   updateTimerDisplay();
   examTimerInterval = setInterval(()=>{
     examTimeLeft--;
+    examSeconds++;
     updateTimerDisplay();
     if(examTimeLeft<=0){
-      clearInterval(examTimerInterval);
+      clearInterval(examTimerInterval); examTimerInterval=null;
       toast('Temps écoulé !','err');
       showScore(ex.questions.length);
     }
@@ -1804,7 +1807,7 @@ function selOpt(i){
 function nextQ(){
   const ex=DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
   if(ex && curQ+1>=ex.questions.length){
-    clearInterval(examTimer);
+    clearInterval(examTimerInterval); examTimerInterval=null;
     showScore(ex.questions.length);
     return;
   }
@@ -1816,7 +1819,7 @@ function showScore(total){
   const passed=pct>=70;
   const mins=Math.floor(examSeconds/60).toString().padStart(2,'0');
   const secs=(examSeconds%60).toString().padStart(2,'0');
-  clearInterval(examTimer);
+  clearInterval(examTimerInterval); examTimerInterval=null;
   document.getElementById('quiz-inner').innerHTML=`
     <div class="score-box">
       <div class="score-ring ${passed?'pass':'fail'}">
