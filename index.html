@@ -47,6 +47,43 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 .user-avatar-nav:hover{transform:scale(1.08);}
 .hamburger{display:none;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px;}
 
+/* ── ELECTRIC BUTTON ANIMATION ── */
+@keyframes electricPulse{
+  0%{box-shadow:0 0 0 0 rgba(200,155,60,0);}
+  50%{box-shadow:0 0 12px 4px rgba(200,155,60,0.5),0 0 24px 8px rgba(200,155,60,0.2);}
+  100%{box-shadow:0 0 0 0 rgba(200,155,60,0);}
+}
+@keyframes electricBorder{
+  0%,100%{border-color:var(--gold);}
+  25%{border-color:#fff;}
+  50%{border-color:var(--gold-l);}
+  75%{border-color:#fff;}
+}
+.btn-primary,.btn-auth,.btn-start{
+  position:relative;
+  overflow:hidden;
+  transition:all .2s ease;
+}
+.btn-primary:hover,.btn-auth:hover,.btn-start:hover{
+  animation:electricPulse .6s ease-in-out;
+  transform:translateY(-2px);
+  filter:brightness(1.1);
+}
+.btn-primary:hover::after,.btn-auth:hover::after,.btn-start:hover::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.15) 50%,transparent 100%);
+  animation:shimmer .4s ease-in-out;
+}
+@keyframes shimmer{
+  0%{transform:translateX(-100%);}
+  100%{transform:translateX(100%);}
+}
+.btn-primary:active,.btn-auth:active,.btn-start:active{
+  transform:translateY(0px) scale(0.97);
+}
+
 /* ── LOADING SCREEN ── */
 #loading-screen{position:fixed;inset:0;background:var(--b9);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;transition:opacity .4s;}
 #loading-screen.hide{opacity:0;pointer-events:none;}
@@ -627,7 +664,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 </div>
 
 <!-- MAIN APP -->
-<div id="main-app" style="display:none;">
+<div id="main-app" style="display:none;min-height:100vh;flex-direction:column;">
 
 <!-- NAV -->
 <nav>
@@ -1001,7 +1038,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 
 
 <!-- FOOTER -->
-<footer style="background:var(--nav-bg);padding:2rem 1.5rem;margin-top:0;border-top:1px solid rgba(255,255,255,0.06);">
+<footer style="background:var(--nav-bg);padding:2rem 1.5rem;margin-top:auto;border-top:1px solid rgba(255,255,255,0.06);">
   <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="font-family:'Playfair Display',serif;font-size:15px;color:#fff;">ERSE <span style="color:#F0C96A;">ACADEMY</span></div>
@@ -1488,7 +1525,7 @@ async function loginUser(user){
   currentUser=user;
   resetSessionTimer();
   document.getElementById('auth-screen').style.display='none';
-  document.getElementById('main-app').style.display='block';
+  document.getElementById('main-app').style.display='flex';
   const avatar=document.getElementById('user-avatar-nav');
   avatar.textContent=user.initials;
   avatar.style.background=user.color;
@@ -2039,7 +2076,29 @@ function renderNotifs(){
     </div>`).join('');
   updateNotifDot();
 }
-function markRead(id){const n=DB.notifications.find(x=>x.id===id);if(n)n.unread=false;renderNotifs();}
+function markRead(id){
+  const n=DB.notifications.find(x=>x.id===id);
+  if(!n) return;
+  n.unread=false;
+  saveData();
+  renderNotifs();
+  // Rediriger selon le type de notification
+  const title=(n.title||'').toLowerCase();
+  const sub=(n.sub||'').toLowerCase();
+  if(title.includes('examen') || sub.includes('examen') || n.ic==='📝'){
+    toggleNotifPanel(); goPage('exams');
+  } else if(title.includes('certificat') || n.ic==='🎓'){
+    toggleNotifPanel(); goPage('certs');
+  } else if(title.includes('discussion') || title.includes('forum') || n.ic==='💬'){
+    toggleNotifPanel(); goPage('forum');
+  } else if(title.includes('matière') || title.includes('cours') || n.ic==='📚'){
+    toggleNotifPanel(); goPage('courses');
+  } else if(title.includes('administration') || n.ic==='📣'){
+    toggleNotifPanel();
+  } else {
+    toggleNotifPanel();
+  }
+}
 function clearNotifs(){DB.notifications.forEach(n=>n.unread=false);renderNotifs();toast('Notifications effacées','ok');}
 function pushNotif(title,sub,ic,bg){
   DB.notifications.unshift({id:DB.nextId++,title,sub,ic,bg,unread:true,time:'Maintenant'});
@@ -2229,12 +2288,34 @@ function renderForum(posts){
           </div>
           <div style="font-size:13px;color:var(--text);">${r.content}</div>
         </div>`).join('')}
-      <div style="display:flex;gap:6px;margin-top:.8rem;">
+      <div style="display:flex;gap:6px;margin-top:.8rem;align-items:center;">
         <input id="reply-${p.id}" placeholder="Écrire une réponse..." style="flex:1;padding:7px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:var(--font-body);background:var(--input-bg);color:var(--text);outline:none;">
         <button onclick="submitReply('${p.id}')" style="background:var(--b9);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Répondre</button>
+        ${(currentUser&&(currentUser.role==='admin'||p.author===currentUser.name))?`<button onclick="deletePost('${p.id}')" style="background:var(--r);color:var(--rc);border:none;border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;" title="Supprimer">🗑</button>`:''}
       </div>
     </div>
   `).join('');
+}
+
+async function deletePost(postId){
+  if(!confirm('Supprimer cette discussion ?')) return;
+  if(fbReady){
+    try{
+      await db.collection('forum').doc(String(postId)).delete();
+      toast('Discussion supprimée !','ok');
+    }catch(e){
+      console.warn(e);
+      FORUM.posts=FORUM.posts.filter(p=>p.id!==postId);
+      saveForumData();
+      renderForum(FORUM.posts);
+      toast('Discussion supprimée (local)','ok');
+    }
+  } else {
+    FORUM.posts=FORUM.posts.filter(p=>p.id!==postId);
+    saveForumData();
+    renderForum(FORUM.posts);
+    toast('Discussion supprimée !','ok');
+  }
 }
 
 async function submitReply(postId){
