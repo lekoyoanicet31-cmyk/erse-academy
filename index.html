@@ -1569,7 +1569,7 @@ function goPage(id){
   const idx={home:0,courses:1,exams:2,leaderboard:3,certs:4,energybot:5,forum:6};
   if(idx[id]!==undefined) document.querySelectorAll('#nav-links .np')[idx[id]].classList.add('on');
   document.getElementById('notif-panel').classList.remove('open');
-  const renders={home:renderHome,forum:()=>{loadForumData();renderForum(FORUM.posts);},courses:()=>filterLevel(1,document.querySelector('#lvl-tabs .tab')),exams:renderExamList,leaderboard:()=>refreshLeaderboard(),certs:renderCerts,profile:renderProfile,energybot:()=>{
+  const renders={home:renderHome,forum:()=>{loadForumData();renderForum(FORUM.posts);},courses:()=>filterLevel(1,document.querySelector('#lvl-tabs .tab')),exams:()=>{ document.getElementById('quiz-wrap').style.display='none'; document.getElementById('exam-list-wrap').style.display=''; renderExamList(); },leaderboard:()=>refreshLeaderboard(),certs:renderCerts,profile:renderProfile,energybot:()=>{
     const keyBtn=document.getElementById('eb-key-btn');
     if(keyBtn) keyBtn.style.display=currentUser?.role==='admin'?'':'none';
   },admin:()=>adminTab('dashboard',document.querySelector('.ani'))};
@@ -1719,6 +1719,39 @@ function renderExamList(){
       <button class="btn-start" onclick="startQuiz(${e.id})">Commencer →</button>
     </div>`;
   }).join('')||'<div style="text-align:center;padding:2rem;color:var(--muted);">Aucun examen disponible.</div>';
+}
+
+let examTimerInterval = null;
+let examTimeLeft = 0;
+
+function startExamTimer(){
+  if(examTimerInterval) clearInterval(examTimerInterval);
+  const ex = DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
+  if(!ex) return;
+  examTimeLeft = ex.questions.length * 120; // 2 min par question
+  updateTimerDisplay();
+  examTimerInterval = setInterval(()=>{
+    examTimeLeft--;
+    updateTimerDisplay();
+    if(examTimeLeft<=0){
+      clearInterval(examTimerInterval);
+      toast('Temps écoulé !','err');
+      showScore(ex.questions.length);
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(){
+  const el = document.getElementById('exam-timer');
+  if(!el) return;
+  const m = Math.floor(examTimeLeft/60);
+  const s = examTimeLeft%60;
+  el.textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
+  el.style.color = examTimeLeft < 60 ? '#ef4444' : 'var(--muted)';
+}
+
+function stopExamTimer(){
+  if(examTimerInterval){ clearInterval(examTimerInterval); examTimerInterval=null; }
 }
 
 function startQuiz(examId){
