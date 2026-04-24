@@ -202,6 +202,24 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 
 /* ── QUIZ ── */
 .quiz-outer{max-width:620px;margin:0 auto;}
+/* ── ANTI-TRICHE ── */
+#quiz-wrap.exam-active{
+  position:fixed;inset:0;z-index:9000;
+  background:var(--bg);overflow-y:auto;
+  padding:1rem;
+}
+.cheat-warning{
+  position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:#ef4444;color:#fff;
+  text-align:center;padding:12px;
+  font-weight:600;font-size:14px;
+  animation:warningPulse .5s ease-in-out 3;
+}
+@keyframes warningPulse{
+  0%,100%{opacity:1;}50%{opacity:0.5;}
+}
+.exam-active .quiz-outer{user-select:none;-webkit-user-select:none;}
+
 .qbox{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:1.8rem;box-shadow:var(--shadow);}
 .q-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:7px;}
 .q-prog{height:5px;background:var(--b0);border-radius:3px;margin-bottom:1.3rem;overflow:hidden;}
@@ -1806,15 +1824,115 @@ function stopExamTimer(){
   if(examTimerInterval){ clearInterval(examTimerInterval); examTimerInterval=null; }
 }
 
+// Anti-triche
+let cheatWarnings = 0;
+let shuffledQuestions = [];
+let examActive = false;
+
+function shuffleArray(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startAntiCheat(){
+  examActive = true;
+  cheatWarnings = 0;
+
+  // Plein écran
+  const qw = document.getElementById('quiz-wrap');
+  qw.classList.add('exam-active');
+  if(qw.requestFullscreen) qw.requestFullscreen().catch(()=>{});
+
+  // Bloquer copier-coller
+  document.addEventListener('copy', blockCopy);
+  document.addEventListener('paste', blockCopy);
+  document.addEventListener('cut', blockCopy);
+
+  // Bloquer clic droit
+  document.addEventListener('contextmenu', blockCopy);
+
+  // Détecter changement d'onglet
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  // Bloquer touches dangereuses (F12, Alt+Tab hints)
+  document.addEventListener('keydown', blockKeys);
+}
+
+function blockCopy(e){
+  if(!examActive) return;
+  e.preventDefault();
+  showCheatWarning('⚠️ Action non autorisée pendant l'examen !');
+}
+
+function blockKeys(e){
+  if(!examActive) return;
+  if(e.key==='F12'||(e.ctrlKey&&['u','s','p','a'].includes(e.key.toLowerCase()))){
+    e.preventDefault();
+    showCheatWarning('⚠️ Raccourci clavier non autorisé !');
+  }
+}
+
+function handleVisibilityChange(){
+  if(!examActive) return;
+  if(document.hidden){
+    cheatWarnings++;
+    showCheatWarning('⚠️ Changement d'onglet détecté ! Avertissement '+cheatWarnings+'/3');
+    if(cheatWarnings>=3){
+      stopAntiCheat();
+      toast('Examen annulé — trop de tentatives de triche !','err');
+      const ex=DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
+      showScore(ex?ex.questions.length:0);
+    }
+  }
+}
+
+function showCheatWarning(msg){
+  const existing = document.querySelector('.cheat-warning');
+  if(existing) existing.remove();
+  const div = document.createElement('div');
+  div.className = 'cheat-warning';
+  div.textContent = msg;
+  document.body.appendChild(div);
+  setTimeout(()=>div.remove(), 3000);
+}
+
+function stopAntiCheat(){
+  examActive = false;
+  const qw = document.getElementById('quiz-wrap');
+  qw.classList.remove('exam-active');
+  if(document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  document.removeEventListener('copy', blockCopy);
+  document.removeEventListener('paste', blockCopy);
+  document.removeEventListener('cut', blockCopy);
+  document.removeEventListener('contextmenu', blockCopy);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  document.removeEventListener('keydown', blockKeys);
+}
+
 function startQuiz(examId){
-  // Convertir en nombre pour comparaison cohérente
   examId=parseInt(examId)||examId;
   curExamId=examId;curQ=0;score=0;
   const ex=DB.exams.find(e=>e.id===examId||e.id===String(examId)||parseInt(e.id)===parseInt(examId));
   if(!ex){toast('Examen introuvable. Rechargez la page.','err');return;}
   const s=DB.subjects.find(x=>x.id===ex.subjectId||parseInt(x.id)===parseInt(ex.subjectId));
+
+  // Mélanger les questions et les réponses
+  shuffledQuestions = shuffleArray(ex.questions).map(q=>{
+    const shuffledOpts = shuffleArray(q.opts.map((o,i)=>({text:o,isCorrect:i===q.ans})));
+    return {
+      q: q.q,
+      opts: shuffledOpts.map(o=>o.text),
+      ans: shuffledOpts.findIndex(o=>o.isCorrect)
+    };
+  });
+
   document.getElementById('exam-list-wrap').style.display='none';
   document.getElementById('quiz-wrap').style.display='';
+  startAntiCheat();
   startExamTimer();
   document.getElementById('quiz-subj-ttl').textContent='📝 Examen — '+(s?s.name:'?');
   renderQ();
@@ -1823,13 +1941,13 @@ function startQuiz(examId){
 function renderQ(){
   const ex=DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
   if(!ex){toast('Erreur : examen introuvable','err');backExams();return;}
-  if(!ex.questions||!ex.questions.length){
+  if(!shuffledQuestions||!shuffledQuestions.length){
     toast('Cet examen n\'a pas encore de questions','err');
     backExams();return;
   }
-  if(curQ>=ex.questions.length){showScore(ex.questions.length);return;}
-  const q=ex.questions[curQ];
-  const pct=Math.round((curQ/ex.questions.length)*100);
+  if(curQ>=shuffledQuestions.length){showScore(shuffledQuestions.length);return;}
+  const q=shuffledQuestions[curQ];
+  const pct=Math.round((curQ/shuffledQuestions.length)*100);
   answered=false;
   const L=['A','B','C','D'];
   document.getElementById('quiz-inner').innerHTML=`
@@ -1843,9 +1961,9 @@ function renderQ(){
 
 function selOpt(i){
   if(answered)return;answered=true;
+  if(!shuffledQuestions||!shuffledQuestions[curQ]) return;
+  const q=shuffledQuestions[curQ];
   const ex=DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
-  if(!ex||!ex.questions||!ex.questions[curQ]) return;
-  const q=ex.questions[curQ];
   document.querySelectorAll('.q-opt').forEach((el,idx)=>{
     if(idx===q.ans)el.classList.add('ok');
     else if(idx===i&&i!==q.ans)el.classList.add('ko');
@@ -1854,16 +1972,16 @@ function selOpt(i){
   document.getElementById('btn-nxt').disabled=false;
 }
 function nextQ(){
-  const ex=DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
-  if(ex && curQ+1>=ex.questions.length){
+  if(shuffledQuestions && curQ+1>=shuffledQuestions.length){
     clearInterval(examTimerInterval); examTimerInterval=null;
-    showScore(ex.questions.length);
+    showScore(shuffledQuestions.length);
     return;
   }
   curQ++;renderQ();
 }
 
 function showScore(total){
+  stopAntiCheat();
   const pct=total>0?Math.round((score/total)*100):0;
   const passed=pct>=70;
   const mins=Math.floor(examSeconds/60).toString().padStart(2,'0');
