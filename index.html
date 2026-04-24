@@ -1527,6 +1527,9 @@ async function loginUser(user){
   resetSessionTimer();
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('main-app').style.display='flex';
+  // Restaurer la dernière page visitée
+  const lastPage = localStorage.getItem('erse_current_page') || 'home';
+  setTimeout(()=>goPage(lastPage), 100);
   const avatar=document.getElementById('user-avatar-nav');
   avatar.textContent=user.initials;
   avatar.style.background=user.color;
@@ -1607,6 +1610,8 @@ function goPage(id){
   const idx={home:0,courses:1,exams:2,leaderboard:3,certs:4,energybot:5,forum:6};
   if(idx[id]!==undefined) document.querySelectorAll('#nav-links .np')[idx[id]].classList.add('on');
   document.getElementById('notif-panel').classList.remove('open');
+  // Sauvegarder la page courante
+  try{ localStorage.setItem('erse_current_page', id); }catch(e){}
   const renders={home:renderHome,forum:()=>{loadForumData();renderForum(FORUM.posts);},courses:()=>filterLevel(1,document.querySelector('#lvl-tabs .tab')),exams:()=>{ document.getElementById('quiz-wrap').style.display='none'; document.getElementById('exam-list-wrap').style.display=''; renderExamList(); },leaderboard:()=>refreshLeaderboard(),certs:renderCerts,profile:renderProfile,energybot:()=>{
     const keyBtn=document.getElementById('eb-key-btn');
     if(keyBtn) keyBtn.style.display=currentUser?.role==='admin'?'':'none';
