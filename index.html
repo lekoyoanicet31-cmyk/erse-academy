@@ -1141,15 +1141,21 @@ async function fbLoadCerts(userId){
 
 async function fbLoadAllStudents(){
   try{
-    const snap = await db.collection('users').where('role','==','student').get();
+    // Charger TOUS les utilisateurs sauf l'admin
+    const snap = await db.collection('users').get();
     const students = [];
     snap.forEach(doc => {
       const d = doc.data();
+      const email = doc.id;
+      // Exclure l'admin
+      if(email === 'lekoyoanicet31@gmail.com') return;
+      if(d.role === 'admin') return;
       students.push({
-        id:doc.id, name:d.name, initials:d.initials||'??',
+        id:doc.id, name:d.name||email.split('@')[0],
+        initials:d.initials||'??',
         color:d.color||'#185FA5', level:d.level||1,
         passed:d.passed||0, avgScore:d.avgScore||0,
-        certs:d.certs||0, email:d.email
+        certs:d.certs||0, email:email
       });
     });
     return students;
