@@ -2,6 +2,15 @@
 <html lang="fr" data-theme="light">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com;
+  connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net https://api.groq.com wss://*.firebaseio.com;
+  img-src 'self' data: https:;
+  frame-src https://accounts.google.com;
+">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ERSE ACADEMY — Plateforme Académique</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -2170,13 +2179,49 @@ function openNewPost(){
   document.getElementById('post-title').focus();
 }
 
+// Rate limiting forum
+const FORUM_RATE = {};
+function checkForumRateLimit(){
+  const email = currentUser?.email;
+  if(!email) return false;
+  const now = Date.now();
+  if(!FORUM_RATE[email]) FORUM_RATE[email] = [];
+  // Garder uniquement les posts des dernières 60 minutes
+  FORUM_RATE[email] = FORUM_RATE[email].filter(t => now - t < 3600000);
+  if(FORUM_RATE[email].length >= 5){
+    toast('Limite atteinte : max 5 posts par heure','err');
+    return false;
+  }
+  FORUM_RATE[email].push(now);
+  return true;
+}
+
+// Validation et nettoyage des données
+function sanitize(str){
+  if(!str) return '';
+  return str
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#x27;')
+    .replace(/\//g,'&#x2F;')
+    .trim()
+    .slice(0, 2000); // max 2000 caractères
+}
+
 async function submitPost(){
   const title=document.getElementById('post-title').value.trim();
   const postContent=document.getElementById('post-content').value.trim();
   const subject=document.getElementById('post-subject').value;
   if(!title||!postContent){toast('Remplissez le titre et le contenu','err');return;}
+  if(!checkForumRateLimit()) return;
+  // Sanitiser les données
+  const cleanTitle = sanitize(title);
+  const cleanContent = sanitize(postContent);
+  if(cleanTitle.length < 5){toast('Titre trop court (min 5 caractères)','err');return;}
+  if(cleanContent.length < 10){toast('Message trop court (min 10 caractères)','err');return;}
   const post={
-    title, content:postContent, subject,
+    title:cleanTitle, content:cleanContent, subject:sanitize(subject),
     author:currentUser.name,
     authorInitials:currentUser.initials,
     authorColor:currentUser.color,
@@ -2321,8 +2366,10 @@ async function deletePost(postId){
 async function submitReply(postId){
   const input=document.getElementById('reply-'+postId);
   if(!input||!input.value.trim()){toast('Écrivez une réponse','err');return;}
+  const replyText = sanitize(input.value.trim());
+  if(replyText.length < 2){toast('Réponse trop courte','err');return;}
   const reply={
-    content:input.value.trim(),
+    content:replyText,
     author:currentUser.name,
     authorInitials:currentUser.initials,
     authorColor:currentUser.color,
@@ -2734,7 +2781,25 @@ function editSubject(id){
   document.getElementById('s-desc').value=s.desc||'';
   openModal('modal-subj');
 }
+async function verifyAdmin(){
+  if(!currentUser || currentUser.role !== 'admin'){
+    toast('Accès refusé — Admin uniquement','err');
+    return false;
+  }
+  if(!fbReady) return true;
+  try{
+    const doc = await db.collection('users').doc(currentUser.email).get();
+    if(!doc.exists || doc.data().role !== 'admin'){
+      toast('Accès refusé — Vérification Firebase échouée','err');
+      doLogout();
+      return false;
+    }
+  }catch(e){ console.warn('Admin verify error:', e); }
+  return true;
+}
+
 async function saveSubject(){
+  if(!await verifyAdmin()) return;
   const name=document.getElementById('s-name').value.trim();
   if(!name){toast('Nom requis','err');return;}
   if(editSubjectId){
@@ -2800,6 +2865,7 @@ function addQuestion(){
   document.getElementById('q-list').appendChild(div);
 }
 async function saveExam(){
+  if(!await verifyAdmin()) return;
   const subjectId=+document.getElementById('e-subj').value;
   const difficulty=document.getElementById('e-diff').value;
   const questions=[];
@@ -2820,6 +2886,7 @@ async function saveExam(){
   renderAdminExams();
 }
 async function deleteExam(id){
+  if(!await verifyAdmin()) return;
   if(!confirm('Supprimer cet examen ?')) return;
   DB.exams=DB.exams.filter(e=>e.id!==id);
   saveData();
