@@ -2811,10 +2811,17 @@ async function saveSubject(){
 }
 async function toggleSubj(id){
   const s=DB.subjects.find(x=>x.id===id);
+  if(!s) return;
   s.active=!s.active;
   saveData();
-  if(fbReady){ try{ await fbSaveSubject(s); await pushToRTDB(); }catch(e){console.warn(e);} }
-  toast(s.name+' '+(s.active?'activée':'désactivée')+' — synchronisé !','ok');
+  // Mettre à jour Firestore immédiatement
+  if(fbReady){
+    try{
+      await db.collection('subjects').doc(String(s.id)).update({active:s.active});
+      await pushToRTDB();
+    }catch(e){console.warn(e);}
+  }
+  toast(s.name+' '+(s.active?'activée':'désactivée')+'!','ok');
   renderAdminSubjects();
 }
 
