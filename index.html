@@ -1900,7 +1900,18 @@ function showScore(total){
       st.passed++;
       st.avgScore=Math.round((st.avgScore*(st.passed-1)+pct)/st.passed);
     }
+    // Mettre à jour currentUser aussi
+    currentUser.passed=(currentUser.passed||0)+1;
+    currentUser.avgScore=Math.round(((currentUser.avgScore||0)*(currentUser.passed-1)+pct)/currentUser.passed);
     if(currentUser.activity)currentUser.activity.unshift({text:'Examen réussi : '+(s?s.name:''),ic:'📝',bg:var_g(),time:new Date().toLocaleDateString('fr-FR')});
+    saveData();
+    // Sauvegarder dans Firestore
+    if(fbReady && currentUser.email){
+      db.collection('users').doc(currentUser.email).set({
+        passed: currentUser.passed,
+        avgScore: currentUser.avgScore
+      },{merge:true}).catch(e=>console.warn(e));
+    }
   }
 }
 
