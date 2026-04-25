@@ -1609,15 +1609,32 @@ async function doLogout(){
   document.getElementById('login-pwd').value='';
 }
 
-function saveProfile(){
+async function saveProfile(){
   if(!currentUser)return;
   currentUser.name=document.getElementById('ep-name').value.trim()||currentUser.name;
   currentUser.level=+document.getElementById('ep-level').value;
   currentUser.spec=document.getElementById('ep-spec').value.trim();
   currentUser.initials=currentUser.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'??';
   document.getElementById('user-avatar-nav').textContent=currentUser.initials;
+  saveData();
+  // Sauvegarder dans Firestore
+  if(fbReady && currentUser.email){
+    try{
+      await db.collection('users').doc(currentUser.email).set({
+        name: currentUser.name,
+        level: currentUser.level,
+        spec: currentUser.spec,
+        initials: currentUser.initials
+      },{merge:true});
+      toast('Profil mis à jour et synchronisé !','ok');
+    }catch(e){
+      console.warn(e);
+      toast('Profil mis à jour localement','ok');
+    }
+  } else {
+    toast('Profil mis à jour !','ok');
+  }
   closeModal('modal-edit-profile');
-  toast('Profil mis à jour !','ok');
   renderProfile();
 }
 
