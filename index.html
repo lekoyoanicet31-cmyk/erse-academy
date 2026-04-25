@@ -1708,16 +1708,17 @@ function renderExamCountdowns(){
 }
 
 function cardHtml(s){
-  const ex=DB.exams.find(e=>e.subjectId===s.id);
+  const ex=DB.exams.find(e=>parseInt(e.subjectId)===parseInt(s.id)||String(e.subjectId)===String(s.id));
+  const examCount=DB.exams.filter(e=>parseInt(e.subjectId)===parseInt(s.id)||String(e.subjectId)===String(s.id)).length;
   return `<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
       <div class="c-ico">${s.icon}</div><span class="pill-lvl l${s.level}p">L${s.level}</span>
     </div>
     <div class="c-ttl">${s.name}</div>
-    <div class="c-sub">${s.docs} documents${s.desc?' · '+s.desc:''}</div>
+    <div class="c-sub">${s.docs} documents${s.desc?' · '+s.desc:''}${examCount?' · '+examCount+' examen(s)':''}</div>
     <div class="c-acts">
       <button class="bs bs-dl" onclick="goPage('courses')">📂 Documents</button>
-      ${ex?`<button class="bs bs-ex" onclick="startQuiz(${ex.id})">✏ Examen</button>`:''}
+      ${ex?'<button class="bs bs-ex" onclick="goPage('exams')">✏ Examen</button>':''}
     </div>
   </div>`;
 }
