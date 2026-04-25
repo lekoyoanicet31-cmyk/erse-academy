@@ -1681,6 +1681,41 @@ function renderHome(){
       <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${s.name}</div><div style="font-size:11px;color:var(--muted);">${s.certs} certs · L${s.level}</div></div>
       <div style="font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--gold-d);">${s.avgScore}%</div>
     </div>`).join('');
+  // Afficher les examens disponibles avec minuteur de session
+  renderExamCountdowns();
+}
+
+let countdownInterval = null;
+
+function renderExamCountdowns(){
+  const wrap = document.getElementById('home-exam-countdowns');
+  if(!wrap) return;
+  if(DB.exams.length===0){ wrap.innerHTML=''; return; }
+
+  // Afficher les 3 premiers examens avec un compteur de session
+  const examsToShow = DB.exams.slice(0,3);
+  wrap.innerHTML = `
+    <div style="margin-top:1.5rem;">
+      <div style="font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--b9);margin-bottom:1rem;">⏳ Examens disponibles</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${examsToShow.map(e=>{
+          const s=DB.subjects.find(x=>x.id===e.subjectId||parseInt(x.id)===parseInt(e.subjectId));
+          const mins = e.questions.length * 2;
+          return `
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="font-size:24px;">${s?s.icon:'📝'}</div>
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);">${s?s.name:'Examen'}</div>
+                  <div style="font-size:11px;color:var(--muted);">📋 ${e.questions.length} questions · ⏱ ${mins} min · ${e.difficulty==='hard'?'🔴 Avancé':e.difficulty==='medium'?'🟡 Intermédiaire':'🟢 Débutant'}</div>
+                </div>
+              </div>
+              <button class="btn-start" onclick="goPage('exams')" style="white-space:nowrap;font-size:12px;padding:7px 14px;">Commencer →</button>
+            </div>`;
+        }).join('')}
+        ${DB.exams.length>3?`<div style="text-align:center;"><button onclick="goPage('exams')" style="font-size:13px;color:var(--gold-d);background:none;border:none;cursor:pointer;font-family:var(--font-body);">Voir tous les examens (${DB.exams.length}) →</button></div>`:''}
+      </div>
+    </div>`;
 }
 
 function cardHtml(s){
@@ -1865,7 +1900,7 @@ function startAntiCheat(){
 function blockCopy(e){
   if(!examActive) return;
   e.preventDefault();
-  showCheatWarning('⚠️ Action non autorisée pendant l'examen !');
+  showCheatWarning("⚠️ Action non autorisée pendant l'examen !");
 }
 
 function blockKeys(e){
