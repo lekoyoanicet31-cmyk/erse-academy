@@ -1718,7 +1718,7 @@ function cardHtml(s){
     <div class="c-sub">${s.docs} documents${s.desc?' · '+s.desc:''}${examCount?' · '+examCount+' examen(s)':''}</div>
     <div class="c-acts">
       <button class="bs bs-dl" onclick="goPage('courses')">📂 Documents</button>
-      ${ex?'<button class="bs bs-ex" onclick="goPage('exams')">✏ Examen</button>':''}
+      ${ex?`<button class="bs bs-ex" onclick="goPage('exams')">✏ Examen</button>`:''}
     </div>
   </div>`;
 }
