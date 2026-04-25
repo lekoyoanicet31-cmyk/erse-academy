@@ -2302,7 +2302,7 @@ function renderProfile(){
   big.style.color=u.color;
   document.getElementById('profile-fullname').textContent=u.name;
   document.getElementById('profile-sub').textContent=(u.spec?u.spec+' · ':'')+`Licence ${u.level} · ${u.email}`;
-  const myCerts=DB.certificates.filter(c=>c.userId===u.id);
+  const myCerts=DB.certificates.filter(c=>c.userId===u.email||c.userId===String(u.id)||c.studentName===u.name);
   const myPassed=DB.students.find(s=>s.id===u.id)?.passed||u.passed||0;
   // Afficher XP bar
   const xpEl=document.getElementById('profile-xp-bar');
