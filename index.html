@@ -635,7 +635,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
   <div class="loading-logo">EA</div>
   <div class="loading-title">ERSE <span>ACADEMY</span></div>
   <div class="loading-bar"><div class="loading-bar-fill"></div></div>
-  <div class="loading-txt" id="loading-txt">Connexion à Firebase...</div>
+  <div class="loading-txt" id="loading-txt">Initialisation...</div>
 </div>
 
 <!-- AUTH -->
@@ -1201,7 +1201,12 @@ async function fbDeleteExam(examId){
 
 function hideLoadingScreen(){
   const el = document.getElementById('loading-screen');
-  if(el){ el.classList.add('hide'); setTimeout(()=>el.remove(), 400); }
+  if(el){ el.classList.add('hide'); setTimeout(()=>{ if(el.parentNode) el.remove(); }, 400); }
+  // Si personne n'est connecté, afficher l'écran de login
+  if(!currentUser){
+    document.getElementById('auth-screen').style.display='flex';
+    document.getElementById('main-app').style.display='none';
+  }
 }
 
 async function initFirebase(){
@@ -3808,8 +3813,8 @@ loadData();
 updateNotifDot();
 // Initialiser Firebase après chargement
 setTimeout(initFirebase, 500);
-// Fallback: cacher le loading après 6 secondes max
-setTimeout(hideLoadingScreen, 6000);
+// Fallback: cacher le loading après 3 secondes max
+setTimeout(hideLoadingScreen, 3000);
 
 // ── Écouter l'état de connexion Firebase Auth ──
 auth.onAuthStateChanged(async (firebaseUser) => {
