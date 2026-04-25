@@ -1443,6 +1443,7 @@ const DB = {
 ═══════════════════════════════════════════ */
 let currentUser=null;
 let curExamId=null,curQ=0,score=0,answered=false;
+let deferredPrompt=null; // PWA install prompt
 let editSubjectId=null;
 let lbFilter=0;
 let darkMode=false;
@@ -4049,7 +4050,6 @@ self.addEventListener('fetch', e=>{
 }
 
 // ── INSTALL PROMPT (PWA) ──
-let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e=>{
   e.preventDefault();
   deferredPrompt = e;
@@ -4062,7 +4062,7 @@ function showInstallButton(){
   if(existing) return;
   const btn = document.createElement('button');
   btn.id = 'pwa-install-btn';
-  btn.innerHTML = '📲 Installer l'app';
+  btn.innerHTML = "📲 Installer l'app";
   btn.style.cssText = `
     position:fixed;bottom:80px;right:16px;z-index:8000;
     background:var(--gold);color:#0a1628;
