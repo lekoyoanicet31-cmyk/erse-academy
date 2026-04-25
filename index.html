@@ -716,7 +716,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
       <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3);transition:background .3s;flex-shrink:0;"></span>
       <span style="font-size:11px;color:rgba(255,255,255,0.5);">Sync</span>
     </button>
-    <button id="pwa-nav-btn" class="icon-btn" onclick="installPWA()" title="Installer l'app" style="display:none;">
+    <button id="pwa-nav-btn" class="icon-btn" onclick="installPWA()" title="Installer app" style="display:none;">
         📲
       </button>
       <button class="icon-btn" onclick="toggleNotifPanel()" id="notif-btn" title="Notifications">
@@ -1560,6 +1560,11 @@ async function loginUser(user){
   setTimeout(()=>goPage(lastPage), 100);
   // Mettre à jour les chips EnergyBot avec les vraies matières
   setTimeout(renderEbChips, 500);
+  // Afficher bouton install si supporté
+  if(deferredPrompt){
+    const navBtn = document.getElementById('pwa-nav-btn');
+    if(navBtn) navBtn.style.display='flex';
+  }
   const avatar=document.getElementById('user-avatar-nav');
   avatar.textContent=user.initials;
   avatar.style.background=user.color;
@@ -2106,6 +2111,13 @@ function getCert(){
   goPage('certs');
 }
 
+function downloadCertBySubject(subject){
+  const userKey = currentUser?.email || String(currentUser?.id);
+  const cert = DB.certificates.find(c=>c.subject===subject&&(c.userId===userKey||c.studentName===currentUser?.name));
+  if(cert) downloadCert(cert);
+  else toast('Certificat introuvable','err');
+}
+
 async function downloadCert(cert){
   // Créer un canvas pour le certificat
   const canvas = document.createElement('canvas');
@@ -2216,12 +2228,8 @@ async function refreshLeaderboard(){
     try{
       const fbStudents = await fbLoadAllStudents();
       if(fbStudents.length > 0){
-        // Fusionner sans doublons
-        fbStudents.forEach(fs=>{
-          const idx=DB.students.findIndex(s=>s.email===fs.email);
-          if(idx!==-1) DB.students[idx]={...DB.students[idx],...fs};
-          else DB.students.push(fs);
-        });
+        // Remplacer complètement DB.students par les données Firestore
+        DB.students = fbStudents;
       }
     }catch(e){console.warn(e);}
   }
@@ -2259,7 +2267,7 @@ function renderCerts(){
       </div>
       <div style="text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
         <button class="btn-print" onclick="window.print()">🖨 Imprimer</button>
-        <button class="btn-print" onclick="downloadCert(DB.certificates[${idx}])" style="background:var(--gold-p);">⬇️ Télécharger</button>
+        <button class="btn-print" onclick="downloadCertBySubject('${c.subject}')" style="background:var(--gold-p);">⬇️ Télécharger</button>
       </div>
     </div>`).join('');
 }
