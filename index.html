@@ -1915,7 +1915,7 @@ function handleVisibilityChange(){
   if(!examActive) return;
   if(document.hidden){
     cheatWarnings++;
-    showCheatWarning('⚠️ Changement d'onglet détecté ! Avertissement '+cheatWarnings+'/3');
+    showCheatWarning("⚠️ Changement d'onglet détecté ! Avertissement "+cheatWarnings+"/3");
     if(cheatWarnings>=3){
       stopAntiCheat();
       toast('Examen annulé — trop de tentatives de triche !','err');
