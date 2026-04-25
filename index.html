@@ -2394,7 +2394,13 @@ function markRead(id){
     toggleNotifPanel();
   }
 }
-function clearNotifs(){DB.notifications.forEach(n=>n.unread=false);renderNotifs();toast('Notifications effacées','ok');}
+function clearNotifs(){
+  DB.notifications=[];
+  saveData();
+  renderNotifs();
+  updateNotifDot();
+  toast('Notifications effacées','ok');
+}
 function pushNotif(title,sub,ic,bg){
   DB.notifications.unshift({id:DB.nextId++,title,sub,ic,bg,unread:true,time:'Maintenant'});
   updateNotifDot();
