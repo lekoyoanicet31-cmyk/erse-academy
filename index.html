@@ -924,20 +924,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
         <button class="eb-chip on" onclick="setEbCtx('general','🎓','Toutes matières','Assistant général')">
           <span class="eb-chip-ic">🎓</span>Toutes les matières
         </button>
-        <div class="eb-section-lbl">Licence 1</div>
-        <button class="eb-chip" onclick="setEbCtx('math','📐','Mathématiques L1','Analyse, algèbre, géométrie')"><span class="eb-chip-ic">📐</span>Mathématiques</button>
-        <button class="eb-chip" onclick="setEbCtx('chimie','⚗️','Chimie L1','Chimie générale')"><span class="eb-chip-ic">⚗️</span>Chimie</button>
-        <button class="eb-chip" onclick="setEbCtx('bio','🔬','Biologie L1','Biologie cellulaire')"><span class="eb-chip-ic">🔬</span>Biologie</button>
-        <button class="eb-chip" onclick="setEbCtx('physique','⚡','Physique L1','Mécanique et optique')"><span class="eb-chip-ic">⚡</span>Physique</button>
-        <button class="eb-chip" onclick="setEbCtx('info','💻','Informatique L1','Algorithmes et code')"><span class="eb-chip-ic">💻</span>Informatique</button>
-        <div class="eb-section-lbl">Licence 2</div>
-        <button class="eb-chip" onclick="setEbCtx('lit','📚','Littérature L2','Analyse littéraire')"><span class="eb-chip-ic">📚</span>Littérature</button>
-        <button class="eb-chip" onclick="setEbCtx('eco','💰','Économie L2','Micro et macro')"><span class="eb-chip-ic">💰</span>Économie</button>
-        <button class="eb-chip" onclick="setEbCtx('droit','⚖️','Droit civil L2','Droit civil')"><span class="eb-chip-ic">⚖️</span>Droit civil</button>
-        <div class="eb-section-lbl">Licence 3</div>
-        <button class="eb-chip" onclick="setEbCtx('geo','🌍','Géographie L3','Géo humaine et physique')"><span class="eb-chip-ic">🌍</span>Géographie</button>
-        <button class="eb-chip" onclick="setEbCtx('hist','🏛️','Histoire L3','Histoire contemporaine')"><span class="eb-chip-ic">🏛️</span>Histoire</button>
-        <button class="eb-chip" onclick="setEbCtx('psy','🧠','Psychologie L3','Psycho cognitive')"><span class="eb-chip-ic">🧠</span>Psychologie</button>
+        <div id="eb-subject-chips"></div>
         <div class="eb-section-lbl">Options</div>
         <button class="eb-chip" onclick="promptApiKey()"><span class="eb-chip-ic">🔑</span>Changer la clé API</button>
         <button class="eb-chip" onclick="clearEbChat()"><span class="eb-chip-ic">🗑</span>Effacer conversation</button>
@@ -1554,6 +1541,8 @@ async function loginUser(user){
   // Restaurer la dernière page visitée
   const lastPage = localStorage.getItem('erse_current_page') || 'home';
   setTimeout(()=>goPage(lastPage), 100);
+  // Mettre à jour les chips EnergyBot avec les vraies matières
+  setTimeout(renderEbChips, 500);
   const avatar=document.getElementById('user-avatar-nav');
   avatar.textContent=user.initials;
   avatar.style.background=user.color;
@@ -3218,20 +3207,48 @@ async function sendPlatformNotif(){
 /* ═══════════════════════════════════════════
    ENERGYBOT
 ═══════════════════════════════════════════ */
-const EB_PROMPTS={
-  general:`Tu es EnergyBot, assistant pédagogique IA de ERSE ACADEMY. Tu aides les étudiants en Licence 1, 2 et 3. Réponds en français, de façon claire et encourageante.`,
-  math:`Tu es EnergyBot, expert en Mathématiques L1 (analyse, algèbre, géométrie). Explique avec des formules et des exemples numériques clairs. Réponds en français.`,
-  chimie:`Tu es EnergyBot, expert en Chimie L1. Maîtrise la chimie générale, structure atomique, liaisons, réactions. Utilise des équations chimiques. Réponds en français.`,
-  bio:`Tu es EnergyBot, expert en Biologie L1 (cellulaire et moléculaire). Explique avec des schémas textuels si utile. Réponds en français.`,
-  physique:`Tu es EnergyBot, expert en Physique L1 (mécanique, optique, électricité). Fournis formules et unités correctes. Réponds en français.`,
-  info:`Tu es EnergyBot, expert en Informatique L1 (algorithmes, programmation). Fournis des exemples de code commentés si utile. Réponds en français.`,
-  lit:`Tu es EnergyBot, expert en Littérature française L2. Aide à l'analyse de textes et à la dissertation. Réponds en français.`,
-  eco:`Tu es EnergyBot, expert en Économie L2 (micro et macro). Utilise des graphiques textuels si utile. Réponds en français.`,
-  droit:`Tu es EnergyBot, expert en Droit civil L2. Cite les principes juridiques clairement. Réponds en français.`,
-  geo:`Tu es EnergyBot, expert en Géographie L3. Donne des exemples régionaux concrets. Réponds en français.`,
-  hist:`Tu es EnergyBot, expert en Histoire contemporaine L3. Situe les événements dans leur contexte. Réponds en français.`,
-  psy:`Tu es EnergyBot, expert en Psychologie L3 (cognitive et sociale). Cite théories et auteurs clés. Réponds en français.`,
-};
+// Générer les prompts dynamiquement depuis les matières réelles
+function getEbPrompts(){
+  const prompts = {
+    general: `Tu es EnergyBot, assistant pédagogique IA de ERSE ACADEMY. 
+Tu aides les étudiants dans les matières suivantes : ${DB.subjects.filter(s=>s.active).map(s=>s.name).join(', ')}.
+Réponds toujours en français, de façon claire, précise et encourageante.
+Si un étudiant pose une question hors sujet, redirige-le poliment vers ses cours.`
+  };
+  // Générer un prompt pour chaque matière active
+  DB.subjects.filter(s=>s.active).forEach(s=>{
+    prompts[String(s.id)] = `Tu es EnergyBot, expert en "${s.name}" (Licence ${s.level}) pour ERSE ACADEMY.
+${s.desc ? 'Description du cours : '+s.desc+'.' : ''}
+Tu aides les étudiants à comprendre cette matière, à résoudre des exercices et à préparer leurs examens.
+Réponds toujours en français, avec des exemples concrets et des explications claires.
+Si on te pose des questions hors de cette matière, tu peux aider brièvement mais rappelle que tu es spécialisé en ${s.name}.`;
+  });
+  return prompts;
+}
+
+function renderEbChips(){
+  const wrap = document.getElementById('eb-subject-chips');
+  if(!wrap) return;
+  const subjects = DB.subjects.filter(s=>s.active);
+  if(!subjects.length){ wrap.innerHTML=''; return; }
+
+  // Grouper par niveau
+  const byLevel = {1:[], 2:[], 3:[]};
+  subjects.forEach(s=>{ if(byLevel[s.level]) byLevel[s.level].push(s); });
+
+  let html = '';
+  [1,2,3].forEach(l=>{
+    if(!byLevel[l].length) return;
+    html += `<div class="eb-section-lbl">Licence ${l}</div>`;
+    byLevel[l].forEach(s=>{
+      html += `<button class="eb-chip" onclick="setEbCtx('${s.id}','${s.icon}','${s.name} L${s.level}','${(s.desc||s.name).replace(/'/g,"\'")}')">
+        <span class="eb-chip-ic">${s.icon}</span>${s.name}
+      </button>`;
+    });
+  });
+
+  wrap.innerHTML = html;
+}
 
 function setEbCtx(id,icon,name,desc){
   ebCtx={id,icon,name,desc};ebHistory=[];
@@ -3286,7 +3303,7 @@ async function sendEbMessage(){
   addEbMsg('user',msg);
   ebHistory.push({role:'user',content:msg});
   showEbTyping();
-  const sysPrompt=EB_PROMPTS[ebCtx.id]||EB_PROMPTS.general;
+  const EB_PROMPTS=getEbPrompts(); const sysPrompt=EB_PROMPTS[ebCtx.id]||EB_PROMPTS.general;
   const messages=[{role:'system',content:sysPrompt},...ebHistory];
   try{
     const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
