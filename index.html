@@ -1911,8 +1911,14 @@ function startAntiCheat(){
   // Détecter changement d'onglet
   document.addEventListener('visibilitychange', handleVisibilityChange);
 
-  // Bloquer touches dangereuses (F12, Alt+Tab hints)
+  // Bloquer touches dangereuses
   document.addEventListener('keydown', blockKeys);
+
+  // Détecter quand la souris quitte la fenêtre
+  document.addEventListener('mouseleave', handleMouseLeave);
+
+  // Bloquer impression
+  window.addEventListener('beforeprint', blockPrint);
 }
 
 function blockCopy(e){
@@ -1923,7 +1929,20 @@ function blockCopy(e){
 
 function blockKeys(e){
   if(!examActive) return;
-  if(e.key==='F12'||(e.ctrlKey&&['u','s','p','a'].includes(e.key.toLowerCase()))){
+  // Bloquer F12, F5, F11 et raccourcis dangereux
+  if(['F12','F11','F5'].includes(e.key)){
+    e.preventDefault();
+    showCheatWarning('⚠️ Touche non autorisée pendant l\'examen !');
+    return;
+  }
+  // Bloquer Ctrl+U, Ctrl+S, Ctrl+P, Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+F, Alt+Tab
+  if(e.ctrlKey && ['u','s','p','a','c','v','f','i','j'].includes(e.key.toLowerCase())){
+    e.preventDefault();
+    showCheatWarning('⚠️ Raccourci clavier non autorisé !');
+    return;
+  }
+  // Bloquer Alt+F4 et Alt+Tab
+  if(e.altKey && ['F4','Tab'].includes(e.key)){
     e.preventDefault();
     showCheatWarning('⚠️ Raccourci clavier non autorisé !');
   }
@@ -1953,8 +1972,30 @@ function showCheatWarning(msg){
   setTimeout(()=>div.remove(), 3000);
 }
 
+let mouseLeaveWarnings = 0;
+
+function handleMouseLeave(){
+  if(!examActive) return;
+  mouseLeaveWarnings++;
+  if(mouseLeaveWarnings <= 2){
+    showCheatWarning('⚠️ Ne quittez pas la fenêtre d\'examen ! ('+mouseLeaveWarnings+'/3)');
+  } else {
+    stopAntiCheat();
+    toast('Examen soumis — trop de sorties de fenêtre !','err');
+    const ex=DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
+    showScore(ex?shuffledQuestions.length:0);
+  }
+}
+
+function blockPrint(e){
+  if(!examActive) return;
+  e.preventDefault ? e.preventDefault() : (e.returnValue=false);
+  showCheatWarning('⚠️ Impression non autorisée pendant l\'examen !');
+}
+
 function stopAntiCheat(){
   examActive = false;
+  mouseLeaveWarnings = 0;
   const qw = document.getElementById('quiz-wrap');
   qw.classList.remove('exam-active');
   if(document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(()=>{});
@@ -1964,6 +2005,8 @@ function stopAntiCheat(){
   document.removeEventListener('contextmenu', blockCopy);
   document.removeEventListener('visibilitychange', handleVisibilityChange);
   document.removeEventListener('keydown', blockKeys);
+  document.removeEventListener('mouseleave', handleMouseLeave);
+  window.removeEventListener('beforeprint', blockPrint);
 }
 
 function startQuiz(examId){
@@ -2302,8 +2345,16 @@ function renderProfile(){
   ].map(s=>`<div class="ps"><div class="ps-num">${s.n}</div><div class="ps-lbl">${s.l}</div></div>`).join('');
   const subjects=DB.subjects.filter(s=>s.level===u.level&&s.active).slice(0,5);
   document.getElementById('profile-progress').innerHTML=subjects.map(s=>{
-    const done=DB.certificates.find(c=>c.subject===s.name&&c.userId===u.id)?100:Math.floor(Math.random()*60)+20;
-    return `<div class="progress-item"><div class="progress-label"><span>${s.icon} ${s.name}</span><span>${done}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${done}%"></div></div></div>`;
+    // Vérifier si un certificat existe pour cette matière
+    const hasCert = myCerts.find(c=>c.subject===s.name);
+    // Vérifier si un examen a été passé pour cette matière
+    const subjectExams = DB.exams.filter(e=>parseInt(e.subjectId)===parseInt(s.id)||String(e.subjectId)===String(s.id));
+    let done = 0;
+    if(hasCert) done = 100;
+    else if(subjectExams.length > 0 && myPassed > 0) done = Math.min(80, Math.round((myPassed / subjectExams.length) * 100));
+    else done = 0;
+    const color = done===100?'var(--gc)':done>50?'var(--gold)':'var(--b4)';
+    return `<div class="progress-item"><div class="progress-label"><span>${s.icon} ${s.name}</span><span style="color:${color};font-weight:600;">${done}%${done===100?' ✅':''}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${done}%;background:${color};"></div></div></div>`;
   }).join('');
   const activities=(u.activity&&u.activity.length?u.activity:[
     {text:'Connexion à la plateforme',ic:'🔐',bg:'#b0d4f4',time:new Date().toLocaleDateString('fr-FR')},
