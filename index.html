@@ -104,7 +104,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 .mobile-menu .np{display:block;width:100%;text-align:left;padding:10px 16px;border-radius:8px;}
 
 /* ── PAGES ── */
-.page{display:none;}.page.on{display:flex;flex-direction:column;flex:1;min-height:0;}
+.page{display:none;}.page.on{display:block;}
 
 /* ── AUTH SCREENS ── */
 .auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--b9);padding:1rem;}
@@ -401,7 +401,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 .q-editor-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;font-size:11px;font-weight:600;color:var(--b8);text-transform:uppercase;letter-spacing:.5px;}
 
 /* ── ENERGYBOT ── */
-.eb-layout{display:grid;grid-template-columns:260px 1fr;flex:1;min-height:0;}
+.eb-layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 62px);}
 .eb-sidebar{background:var(--nav-bg);display:flex;flex-direction:column;overflow:hidden;}
 .eb-sidebar-top{padding:1.3rem 1rem .9rem;border-bottom:1px solid rgba(255,255,255,0.07);}
 .eb-bot-avatar{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--b4));display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:.7rem;}
@@ -684,7 +684,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 </div>
 
 <!-- MAIN APP -->
-<div id="main-app" style="display:none;min-height:100vh;flex-direction:column;">
+<div id="main-app" style="display:none;">
 
 <!-- NAV -->
 <nav>
@@ -1045,7 +1045,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 
 
 <!-- FOOTER -->
-<footer style="background:var(--nav-bg);padding:2rem 1.5rem;margin-top:auto;border-top:1px solid rgba(255,255,255,0.06);">
+<footer style="background:var(--nav-bg);padding:2rem 1.5rem;margin-top:2rem;border-top:1px solid rgba(255,255,255,0.06);">
   <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="font-family:'Playfair Display',serif;font-size:15px;color:#fff;">ERSE <span style="color:#F0C96A;">ACADEMY</span></div>
@@ -1544,7 +1544,7 @@ async function loginUser(user){
   currentUser=user;
   resetSessionTimer();
   document.getElementById('auth-screen').style.display='none';
-  document.getElementById('main-app').style.display='flex';
+  document.getElementById('main-app').style.display='block';
   // Restaurer la dernière page visitée
   const lastPage = localStorage.getItem('erse_current_page') || 'home';
   setTimeout(()=>goPage(lastPage), 100);
