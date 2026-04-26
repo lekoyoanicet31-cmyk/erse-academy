@@ -401,7 +401,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 .q-editor-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;font-size:11px;font-weight:600;color:var(--b8);text-transform:uppercase;letter-spacing:.5px;}
 
 /* ── ENERGYBOT ── */
-.eb-layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 62px);}
+.eb-layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 62px);height:calc(100vh - 62px);}
 .eb-sidebar{background:var(--nav-bg);display:flex;flex-direction:column;overflow:hidden;}
 .eb-sidebar-top{padding:1.3rem 1rem .9rem;border-bottom:1px solid rgba(255,255,255,0.07);}
 .eb-bot-avatar{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--b4));display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:.7rem;}
@@ -1547,7 +1547,7 @@ async function loginUser(user){
   document.getElementById('main-app').style.display='block';
   // Restaurer la dernière page visitée
   const lastPage = localStorage.getItem('erse_current_page') || 'home';
-  setTimeout(()=>goPage(lastPage), 100);
+  setTimeout(()=>goPage(lastPage), 300);
   // Mettre à jour les chips EnergyBot avec les vraies matières
   setTimeout(renderEbChips, 500);
   const avatar=document.getElementById('user-avatar-nav');
@@ -1638,7 +1638,7 @@ function goPage(id){
     if(!currentUser){toast('Connectez-vous d\'abord','err');return;}
     if(currentUser.role!=='admin'){toast('Accès non autorisé','err');goPage('home');return;}
   }
-  if(!currentUser && id!=='home'){return;}
+  if(!currentUser && !['home','energybot','forum','leaderboard','certs'].includes(id)){return;}
   // Sync Firebase à chaque changement de page
   if(fbReady && id!=='admin') checkForUpdates();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
