@@ -1432,6 +1432,7 @@ const DB = {
 ═══════════════════════════════════════════ */
 let currentUser=null;
 let curExamId=null,curQ=0,score=0,answered=false;
+let deferredPrompt=null;
 let editSubjectId=null;
 let lbFilter=0;
 let darkMode=false;
@@ -1549,11 +1550,6 @@ async function loginUser(user){
   setTimeout(()=>goPage(lastPage), 100);
   // Mettre à jour les chips EnergyBot avec les vraies matières
   setTimeout(renderEbChips, 500);
-  // Afficher bouton install si supporté
-  if(deferredPrompt){
-    const navBtn = document.getElementById('pwa-nav-btn');
-    if(navBtn) navBtn.style.display='flex';
-  }
   const avatar=document.getElementById('user-avatar-nav');
   avatar.textContent=user.initials;
   avatar.style.background=user.color;
