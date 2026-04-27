@@ -685,7 +685,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 </div>
 
 <!-- MAIN APP -->
-<div id="main-app" style="display:none;">
+<div id="main-app" style="display:none;min-height:100vh;">
 
 <!-- NAV -->
 <nav>
@@ -1545,7 +1545,7 @@ async function loginUser(user){
   currentUser=user;
   resetSessionTimer();
   document.getElementById('auth-screen').style.display='none';
-  document.getElementById('main-app').style.display='block';
+  document.getElementById('main-app').style.cssText='display:block;min-height:100vh;';
   // Restaurer la dernière page visitée
   const lastPage = localStorage.getItem('erse_current_page') || 'home';
   setTimeout(()=>goPage(lastPage), 300);
