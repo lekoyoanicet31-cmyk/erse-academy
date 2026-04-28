@@ -519,7 +519,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
   @media print{
   nav,.hero,.stats-bar,.btn-print{display:none!important;}
   .page{display:none!important;}
-  .page.on{display:block!important;}
+  .cert-wrap,.page.on .cert-wrap{display:block!important;}
   body{background:white;}
 }
 </style>
@@ -1110,7 +1110,7 @@ let fbReady = false;
 async function fbSaveUser(user){
   try{
     await db.collection('users').doc(user.email).set({
-      name:user.name, email:user.email, pwd:user.pwd,
+      name:user.name, email:user.email,
       level:user.level, spec:user.spec||'', initials:user.initials,
       color:user.color, role:user.role||'student',
       passed:user.passed||0, avgScore:user.avgScore||0, certs:user.certs||0
@@ -1641,12 +1641,13 @@ function goPage(id){
   }
   if(!currentUser && !['home','energybot','forum','leaderboard','certs'].includes(id)){return;}
   // Sync Firebase à chaque changement de page
-  if(fbReady && id!=='admin') checkForUpdates();
+  if(fbReady && id!=='admin') checkForUpdates().catch(e=>console.warn(e));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.np').forEach(b=>b.classList.remove('on'));
   const idx={home:0,courses:1,exams:2,leaderboard:3,certs:4,energybot:5,forum:6};
-  if(idx[id]!==undefined) document.querySelectorAll('#nav-links .np')[idx[id]].classList.add('on');
+  const navLinks=document.querySelectorAll('#nav-links .np');
+  if(idx[id]!==undefined && navLinks[idx[id]]) navLinks[idx[id]].classList.add('on');
   document.getElementById('notif-panel').classList.remove('open');
   // Sauvegarder la page courante
   try{ localStorage.setItem('erse_current_page', id); }catch(e){}
@@ -1952,9 +1953,10 @@ function handleVisibilityChange(){
     showCheatWarning("⚠️ Changement d'onglet détecté ! Avertissement "+cheatWarnings+"/3");
     if(cheatWarnings>=3){
       stopAntiCheat();
+      stopExamTimer();
       toast('Examen annulé — trop de tentatives de triche !','err');
-      const ex=DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
-      showScore(ex?ex.questions.length:0);
+      const ex=DB.exams.find(e=>parseInt(e.id)===parseInt(curExamId)||e.id===curExamId);
+      showScore(ex?shuffledQuestions.length:0);
     }
   }
 }
@@ -2109,8 +2111,8 @@ function showScore(total){
     </div>
   `;
   if(passed&&currentUser){
-    const ex=DB.exams.find(e=>e.id===curExamId);
-    const s=DB.subjects.find(x=>x.id===ex.subjectId);
+    const ex=DB.exams.find(e=>parseInt(e.id)===parseInt(curExamId)||e.id===curExamId);
+    const s=DB.subjects.find(x=>parseInt(x.id)===parseInt(ex?.subjectId)||x.id===ex?.subjectId);
     pushNotif('Examen réussi !','Vous avez obtenu '+pct+'% en '+(s?s.name:''),'🎓','#c0dd97');
     const st=DB.students.find(x=>x.id===currentUser.id);
     if(st){
@@ -2134,8 +2136,8 @@ function showScore(total){
 
 function getCert(){
   if(!currentUser)return;
-  const ex=DB.exams.find(e=>e.id===curExamId);
-  const s=DB.subjects.find(x=>x.id===ex.subjectId);
+  const ex=DB.exams.find(e=>parseInt(e.id)===parseInt(curExamId)||e.id===curExamId);
+  const s=DB.subjects.find(x=>parseInt(x.id)===parseInt(ex?.subjectId)||x.id===ex?.subjectId);
   const subj=s?s.name:'Examen';
   const pct=Math.round((score/(ex.questions.length||1))*100);
   const userKey=currentUser.email||String(currentUser.id);
@@ -2143,7 +2145,7 @@ function getCert(){
     const newCert={subject:subj,date:new Date().toLocaleDateString('fr-FR'),score:pct,userId:userKey,studentName:currentUser.name};
     DB.certificates.push(newCert);
     currentUser.certs=(currentUser.certs||0)+1;
-    currentUser.passed=(currentUser.passed||0)+1;
+    // Note: currentUser.passed déjà incrémenté dans showScore, on ne le reincrémente pas ici
     // Sauvegarder dans Firebase
     if(fbReady){
       fbSaveCert({...newCert,userId:currentUser.email}).catch(e=>console.warn(e));
@@ -2733,7 +2735,7 @@ const BADGES = [
   {id:'three_certs',icon:'🏆',name:'Collectionneur',desc:'Obtenir 3 certificats',condition:u=>(u.certs||0)>=3},
   {id:'five_certs',icon:'💎',name:'Expert',desc:'Obtenir 5 certificats',condition:u=>(u.certs||0)>=5},
   {id:'all_certs',icon:'👑',name:'Champion',desc:'Obtenir 7 certificats ou plus',condition:u=>(u.certs||0)>=7},
-  {id:'perfect_score',icon:'💯',name:'Perfection',desc:'Obtenir 100% à un examen',condition:u=>DB.certificates.some(c=>c.userId===u.id&&c.score===100)},
+  {id:'perfect_score',icon:'💯',name:'Perfection',desc:'Obtenir 100% à un examen',condition:u=>DB.certificates.some(c=>(c.userId===u.email||c.userId===String(u.id))&&c.score===100)},
   {id:'high_score',icon:'🔥',name:'Excellence',desc:'Score moyen supérieur à 85%',condition:u=>(u.avgScore||0)>=85},
   {id:'speed_demon',icon:'⚡',name:'Éclair',desc:'Réussir un examen en moins de 3 minutes',condition:u=>false},
   {id:'explorer',icon:'🗺️',name:'Explorateur',desc:'Visiter toutes les sections du site',condition:u=>false},
@@ -2783,8 +2785,10 @@ let rtdbListenerActive = false;
 // Écrire dans RTDB quand admin modifie
 async function pushToRTDB(){
   try{
+    // JSON.parse(JSON.stringify(...)) élimine les undefined/fonctions non sérialisables
+    const safeSubjects = JSON.parse(JSON.stringify(DB.subjects));
     await adminDataRef.set({
-      subjects: DB.subjects,
+      subjects: safeSubjects,
       exams: DB.exams.map(e=>({
         id:e.id, subjectId:e.subjectId,
         difficulty:e.difficulty, questions:e.questions||[]
@@ -2936,7 +2940,7 @@ async function syncFromFirebase(){
 
 let lastKnownUpdate = 0;
 
-async function checkForUpdates(){
+async async function checkForUpdates(){
   if(!fbReady) return;
   try{
     // Vérifier si l'admin a fait des modifications
@@ -2993,7 +2997,7 @@ function animateCounter(id, target){
 
 function updateBottomNav(id){
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('on'));
-  const map={home:0,courses:1,exams:2,energybot:3,profile:4};
+  const map={home:0,courses:1,exams:2,energybot:3,forum:4,profile:5};
   const items=document.querySelectorAll('.bn-item');
   if(map[id]!==undefined && items[map[id]]) items[map[id]].classList.add('on');
 }
@@ -3264,7 +3268,7 @@ function removeStudent(id){
   if(!s){toast('Étudiant introuvable','err');return;}
 
   // Retirer de DB.students
-  DB.students = DB.students.filter(x=>x.id!==id);
+  DB.students = DB.students.filter(x=>Number(x.id)!==Number(id)&&x.id!==id&&x.id!==String(id));
 
   // Retirer de DB.users aussi
   DB.users = DB.users.filter(x=>x.email!==s.email);
@@ -3413,7 +3417,7 @@ function renderEbChips(){
     if(!byLevel[l].length) return;
     html += `<div class="eb-section-lbl">Licence ${l}</div>`;
     byLevel[l].forEach(s=>{
-      html += `<button class="eb-chip" onclick="setEbCtx('${s.id}','${s.icon}','${s.name} L${s.level}','${(s.desc||s.name).replace(/'/g,"\'")}')">
+      html += `<button class="eb-chip" onclick="setEbCtx('${s.id}','${s.icon}','${s.name} L${s.level}','${(s.desc||s.name).replace(/'/g,"\\'")}',this)">
         <span class="eb-chip-ic">${s.icon}</span>${s.name}
       </button>`;
     });
@@ -3422,13 +3426,13 @@ function renderEbChips(){
   wrap.innerHTML = html;
 }
 
-function setEbCtx(id,icon,name,desc){
+function setEbCtx(id,icon,name,desc,el){
   ebCtx={id,icon,name,desc};ebHistory=[];
   document.getElementById('eb-ctx-ic').textContent=icon;
   document.getElementById('eb-ctx-name').textContent=name;
   document.getElementById('eb-ctx-sub').textContent=desc;
   document.querySelectorAll('.eb-chip').forEach(c=>c.classList.remove('on'));
-  event.currentTarget.classList.add('on');
+  if(el) el.classList.add('on');
   const msgs=document.getElementById('eb-messages');
   msgs.innerHTML=`<div class="eb-welcome" id="eb-welcome">
     <div class="eb-welcome-avatar">⚡</div>
@@ -3442,7 +3446,7 @@ function setEbCtx(id,icon,name,desc){
     </div>
   </div>`;
 }
-function clearEbChat(){ebHistory=[];document.getElementById('eb-messages').innerHTML=document.getElementById('eb-welcome')?'':'';setEbCtx(ebCtx.id,ebCtx.icon,ebCtx.name,ebCtx.desc);}
+function clearEbChat(){ebHistory=[];document.getElementById('eb-messages').innerHTML='';setEbCtx(ebCtx.id,ebCtx.icon,ebCtx.name,ebCtx.desc);}
 function promptApiKey(){
   const key=prompt('Entrez votre clé API Groq (gsk_...) :\n\n1. Allez sur console.groq.com\n2. Créez un compte GRATUIT (pas de CB)\n3. API Keys → Create API Key\n4. Copiez et collez ici',ebApiKey);
   if(key!==null){ebApiKey=key.trim()||GROQ_DEFAULT_KEY;localStorage.setItem('erse_api_key',ebApiKey);toast('Clé API mise à jour !','ok');}
@@ -3624,7 +3628,8 @@ function doGlobalSearch(q){
   });
 
   // Certificats
-  DB.certificates.filter(c=>c.userId===currentUser?.id&&c.subject.toLowerCase().includes(ql)).forEach(c=>{
+  const userKey=currentUser?.email||String(currentUser?.id);
+  DB.certificates.filter(c=>(c.userId===userKey||c.studentName===currentUser?.name)&&c.subject.toLowerCase().includes(ql)).forEach(c=>{
     results.push({type:'cert',icon:'🎓',title:`Certificat — ${c.subject}`,sub:`Obtenu le ${c.date} · ${c.score}%`,action:`goPage('certs');closeModal('modal-search')`});
   });
 
@@ -3651,9 +3656,9 @@ let editExamId = null;
 let editQCount = 0;
 
 function openEditExam(id){
-  editExamId = id;
+  editExamId = parseInt(id)||id;
   editQCount = 0;
-  const ex = DB.exams.find(e=>e.id===id);
+  const ex = DB.exams.find(e=>parseInt(e.id)===parseInt(id)||e.id===id);
   if(!ex) return;
   document.getElementById('ee-subj').innerHTML = DB.subjects.filter(s=>s.active).map(s=>`<option value="${s.id}" ${s.id===ex.subjectId?'selected':''}>${s.icon} ${s.name} (L${s.level})</option>`).join('');
   document.getElementById('ee-diff').value = ex.difficulty;
@@ -3696,7 +3701,7 @@ function addEditQuestionBlock(q, num){
 
 function saveEditExam(){
   if(!editExamId) return;
-  const ex = DB.exams.find(e=>e.id===editExamId);
+  const ex = DB.exams.find(e=>parseInt(e.id)===parseInt(editExamId)||e.id===editExamId);
   if(!ex) return;
   ex.subjectId = +document.getElementById('ee-subj').value;
   ex.difficulty = document.getElementById('ee-diff').value;
@@ -3836,7 +3841,7 @@ function switchDashTab(tab, btn){
 
   if(tab==='progress' && currentUser){
     const subjects=DB.subjects.filter(s=>s.active);
-    const myCerts=DB.certificates.filter(c=>c.userId===currentUser.id);
+    const myCerts=DB.certificates.filter(c=>c.userId===currentUser.email||c.userId===String(currentUser.id)||c.studentName===currentUser.name);
     document.getElementById('dash-progress-content').innerHTML=`
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
         ${subjects.map(s=>{
@@ -3883,43 +3888,47 @@ function switchDashTab(tab, btn){
   }
 }
 
-function changePassword(){
+async function changePassword(){
+  if(!currentUser) return;
   const oldPwd = prompt('Entrez votre mot de passe actuel :');
   if(!oldPwd) return;
-  if(oldPwd !== currentUser.pwd){toast('Mot de passe actuel incorrect','err');return;}
   const newPwd = prompt('Entrez votre nouveau mot de passe (min 8 car., 1 maj., 1 chiffre) :');
   if(!newPwd) return;
   if(newPwd.length<8){toast('Trop court (min 8 caractères)','err');return;}
   if(!/[A-Z]/.test(newPwd)){toast('Doit contenir une majuscule','err');return;}
   if(!/[0-9]/.test(newPwd)){toast('Doit contenir un chiffre','err');return;}
-  currentUser.pwd = newPwd;
-  const u = DB.users.find(x=>x.email===currentUser.email);
-  if(u) u.pwd = newPwd;
-  saveData();
-  if(fbReady){ db.collection('users').doc(currentUser.email).set({pwd:newPwd},{merge:true}).catch(e=>console.warn(e)); }
-  toast('Mot de passe modifié avec succès !','ok');
+  try{
+    const firebaseUser = auth.currentUser;
+    if(!firebaseUser){toast('Erreur : session expirée, reconnectez-vous','err');return;}
+    // Re-authentifier avant de changer le mot de passe
+    const credential = firebase.auth.EmailAuthProvider.credential(firebaseUser.email, oldPwd);
+    await firebaseUser.reauthenticateWithCredential(credential);
+    await firebaseUser.updatePassword(newPwd);
+    toast('Mot de passe modifié avec succès !','ok');
+  }catch(e){
+    if(e.code==='auth/wrong-password') toast('Mot de passe actuel incorrect','err');
+    else if(e.code==='auth/too-many-requests') toast('Trop de tentatives, réessayez plus tard','err');
+    else toast('Erreur : '+e.message,'err');
+  }
 }
 
-function forgotPassword(){
+async function forgotPassword(){
   const email=prompt('Entrez votre adresse email pour réinitialiser votre mot de passe :');
   if(!email||!email.trim())return;
-  const user=DB.users.find(u=>u.email.toLowerCase()===email.toLowerCase().trim());
-  if(!user){toast('Aucun compte trouvé avec cet email','err');return;}
-  const newPwd=prompt('Entrez votre nouveau mot de passe (min 8 caractères, 1 majuscule, 1 chiffre) :');
-  if(!newPwd)return;
-  if(newPwd.length<8){toast('Mot de passe trop court','err');return;}
-  if(!/[A-Z]/.test(newPwd)){toast('Doit contenir une majuscule','err');return;}
-  if(!/[0-9]/.test(newPwd)){toast('Doit contenir un chiffre','err');return;}
-  user.pwd=newPwd;
-  saveData();
-  toast('Mot de passe modifié avec succès !','ok');
+  try{
+    await auth.sendPasswordResetEmail(email.trim());
+    toast('Email de réinitialisation envoyé à '+email.trim()+' !','ok');
+  }catch(e){
+    if(e.code==='auth/user-not-found') toast('Aucun compte trouvé avec cet email','err');
+    else toast('Erreur : '+e.message,'err');
+  }
 }
 
 /* ═══════════════ PERSISTANCE LOCALE ═══════════════ */
 function saveData(){
   try{
     const toSave={
-      users:DB.users.map(u=>({...u,pwd:u.pwd})),
+      users:DB.users.map(u=>{const {pwd,...rest}=u;return rest;}),
       students:DB.students,
       certificates:DB.certificates,
       exams:DB.exams.filter(e=>e.id>=200),
