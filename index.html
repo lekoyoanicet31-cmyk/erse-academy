@@ -492,13 +492,16 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
   .nav-links{display:none;}
   .hamburger{display:block;}
   .kpi-grid{grid-template-columns:repeat(2,1fr);}
-  .admin-layout{grid-template-columns:1fr;}
-  .admin-sidebar{display:flex;overflow-x:auto;}
+  .admin-layout{display:flex;flex-direction:column;height:auto;}
+  .admin-sidebar{display:flex;overflow-x:auto;flex-shrink:0;}
+  .admin-main{flex:1;min-height:400px;overflow-y:auto;}
   .profile-body{grid-template-columns:1fr;}
   .stats-bar .si{flex:1;min-width:100px;}
   .exam-item{flex-direction:column;align-items:flex-start;}
-  .eb-layout{grid-template-columns:1fr;}
+  .eb-layout{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 62px);}
   .eb-sidebar{display:none;}
+  .eb-main{height:auto;flex:1;min-height:calc(100vh - 130px);}
+  .eb-messages{flex:1;min-height:300px;overflow-y:auto;}
   .notif-panel{right:.5rem;left:.5rem;width:auto;}
   .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
 }
