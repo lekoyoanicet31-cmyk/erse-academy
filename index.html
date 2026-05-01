@@ -105,6 +105,8 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 
 /* ── PAGES ── */
 .page{display:none;}.page.on{display:block;}
+#pg-energybot.on{display:flex;flex-direction:column;}
+#pg-admin.on{display:flex;flex-direction:column;}
 
 /* ── AUTH SCREENS ── */
 .auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--b9);padding:1rem;}
@@ -402,6 +404,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 
 /* ── ENERGYBOT ── */
 .eb-layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 62px);overflow:hidden;}
+.page.on .eb-layout{height:calc(100vh - 62px);}
 .eb-sidebar{background:var(--nav-bg);display:flex;flex-direction:column;overflow:hidden;}
 .eb-sidebar-top{padding:1.3rem 1rem .9rem;border-bottom:1px solid rgba(255,255,255,0.07);}
 .eb-bot-avatar{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--b4));display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:.7rem;}
@@ -420,6 +423,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 .eb-model-badge{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.35);}
 .eb-model-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);}
 .eb-main{display:flex;flex-direction:column;background:var(--bg);overflow:hidden;height:calc(100vh - 62px);}
+.page.on .eb-main{height:calc(100vh - 62px);}
 .eb-topbar{background:var(--card-bg);border-bottom:1px solid var(--border);padding:.8rem 1.3rem;display:flex;align-items:center;justify-content:space-between;}
 .eb-ctx-ic{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--b4));display:flex;align-items:center;justify-content:center;font-size:15px;}
 .eb-ctx-name{font-size:13px;font-weight:500;color:var(--b9);}
@@ -1651,10 +1655,31 @@ function goPage(id){
   document.getElementById('notif-panel').classList.remove('open');
   // Sauvegarder la page courante
   try{ localStorage.setItem('erse_current_page', id); }catch(e){}
+  // Force reflow pour les pages avec layout grid/flex hauteur fixe
+  if(['energybot','admin','forum'].includes(id)){
+    const pg=document.getElementById('pg-'+id);
+    if(pg){void pg.offsetHeight;}
+  }
   const renders={home:renderHome,forum:()=>{loadForumData();renderForum(FORUM.posts);},courses:()=>filterLevel(1,document.querySelector('#lvl-tabs .tab')),exams:()=>{ document.getElementById('quiz-wrap').style.display='none'; document.getElementById('exam-list-wrap').style.display=''; renderExamList(); },leaderboard:()=>refreshLeaderboard(),certs:renderCerts,profile:renderProfile,energybot:()=>{
     const keyBtn=document.getElementById('eb-key-btn');
     if(keyBtn) keyBtn.style.display=currentUser?.role==='admin'?'':'none';
-  },admin:()=>adminTab('dashboard',document.querySelector('.ani'))};
+    // Recalcul explicite du layout EnergyBot
+    const layout=document.querySelector('.eb-layout');
+    const main=document.querySelector('.eb-main');
+    if(layout&&main){
+      layout.style.height='';
+      main.style.height='';
+      requestAnimationFrame(()=>{
+        layout.style.height='calc(100vh - 62px)';
+        main.style.height='calc(100vh - 62px)';
+      });
+    }
+  },admin:()=>{
+    // Recalcul layout admin
+    const adminMain=document.querySelector('.admin-main');
+    if(adminMain){void adminMain.offsetHeight;}
+    adminTab('dashboard',document.querySelector('.ani'));
+  }};
   if(renders[id]) renders[id]();
 }
 
