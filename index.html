@@ -936,7 +936,6 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
         </button>
         <div id="eb-subject-chips"></div>
         <div class="eb-section-lbl">Options</div>
-        <button class="eb-chip" onclick="promptApiKey()"><span class="eb-chip-ic">🔑</span>Changer la clé API</button>
         <button class="eb-chip" onclick="clearEbChat()"><span class="eb-chip-ic">🗑</span>Effacer conversation</button>
       </div>
       <div class="eb-sidebar-bottom">
@@ -1448,8 +1447,7 @@ let darkMode=false;
 let ebCtx={id:'general',icon:'🎓',name:'Toutes matières',desc:'Assistant général'};
 let ebHistory=[];
 let ebTyping=false;
-const GROQ_DEFAULT_KEY=''; // Clé retirée pour sécurité — chaque utilisateur entre la sienne via le bouton paramètres d'EnergyBot
-let ebApiKey=localStorage.getItem('erse_api_key')||GROQ_DEFAULT_KEY;
+const GROQ_PROXY_URL='https://groq-proxy.erse-academy.workers.dev';
 let qCount=0;
 
 /* ═══════════════════════════════════════════
@@ -3502,7 +3500,6 @@ async function sendEbMessage(){
   const input=document.getElementById('eb-input');
   const msg=input.value.trim();
   if(!msg||ebTyping)return;
-  if(!ebApiKey){toast('Configurez votre clé Groq gratuite → 🔑 Clé API','err');return;}
   input.value='';input.style.height='auto';
   ebTyping=true;document.getElementById('eb-send').disabled=true;
   addEbMsg('user',msg);
@@ -3511,18 +3508,13 @@ async function sendEbMessage(){
   const EB_PROMPTS=getEbPrompts(); const sysPrompt=EB_PROMPTS[ebCtx.id]||EB_PROMPTS.general;
   const messages=[{role:'system',content:sysPrompt},...ebHistory];
   try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    const res=await fetch(GROQ_PROXY_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+ebApiKey},
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        max_tokens:1024,
-        temperature:0.7,
-        messages:messages
-      })
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:messages})
     });
     const data=await res.json();
-    if(!res.ok)throw new Error(data.error?.message||'Erreur API Groq');
+    if(!res.ok)throw new Error(data.error?.message||'Erreur proxy');
     const reply=data.choices?.[0]?.message?.content||'Désolé, pas de réponse.';
     removeEbTyping();addEbMsg('bot',reply);
     ebHistory.push({role:'assistant',content:reply});
@@ -3530,8 +3522,7 @@ async function sendEbMessage(){
   }catch(err){
     removeEbTyping();
     let errMsg='Erreur de connexion.';
-    if(err.message.includes('401')||err.message.includes('auth'))errMsg='Clé Groq invalide. Vérifiez sur console.groq.com';
-    else if(err.message.includes('429'))errMsg='Limite atteinte. Attendez quelques secondes.';
+    if(err.message.includes('429'))errMsg='Limite atteinte. Attendez quelques secondes.';
     else errMsg='Erreur : '+err.message;
     addEbMsg('bot','⚠️ '+errMsg);toast(errMsg,'err');
   }
