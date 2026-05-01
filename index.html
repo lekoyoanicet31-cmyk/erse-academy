@@ -1360,19 +1360,12 @@ function hideSyncStatus(){
 const DB = {
   users:[],
   subjects:[
-    {id:1,name:'Mathématiques',icon:'📐',level:1,docs:8,active:true,desc:'Analyse, algèbre, géométrie',files:['Cours 1 — Fonctions.pdf','Cours 2 — Dérivées.pdf','Cours 3 — Intégrales.pdf','TD 1 — Exercices corrigés.pdf']},
-    {id:2,name:'Chimie',icon:'⚗️',level:1,docs:6,active:true,desc:'Chimie générale et inorganique',files:['Cours 1 — Atomes et molécules.pdf','Cours 2 — Liaisons chimiques.pdf','TD Chimie.pdf']},
-    {id:3,name:'Biologie',icon:'🔬',level:1,docs:9,active:true,desc:'Biologie cellulaire et moléculaire',files:['Cours 1 — Cellule procaryote.pdf','Cours 2 — Mitose et méiose.pdf']},
-    {id:4,name:'Physique',icon:'⚡',level:1,docs:7,active:true,desc:'Mécanique, optique, électricité',files:['Cours 1 — Mécanique.pdf','Cours 2 — Optique.pdf']},
-    {id:5,name:'Informatique',icon:'💻',level:1,docs:5,active:true,desc:'Algorithmes et programmation',files:['Cours 1 — Algorithmes.pdf','Cours 2 — Python bases.pdf']},
-    {id:6,name:'Philosophie',icon:'📖',level:1,docs:6,active:true,desc:'Histoire de la philosophie',files:['Cours 1 — Antiquité.pdf']},
-    {id:7,name:'Littérature',icon:'📚',level:2,docs:10,active:true,desc:'Littérature française et comparée',files:['Cours 1 — Romantisme.pdf','Cours 2 — Réalisme.pdf','TD Analyse de texte.pdf']},
-    {id:8,name:'Statistiques',icon:'📊',level:2,docs:8,active:true,desc:'Probabilités et statistiques',files:['Cours 1 — Probabilités.pdf']},
-    {id:9,name:'Droit civil',icon:'⚖️',level:2,docs:7,active:true,desc:'Introduction au droit civil',files:['Cours 1 — Sources du droit.pdf']},
-    {id:10,name:'Économie',icon:'💰',level:2,docs:9,active:true,desc:'Microéconomie et macroéconomie',files:['Cours 1 — Microéconomie.pdf']},
-    {id:11,name:'Géographie',icon:'🌍',level:3,docs:7,active:true,desc:'Géographie humaine et physique',files:['Cours 1 — Géo humaine.pdf']},
-    {id:12,name:'Histoire',icon:'🏛️',level:3,docs:11,active:true,desc:'Histoire contemporaine',files:['Cours 1 — XIXe siècle.pdf','Cours 2 — Guerres mondiales.pdf']},
-    {id:13,name:'Psychologie',icon:'🧠',level:3,docs:6,active:true,desc:'Psychologie cognitive et sociale',files:['Cours 1 — Psycho cognitive.pdf']},
+    {id:1,name:'Mathématiques',icon:'📐',level:1,docs:2,active:true,desc:'Algèbre et outils mathématiques',files:['algebre_l1.pdf','Outils_mathematiques.pdf']},
+    {id:2,name:'Chimie générale',icon:'⚗️',level:1,docs:3,active:true,desc:'Chimie générale, organique et terres rares',files:['Chimie_generale.pdf','Chimie_organique_generale.pdf','Chimie_terres_rares.pdf']},
+    {id:3,name:'Physique',icon:'⚡',level:1,docs:3,active:true,desc:'Mécanique, électrocinétique et électromagnétisme',files:['Mecanique_point_materiel.pdf','Electrocinetique.pdf','Electromagnetique.pdf']},
+    {id:4,name:'Statistiques',icon:'📊',level:2,docs:1,active:true,desc:'Méthodes statistiques et analyse de données',files:['Methodes_statistiques_analyse_donnees.pdf']},
+    {id:5,name:'Normes & Sécurité',icon:'🛡️',level:2,docs:2,active:true,desc:'Normes, mesures et sécurité environnementale',files:['Normes_mesures.pdf','Securite_environnement.pdf']},
+    {id:6,name:'Expression & Communication',icon:'🗣️',level:1,docs:1,active:true,desc:'Techniques d\'expression écrite et orale',files:['Techniques_expression_ecrite_orale.pdf']},
   ],
   exams:[
     {id:1,subjectId:1,difficulty:'Débutant',questions:[
@@ -1839,8 +1832,17 @@ function previewPdf(name,subId,idx){
   el.style.display=el.style.display==='none'?'block':'none';
 }
 
+const GITHUB_RAW='https://raw.githubusercontent.com/lekoyoanicet31-cmyk/erse-academy/main/cours/';
 function downloadPdf(name){
-  toast('Téléchargement de "'+name+'" — Placez vos vrais PDFs dans le dossier du site','info');
+  // Si le fichier a un lien externe custom
+  if(name.includes('__LINK__')){
+    const url=name.split('__LINK__')[1].split('__NAME__')[0];
+    window.open(url,'_blank');
+    return;
+  }
+  const url=GITHUB_RAW+encodeURIComponent(name);
+  window.open(url,'_blank');
+  toast('Ouverture de "'+name+'"...','ok');
 }
 
 /* ═══════════════════════════════════════════
