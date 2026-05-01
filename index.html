@@ -3274,7 +3274,7 @@ function renderAdminStudents(){
         <td>${s.passed}</td>
         <td><span style="font-weight:500;color:${s.avgScore>=70?'var(--gc)':'var(--rc)'};">${s.avgScore}%</span></td>
         <td>${s.certs}🎓</td>
-        <td><button class="act-btn del-btn" onclick="removeStudent(${s.id})">Retirer</button></td>
+        <td><button class="act-btn del-btn" onclick="removeStudent('${s.id}')">Retirer</button></td>
       </tr>`).join('')}</tbody>
     </table>`;
 }
@@ -3333,7 +3333,7 @@ function renderAdminLB(){
         <td>
           <button class="act-btn green-btn" onclick="addCert(${s.id})">+Cert</button>
           <button class="act-btn edit-btn" onclick="addExam(${s.id})">+Exam</button>
-          <button class="act-btn del-btn" onclick="removeStudent(${s.id})">Retirer</button>
+          <button class="act-btn del-btn" onclick="removeStudent('${s.id}')">Retirer</button>
         </td>
       </tr>`).join('')}</tbody>
     </table>`;
