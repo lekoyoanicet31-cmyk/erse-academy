@@ -1161,8 +1161,6 @@ async function fbLoadAllStudents(){
     snap.forEach(doc => {
       const d = doc.data();
       const email = doc.id;
-      // Exclure l'admin
-      if(email === 'lekoyoanicet31@gmail.com') return;
       if(d.role === 'admin') return;
       students.push({
         id:doc.id, name:d.name||email.split('@')[0],
@@ -1360,9 +1358,7 @@ function hideSyncStatus(){
    BASE DE DONNÉES
 ═══════════════════════════════════════════ */
 const DB = {
-  users:[
-    {id:99,name:'Administrateur',email:'lekoyoanicet31@gmail.com',pwd:'AnicetMike2009',level:3,spec:'Administration',initials:'AD',color:'#C89B3C',role:'admin',passed:0,avgScore:0,certs:0,activity:[]},
-  ],
+  users:[],
   subjects:[
     {id:1,name:'Mathématiques',icon:'📐',level:1,docs:8,active:true,desc:'Analyse, algèbre, géométrie',files:['Cours 1 — Fonctions.pdf','Cours 2 — Dérivées.pdf','Cours 3 — Intégrales.pdf','TD 1 — Exercices corrigés.pdf']},
     {id:2,name:'Chimie',icon:'⚗️',level:1,docs:6,active:true,desc:'Chimie générale et inorganique',files:['Cours 1 — Atomes et molécules.pdf','Cours 2 — Liaisons chimiques.pdf','TD Chimie.pdf']},
@@ -4029,7 +4025,6 @@ auth.onAuthStateChanged(async (firebaseUser) => {
             color:d.color||DB.COLORS[0], role:d.role||'student',
             passed:d.passed||0, avgScore:d.avgScore||0, certs:d.certs||0, activity:[]
           };
-          if(email==='lekoyoanicet31@gmail.com') user.role='admin';
           DB.users.push(user);
           if(user.role!=='admin') DB.students.push({...user});
         } else {
@@ -4038,7 +4033,7 @@ auth.onAuthStateChanged(async (firebaseUser) => {
           const color = DB.COLORS[DB.users.length%DB.COLORS.length];
           user = {
             id:DB.nextId++, name, email, level:1, spec:'', initials, color,
-            role: email==='lekoyoanicet31@gmail.com'?'admin':'student',
+            role: 'student',
             passed:0, avgScore:0, certs:0, activity:[]
           };
           DB.users.push(user);
@@ -4054,13 +4049,12 @@ auth.onAuthStateChanged(async (firebaseUser) => {
         user = {
           id:DB.nextId++, name, email, level:1, spec:'',
           initials:name[0].toUpperCase(), color:DB.COLORS[0],
-          role: email==='lekoyoanicet31@gmail.com'?'admin':'student',
+          role: 'student',
           passed:0, avgScore:0, certs:0, activity:[]
         };
         DB.users.push(user);
       }
     }
-    if(email==='lekoyoanicet31@gmail.com') user.role='admin';
     saveData();
     loginUser(user);
   } else {
