@@ -3561,11 +3561,11 @@ function refreshDocsList(){
       +(files.length===0
         ? '<div style="font-size:12px;color:var(--muted);padding:.3rem 0;">Aucun document — ajoutez-en via le formulaire ci-dessus.</div>'
         : files.map((f,i)=>{
-            const clean=f.replace(/<[^>]+>/g,'');
-            const hasLink=f.includes('href=');
+            const fileName = typeof f==='object' ? f.name : (f.includes('__NAME__') ? f.split('__NAME__')[1] : f.replace(/<[^>]+>/g,''));
+            const hasDrive = typeof f==='object' && f.driveId;
             return '<div style="display:flex;align-items:center;gap:8px;padding:.6rem 0;border-bottom:1px solid var(--border);">'
               +'<span style="font-size:15px;">📄</span>'
-              +'<span style="flex:1;font-size:13px;">'+clean+(hasLink?' <span style="font-size:10px;background:var(--g);color:var(--gc);padding:1px 6px;border-radius:10px;border:1px solid #97C459;">🔗 lien</span>':'')+'</span>'
+              +'<span style="flex:1;font-size:13px;">'+fileName+(hasDrive?' <span style="font-size:10px;background:var(--g);color:var(--gc);padding:1px 6px;border-radius:10px;border:1px solid #97C459;">🔗 Drive</span>':'')+'</span>'
               +'<button class="act-btn edit-btn" onclick="editDoc('+s.id+','+i+')">✏ Renommer</button>'
               +'<button class="act-btn edit-btn" onclick="editDocUrl('+s.id+','+i+')">🔗 Lien</button>'
               +'<button class="act-btn del-btn" onclick="deleteDoc('+s.id+','+i+')">🗑</button>'
@@ -3583,7 +3583,18 @@ function addDoc(){
   if(!name){toast('Nom du document requis','err');return;}
   const s=DB.subjects.find(x=>x.id===subjId);
   if(!s.files)s.files=[];
-  s.files.push(url?'__LINK__'+url+'__NAME__'+name:name);
+  // Extraire l'ID Google Drive si c'est un lien Drive
+  let fileObj;
+  if(url && url.includes('drive.google.com')){
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    const driveId = match ? match[1] : null;
+    fileObj = driveId ? {name, driveId} : {name};
+  } else if(url) {
+    fileObj = {name, url};
+  } else {
+    fileObj = {name};
+  }
+  s.files.push(fileObj);
   s.docs=s.files.length;
   document.getElementById('doc-name').value='';
   document.getElementById('doc-url').value='';
