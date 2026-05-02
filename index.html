@@ -1360,12 +1360,30 @@ function hideSyncStatus(){
 const DB = {
   users:[],
   subjects:[
-    {id:1,name:'Mathématiques',icon:'📐',level:1,docs:2,active:true,desc:'Algèbre et outils mathématiques',files:['algebre_l1.pdf','Outils_mathematiques.pdf']},
-    {id:2,name:'Chimie générale',icon:'⚗️',level:1,docs:3,active:true,desc:'Chimie générale, organique et terres rares',files:['Chimie_generale.pdf','Chimie_organique_generale.pdf','Chimie_terres_rares.pdf']},
-    {id:3,name:'Physique',icon:'⚡',level:1,docs:3,active:true,desc:'Mécanique, électrocinétique et électromagnétisme',files:['Mecanique_point_materiel.pdf','Electrocinetique.pdf','Electromagnetique.pdf']},
-    {id:4,name:'Statistiques',icon:'📊',level:2,docs:1,active:true,desc:'Méthodes statistiques et analyse de données',files:['Methodes_statistiques_analyse_donnees.pdf']},
-    {id:5,name:'Normes & Sécurité',icon:'🛡️',level:2,docs:2,active:true,desc:'Normes, mesures et sécurité environnementale',files:['Normes_mesures.pdf','Securite_environnement.pdf']},
-    {id:6,name:'Expression & Communication',icon:'🗣️',level:1,docs:1,active:true,desc:'Techniques d\'expression écrite et orale',files:['Techniques_expression_ecrite_orale.pdf']},
+    {id:1,name:'Mathématiques',icon:'📐',level:1,docs:2,active:true,desc:'Algèbre et outils mathématiques',files:[
+      {name:'Algèbre L1',driveId:'15iV_8nkjtuvanI12zwWUC3TyJbutuwdR'},
+      {name:'Outils mathématiques',driveId:'1FFADYlsH4KJIRPAcmcExljjo0nFJTejA'},
+    ]},
+    {id:2,name:'Chimie',icon:'⚗️',level:1,docs:3,active:true,desc:'Chimie générale, organique et terres rares',files:[
+      {name:'Chimie générale',driveId:'1p7gnebd4e6rNYKXeU8jCZUnAym3JW8Ct'},
+      {name:'Chimie organique générale',driveId:'1FLYhlFwoJXOfsR5FbuSXKa-Xlgo_fX4q'},
+      {name:'Chimie des terres rares',driveId:'1-2ZDgNstthtOkJLF0KfJWVwKKnJTiRbP'},
+    ]},
+    {id:3,name:'Physique',icon:'⚡',level:1,docs:3,active:true,desc:'Mécanique, électrocinétique et électromagnétisme',files:[
+      {name:'Mécanique du point matériel',driveId:'1rz7eLc8o4ZmsUsgbbywFAJVwHgucxzJW'},
+      {name:'Électrocinétique',driveId:'10Z8QFxsoZLLfpHob1ttWglKTK7tMfna5'},
+      {name:'Électromagnétisme',driveId:'19ukXfBQ8RxIpVO5Cj7sgPGCvh8p1BokA'},
+    ]},
+    {id:4,name:'Statistiques',icon:'📊',level:2,docs:1,active:true,desc:'Méthodes statistiques et analyse de données',files:[
+      {name:'Méthodes statistiques et analyse de données',driveId:'1oNLArK7zNIhPF5HTmBbNLItDyOSAcImo'},
+    ]},
+    {id:5,name:'Normes & Sécurité',icon:'🛡️',level:2,docs:2,active:true,desc:'Normes, mesures et sécurité environnementale',files:[
+      {name:'Normes et mesures',driveId:'1Fp3E-B83iDAFdqDzOyRps24JE6uGseLg'},
+      {name:'Sécurité environnementale',driveId:'1jCzk6XtiBUK5-GWOyZ3rCEpoGl6AXdaw'},
+    ]},
+    {id:6,name:'Expression & Communication',icon:'🗣️',level:1,docs:1,active:true,desc:'Techniques d\'expression écrite et orale',files:[
+      {name:'Techniques d\'expression écrite et orale',driveId:'1cYtcXVxDtSdf_jAJ1xC4B2xpV2ep6tyz'},
+    ]},
   ],
   exams:[
     {id:1,subjectId:1,difficulty:'Débutant',questions:[
@@ -1436,7 +1454,23 @@ let darkMode=false;
 let ebCtx={id:'general',icon:'🎓',name:'Toutes matières',desc:'Assistant général'};
 let ebHistory=[];
 let ebTyping=false;
-const GROQ_PROXY_URL='https://groq-proxy.erse-academy.workers.dev';
+const GITHUB_RAW='https://raw.githubusercontent.com/lekoyoanicet31-cmyk/erse-academy/main/cours/';
+function downloadPdf(driveId,name){
+  const url='https://drive.google.com/uc?export=download&id='+driveId;
+  window.open(url,'_blank');
+  toast('Téléchargement de "'+name+'"...','ok');
+}
+function previewPdf(driveId,subId,idx){
+  const el=document.getElementById('pdf-embed-'+subId+'-'+idx);
+  if(!el)return;
+  if(el.style.display==='none'||el.style.display===''){
+    el.innerHTML='<iframe src="https://drive.google.com/file/d/'+driveId+'/preview" width="100%" height="480" allow="autoplay" style="border:none;border-radius:8px;"></iframe>';
+    el.style.display='block';
+  } else {
+    el.style.display='none';
+    el.innerHTML='';
+  }
+}
 let qCount=0;
 
 /* ═══════════════════════════════════════════
@@ -1789,30 +1823,25 @@ function filterLevel(l,btn){
       </div>
       <div class="pdf-preview" id="pdf-section-${s.id}">
         <div class="pdf-embed-area">
-          ${(s.files||[]).map((f,i)=>`
+          ${(s.files||[]).map((f,i)=>{
+            const fileName = typeof f==='object' ? f.name : f;
+            const driveId = typeof f==='object' ? f.driveId : null;
+            return `
             <div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem .8rem;background:var(--card-bg);border:1px solid var(--border);border-radius:9px;margin-bottom:7px;">
               <div style="display:flex;align-items:center;gap:9px;">
                 <div style="width:32px;height:32px;background:#FCEBEB;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;">📄</div>
                 <div>
-                  <div style="font-size:13px;font-weight:500;">${f}</div>
-                  <div style="font-size:11px;color:var(--muted);">PDF · ${Math.floor(Math.random()*12)+2} pages</div>
+                  <div style="font-size:13px;font-weight:500;">${fileName}</div>
+                  <div style="font-size:11px;color:var(--muted);">PDF</div>
                 </div>
               </div>
               <div style="display:flex;gap:6px;">
-                <button class="btn-pdf btn-view" onclick="previewPdf('${f}',${s.id},${i})">👁 Aperçu</button>
-                <button class="btn-pdf btn-dl2" onclick="downloadPdf('${f}')">⬇ Télécharger</button>
+                ${driveId?`<button class="btn-pdf btn-view" onclick="previewPdf('${driveId}',${s.id},${i})">👁 Aperçu</button>`:''}
+                ${driveId?`<button class="btn-pdf btn-dl2" onclick="downloadPdf('${driveId}','${fileName.replace(/'/g,"\\'")}')">⬇ Télécharger</button>`:''}
               </div>
             </div>
-            <div id="pdf-embed-${s.id}-${i}" style="display:none;margin-bottom:7px;">
-              <div class="pdf-placeholder">
-                <div class="pdf-placeholder-ic">📄</div>
-                <p><strong>${f}</strong><br><br>
-                Placez votre fichier PDF dans le même dossier que ce fichier HTML,<br>
-                puis remplacez cette ligne dans le code :<br><br>
-                <code>src="NOM_DE_VOTRE_FICHIER.pdf"</code></p>
-              </div>
-            </div>
-          `).join('')}
+            <div id="pdf-embed-${s.id}-${i}" style="display:none;margin-bottom:7px;"></div>
+          `}).join('')}
           ${!s.files||s.files.length===0?'<div class="pdf-placeholder"><div class="pdf-placeholder-ic">📂</div><p>Aucun document pour l\'instant.<br>Ajoutez-en depuis l\'espace Admin.</p></div>':''}
         </div>
       </div>
@@ -1827,23 +1856,6 @@ function togglePdfSection(id){
   arrow.textContent=sec.classList.contains('open')?'▲':'▼';
 }
 
-function previewPdf(name,subId,idx){
-  const el=document.getElementById(`pdf-embed-${subId}-${idx}`);
-  el.style.display=el.style.display==='none'?'block':'none';
-}
-
-const GITHUB_RAW='https://raw.githubusercontent.com/lekoyoanicet31-cmyk/erse-academy/main/cours/';
-function downloadPdf(name){
-  // Si le fichier a un lien externe custom
-  if(name.includes('__LINK__')){
-    const url=name.split('__LINK__')[1].split('__NAME__')[0];
-    window.open(url,'_blank');
-    return;
-  }
-  const url=GITHUB_RAW+encodeURIComponent(name);
-  window.open(url,'_blank');
-  toast('Ouverture de "'+name+'"...','ok');
-}
 
 /* ═══════════════════════════════════════════
    EXAMENS + QUIZ
