@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QCM ERSE L1 — Révisions Complètes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --border: #1e2d45;
+    --accent: #3b82f6;
+    --accent2: #10b981;
+    --accent3: #f59e0b;
+    --accent4: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --correct: #10b981;
+    --wrong: #ef4444;
+    --pending: #3b82f6;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 1.5rem 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content:'';
+    position:absolute;
+    top:-50%;left:-50%;
+    width:200%;height:200%;
+    background: radial-gradient(ellipse at center, rgba(59,130,246,0.08) 0%, transparent 60%);
+    animation: pulse 4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+  .header h1 { font-size:2rem; font-weight:800; letter-spacing:-1px; position:relative;
+    background: linear-gradient(90deg,#60a5fa,#34d399,#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .header p { color:var(--muted); font-size:.9rem; margin-top:.5rem; position:relative; }
+
+  /* NAV MATIERES */
+  .nav-subjects {
+    display:flex; gap:.5rem; flex-wrap:wrap; padding:1rem 1.5rem;
+    background:var(--card); border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:100; overflow-x:auto;
+  }
+  .nav-btn {
+    padding:.4rem .9rem; border-radius:20px; font-size:.75rem; font-weight:600;
+    border:1px solid var(--border); background:transparent; color:var(--muted);
+    cursor:pointer; transition:all .2s; white-space:nowrap; font-family:'Sora',sans-serif;
+  }
+  .nav-btn:hover, .nav-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  /* STATS BAR */
+  .stats-bar {
+    display:flex; gap:1rem; padding:.8rem 1.5rem;
+    background:#0d1424; border-bottom:1px solid var(--border); flex-wrap:wrap;
+  }
+  .stat { display:flex; align-items:center; gap:.4rem; font-size:.8rem; }
+  .stat-dot { width:8px; height:8px; border-radius:50%; }
+  .stat span { color:var(--muted); }
+  .stat strong { color:var(--text); }
+
+  /* MATIERE SECTION */
+  .subject-section { display:none; padding:1.5rem; max-width:900px; margin:0 auto; }
+  .subject-section.active { display:block; }
+  .subject-title {
+    font-size:1.4rem; font-weight:800; margin-bottom:1.5rem;
+    display:flex; align-items:center; gap:.7rem;
+  }
+  .subject-badge {
+    font-size:.7rem; padding:.3rem .7rem; border-radius:10px;
+    background:rgba(59,130,246,.15); color:var(--accent); border:1px solid rgba(59,130,246,.3);
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  /* QUESTION CARD */
+  .question-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:1.4rem; margin-bottom:1rem; transition:border-color .2s;
+  }
+  .question-card:hover { border-color:#2d3d5a; }
+  .question-num {
+    font-size:.7rem; color:var(--muted); font-family:'JetBrains Mono',monospace;
+    margin-bottom:.6rem; text-transform:uppercase; letter-spacing:1px;
+  }
+  .question-text { font-size:.95rem; font-weight:600; line-height:1.6; margin-bottom:1rem; }
+  .options { display:flex; flex-direction:column; gap:.5rem; }
+  .option {
+    padding:.7rem 1rem; border-radius:8px; border:1px solid var(--border);
+    cursor:pointer; font-size:.88rem; transition:all .2s; display:flex; align-items:center; gap:.7rem;
+    background: transparent; color:var(--text); text-align:left; font-family:'Sora',sans-serif;
+  }
+  .option:hover:not(.disabled) { border-color:var(--accent); background:rgba(59,130,246,.08); }
+  .option.selected-correct { border-color:var(--correct); background:rgba(16,185,129,.12); color:#34d399; }
+  .option.selected-wrong { border-color:var(--wrong); background:rgba(239,68,68,.12); color:#f87171; }
+  .option.show-correct { border-color:var(--correct); background:rgba(16,185,129,.08); }
+  .option.disabled { cursor:default; }
+  .opt-letter {
+    width:24px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+    font-size:.75rem; font-weight:700; background:rgba(255,255,255,.06); flex-shrink:0;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .feedback { margin-top:.8rem; padding:.6rem .9rem; border-radius:8px; font-size:.82rem; display:none; }
+  .feedback.correct { background:rgba(16,185,129,.1); color:#34d399; border:1px solid rgba(16,185,129,.2); display:block; }
+  .feedback.wrong { background:rgba(239,68,68,.1); color:#f87171; border:1px solid rgba(239,68,68,.2); display:block; }
+
+  /* PROGRESS */
+  .progress-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+  .progress-bar { height:4px; background:#1e2d45; border-radius:2px; flex:1; margin:0 1rem; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:2px; transition:width .4s; }
+  .progress-text { font-size:.75rem; color:var(--muted); font-family:'JetBrains Mono',monospace; }
+
+  /* RESET BTN */
+  .reset-btn {
+    margin-top:1.5rem; padding:.6rem 1.4rem; border-radius:8px;
+    background:rgba(59,130,246,.15); color:var(--accent); border:1px solid rgba(59,130,246,.3);
+    cursor:pointer; font-size:.85rem; font-family:'Sora',sans-serif; font-weight:600;
+    transition:all .2s;
+  }
+  .reset-btn:hover { background:var(--accent); color:#fff; }
+
+  /* SCORE */
+  .score-box {
+    background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(59,130,246,.1));
+    border:1px solid rgba(59,130,246,.2); border-radius:12px;
+    padding:1rem 1.4rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem;
+  }
+  .score-num { font-size:2rem; font-weight:800; font-family:'JetBrains Mono',monospace; color:var(--accent2); }
+  .score-label { font-size:.85rem; color:var(--muted); }
+
+  @media(max-width:600px) {
+    .header h1 { font-size:1.4rem; }
+    .subject-section { padding:1rem; }
+    .question-text { font-size:.88rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚡ QCM ERSE L1 — Révisions</h1>
+  <p>Questions basées sur les épreuves officielles UAC/FAST 2020–2025</p>
+</div>
+
+<div class="nav-subjects" id="nav"></div>
+<div class="stats-bar" id="statsBar"></div>
+<div id="content"></div>
+
+<script>
+const SUBJECTS = [
+  {
+    id:'algebre', icon:'📐', name:'Algèbre & Analyse',
+    questions:[
+      { q:"Dans le problème de migration Abomey-Calavi/Cotonou, si la moitié des habitants d'Abomey-Calavi partent à Cotonou et un quart des habitants de Cotonou reviennent, quelle est la matrice M du système ?",
+        opts:["M = (0,5 ; 0,25 / 0,5 ; 0,75)","M = (0,5 ; 0,5 / 0,25 ; 0,75)","M = (0,75 ; 0,25 / 0,5 ; 0,5)","M = (1 ; 0,25 / 0,5 ; 1)"],
+        ans:0, exp:"a_{n+1} = 0,5a_n + 0,25c_n et c_{n+1} = 0,5a_n + 0,75c_n, ce qui donne M=(0,5 ; 0,25 / 0,5 ; 0,75)." },
+      { q:"Pour le système (S) : x+y-z=2, 2x+3y-z=5, 3x+5y-2z=8, le rang de la matrice A associée est :",
+        opts:["1","2","3","4"],
+        ans:1, exp:"En effectuant les opérations élémentaires, on obtient une matrice avec 2 lignes non nulles, donc rang(A)=2." },
+      { q:"Une suite (a_n) vérifie a_{n+1} = M^n × a_0. La diagonalisation de M = (0,5 ; 0,25 / 0,5 ; 0,75) donne les valeurs propres :",
+        opts:["λ1=1 et λ2=0,25","λ1=0,5 et λ2=0,75","λ1=1 et λ2=0,5","λ1=0,25 et λ2=0,75"],
+        ans:0, exp:"Le polynôme caractéristique de M est (0,5-λ)(0,75-λ)-0,125=0, soit λ²-1,25λ+0,25=0, donnant λ1=1 et λ2=0,25." },
+      { q:"Si f1(x) = cos(2·arctan(x)), la simplification donne :",
+        opts:["f1(x) = (1-x²)/(1+x²)","f1(x) = 2x/(1+x²)","f1(x) = (1+x²)/(1-x²)","f1(x) = x²/(1+x²)"],
+        ans:0, exp:"En posant t=arctan(x), cos(2t) = cos²t - sin²t = (1-tan²t)/(1+tan²t) = (1-x²)/(1+x²)." },
+      { q:"Le domaine de définition de f : x → arcsin(1/x) est :",
+        opts:["[-1,1]","]-∞,-1]∪[1,+∞[","]-1,0[∪]0,1[","ℝ"],
+        ans:1, exp:"arcsin(u) est défini pour u∈[-1,1]. Donc 1/x∈[-1,1] implique |x|≥1, soit x∈]-∞,-1]∪[1,+∞[." },
+      { q:"Pour la fonction g : x → x + th(x) définie sur ℝ+, elle est :",
+        opts:["Décroissante","Constante","Strictement croissante","Non monotone"],
+        ans:2, exp:"g'(x) = 1 + 1/ch²(x) > 0 pour tout x, donc g est strictement croissante." },
+      { q:"La limite lim(n→+∞) M^n pour M=(0,5 ; 0,25 / 0,5 ; 0,75) est :",
+        opts:["La matrice nulle","La matrice identité","(1/3 ; 1/3 / 2/3 ; 2/3)","(0,25 ; 0,25 / 0,75 ; 0,75)"],
+        ans:2, exp:"Quand n→∞, λ2^n=0,25^n→0. La limite donne la projection sur le vecteur propre de λ1=1, ce qui donne (1/3;1/3/2/3;2/3)." },
+      { q:"∫₀^(π/4) tan²(x) dx =",
+        opts:["1 - π/4","π/4 - 1","π/4","1"],
+        ans:0, exp:"tan²x = 1/cos²x - 1, donc ∫tan²x dx = tan(x) - x + C. Entre 0 et π/4 : [1 - π/4] - [0-0] = 1 - π/4." },
+      { q:"Le développement limité à l'ordre 2 de 1/(1+x) au voisinage de 0 est :",
+        opts:["1 + x + x²","1 - x + x²","1 + x - x²","1 - x - x²"],
+        ans:1, exp:"Par la formule géométrique : 1/(1+x) = 1 - x + x² - x³ + ... donc à l'ordre 2 : 1 - x + x²." },
+      { q:"Si M = PDP⁻¹ avec D=(1,0/0,0.25) et P=(1,-1/2,1), alors M^n =",
+        opts:["PD^n P⁻¹","P^n D P⁻¹","D^n","P D^n P"],
+        ans:0, exp:"Par récurrence, M^n = (PDP⁻¹)^n = PD^n P⁻¹ car (PDP⁻¹)(PDP⁻¹) = PD²P⁻¹, etc." },
+    ]
+  },
+  {
+    id:'chimie-gen', icon:'⚗️', name:'Chimie Générale',
+    questions:[
+      { q:"L'isotope ³⁵₁₇Cl possède :",
+        opts:["17 protons et 18 neutrons","17 protons et 35 neutrons","35 protons et 17 neutrons","18 protons et 17 neutrons"],
+        ans:0, exp:"Z=17 donne 17 protons. N = A-Z = 35-17 = 18 neutrons. L'option A est correcte." },
+      { q:"La sous-couche qui se sature à 10 électrons est :",
+        opts:["s","p","d","f"],
+        ans:2, exp:"La sous-couche d contient 5 orbitales × 2 électrons = 10 électrons maximum." },
+      { q:"Le cuivre (Z=29) appartient à la famille des :",
+        opts:["Gaz rares","Alcalino-terreux","Halogènes","Métaux de transition"],
+        ans:3, exp:"Le cuivre est un métal de transition (bloc d), avec la configuration [Ar]3d¹⁰4s¹." },
+      { q:"Une orbitale atomique est caractérisée par :",
+        opts:["1 nombre quantique","2 nombres quantiques","3 nombres quantiques","4 nombres quantiques"],
+        ans:2, exp:"Une orbitale est définie par n (principal), l (secondaire) et m (magnétique). L'électron nécessite un 4ème nombre (spin ms)." },
+      { q:"Au sens de Brønsted, un acide est une espèce capable de :",
+        opts:["Gagner un proton","Céder un proton","Gagner un électron","Céder un électron"],
+        ans:1, exp:"Selon la théorie acido-basique de Brønsted-Lowry, un acide est un donneur de proton H⁺." },
+      { q:"Pour la réaction A+B→C+D avec V=k[A]^α[B]^β, α et β sont :",
+        opts:["Les ordres globaux","Les ordres partiels","Les constantes de vitesse","Les coefficients stœchiométriques"],
+        ans:1, exp:"α est l'ordre partiel par rapport à A et β l'ordre partiel par rapport à B. L'ordre global est α+β." },
+      { q:"Dans un système fermé :",
+        opts:["Il y a échange de matière et d'énergie","Il n'y a aucun échange avec l'extérieur","Il n'y a pas d'échange d'énergie","Il n'y a pas d'échange de matière"],
+        ans:3, exp:"Un système fermé échange de l'énergie mais pas de matière avec le milieu extérieur. L'option D est correcte." },
+      { q:"La pile Cu²⁺/Cu et Zn²⁺/Zn avec E°(Cu²⁺/Cu)=0,34V et E°(Zn²⁺/Zn)=-0,76V. La f.e.m de cette pile est :",
+        opts:["0,34 V","0,76 V","1,10 V","-0,42 V"],
+        ans:2, exp:"f.e.m = E°cathode - E°anode = 0,34 - (-0,76) = 1,10 V. Le zinc est oxydé (anode) et le cuivre réduit (cathode)." },
+      { q:"Une variable d'état extensive est :",
+        opts:["Indépendante de la quantité de matière","Proportionnelle à la quantité de matière","Identique en tout point du système","Uniquement thermique"],
+        ans:1, exp:"Une variable extensive (volume, masse, enthalpie...) est proportionnelle à la quantité de matière." },
+      { q:"La configuration électronique de ₂₀Ca est :",
+        opts:["[Ar]4s¹","[Ar]3d²","[Ar]4s²","[Ne]4s²3d²"],
+        ans:2, exp:"Ca (Z=20) : 1s²2s²2p⁶3s²3p⁶4s² = [Ar]4s². Il appartient au bloc s, période 4, groupe IIA." },
+    ]
+  },
+  {
+    id:'chimie-orga', icon:'🧪', name:'Chimie Organique',
+    questions:[
+      { q:"Un stéréoisomère de configuration implique :",
+        opts:["Même formule brute, même enchaînement, configurations différentes","Même formule brute, enchaînements différents","Formules brutes différentes","Même formule développée"],
+        ans:0, exp:"Les stéréoisomères de configuration ont même formule brute et même enchaînement d'atomes, mais des arrangements spatiaux différents." },
+      { q:"La capsaïcine représentée possède un stéréoisomère de :",
+        opts:["Configuration Z/E","Configuration R/S","Conformation","Tautomère"],
+        ans:1, exp:"La capsaïcine possède un carbone asymétrique (chirale), donc elle présente des stéréoisomères de configuration R/S." },
+      { q:"Dans une réaction SN1, on obtient :",
+        opts:["Un seul énantiomère (inversion de Walden)","Un mélange racémique","Le produit de rétention","Aucun produit"],
+        ans:1, exp:"SN1 passe par un carbocation plan (sp²), l'attaque peut se faire des deux côtés → mélange racémique (50% R + 50% S)." },
+      { q:"Pour classer les acides Y-CH₂-COOH par ordre croissant d'acidité selon leur pKa (1,68;2,59;2,87;2,90;4,76), l'acide le plus fort est celui de pKa :",
+        opts:["4,76","2,90","2,59","1,68"],
+        ans:3, exp:"Plus le pKa est faible, plus l'acide est fort. pKa=1,68 correspond à Y=NO₂ (effet attracteur fort)." },
+      { q:"La réaction de l'isooctane avec X₂=Br₂ sous hν est une réaction de :",
+        opts:["Addition électrophile","Substitution nucléophile","Substitution radicalaire","Élimination"],
+        ans:2, exp:"La réaction d'un alcane avec un halogène sous irradiation lumineuse (hν) est une substitution radicalaire." },
+      { q:"L'ozonolise en milieu réducteur d'un hydrocarbure C₆H₁₂ donne du propanal. Cet hydrocarbure est :",
+        opts:["Un alcane","Un alcyne","Un alcène symétrique avec 3 carbones de chaque côté","Un cycloalcane"],
+        ans:2, exp:"L'ozonolise réductrice coupe la double liaison. Deux molécules de propanal (C₃) → l'alcène est CH₃CH₂CH=CHCH₂CH₃ (hex-3-ène)." },
+      { q:"Les solvants polaires aprotiques parmi {cyclohexane, DMSO, DCM, eau, aniline} sont :",
+        opts:["Cyclohexane et aniline","DMSO et DCM","Eau et DMSO","Cyclohexane et DCM"],
+        ans:1, exp:"DMSO et DCM sont polaires (liaisons polarisées) mais aprotiques (pas de H liés à O ou N très électronégatif)." },
+      { q:"Le nombre d'insaturation NI de C₃₂H₃₀N₂Cl₂ est :",
+        opts:["17","18","19","16"],
+        ans:1, exp:"NI = (2×32 + 2 - 30 + 2 - 2)/2 = (64+2-30+2-2)/2 = 36/2 = 18. Les halogènes comptent comme H, N ajoute 1." },
+      { q:"La molécule D-(-)-érythrose est :",
+        opts:["L et lévogyre","D et lévogyre","L et dextrogyre","D et dextrogyre"],
+        ans:1, exp:"D indique la configuration relative (côté droit dans Fischer comme D-glycéraldéhyde). (-) indique lévogyre (rotation optique mesurée expérimentalement)." },
+      { q:"Les formes mésomères limites correctes de l'anisole (méthoxybenzène) montrent :",
+        opts:["Uniquement des charges sur l'oxygène","Des charges sur l'oxygène et sur le cycle","Uniquement des charges sur le méthyle","Aucune délocalisation"],
+        ans:1, exp:"Le doublet non liant de l'oxygène se délocalise dans le cycle aromatique, créant des charges négatives en ortho et para sur le cycle." },
+    ]
+  },
+  {
+    id:'terres-rares', icon:'💎', name:'Chimie des Terres Rares',
+    questions:[
+      { q:"Les terres rares comprennent combien d'éléments au total ?",
+        opts:["15","17","21","14"],
+        ans:1, exp:"Les terres rares = 15 lanthanides + Scandium (Sc) + Yttrium (Y) = 17 éléments au total." },
+      { q:"LaNi₅ absorbe l'hydrogène pour former :",
+        opts:["LaNi₅H₄","LaNi₅H₆","LaNi₅H₂","LaNi₅H₈"],
+        ans:1, exp:"La réaction est LaNi₅ + 3H₂ → LaNi₅H₆. LaNi₅ peut absorber jusqu'à 6 atomes d'hydrogène par mole." },
+      { q:"Les propriétés particulières des terres rares dans les technologies du 21ème siècle sont liées à leurs propriétés :",
+        opts:["Mécaniques","Électromagnétiques","Thermiques","Radioactives"],
+        ans:1, exp:"Les terres rares ont des propriétés électromagnétiques particulières dues à leurs électrons 4f non appariés." },
+      { q:"Ce, Pr, Tb peuvent avoir deux nombres d'oxydation. Celui commun à tous est :",
+        opts:["+1","+2","+3","+4"],
+        ans:2, exp:"Le degré d'oxydation +3 est le plus stable et commun à toutes les terres rares. Ce peut aussi être +4, Pr peut être +4, Tb peut être +4." },
+      { q:"La technologie qui utilise les terres rares pour améliorer le rendement des systèmes photovoltaïques est :",
+        opts:["La supraconductivité","Le down-conversion/up-conversion luminescent","La magnétostriction","La catalyse hétérogène"],
+        ans:1, exp:"Les terres rares comme Er, Yb permettent la conversion de photons (down/up-conversion) pour mieux utiliser le spectre solaire dans les cellules PV." },
+      { q:"Plus de 97% de la production mondiale de terres rares est détenue par :",
+        opts:["Les USA","La Russie","La Chine","L'Australie"],
+        ans:2, exp:"La Chine détient la quasi-totalité des réserves exploitées et de la production mondiale de terres rares." },
+      { q:"La branche de la science qui étudie les spectres lumineux et leurs applications industrielles est :",
+        opts:["La cristallographie","La spectroscopie","La thermodynamique","La mécanique quantique"],
+        ans:1, exp:"La spectroscopie étudie l'interaction entre la matière et le rayonnement électromagnétique (spectres lumineux)." },
+      { q:"Parmi les métaux suivants, lesquels sont stratégiques/critiques : Argile, Kr, Nd, Pt, Hg, Xe, Gd ?",
+        opts:["Kr et Xe","Nd, Pt et Gd","Argile et Hg","Tous"],
+        ans:1, exp:"Nd (néodyme), Pt (platine) et Gd (gadolinium) sont des métaux critiques utilisés dans les technologies vertes et de haute technologie." },
+      { q:"La propriété des terres rares qui contribue à la réduction des gaz à effet de serre est :",
+        opts:["Leur forte densité","Leur capacité catalytique","Leur radioactivité","Leur résistance à la corrosion"],
+        ans:1, exp:"Les terres rares (surtout Ce, La) sont utilisées comme catalyseurs dans les pots catalytiques et les procédés industriels pour réduire les émissions." },
+      { q:"La structure électronique simplifiée de ₅₈Ce est :",
+        opts:["[Xe]4f²","[Xe]4f¹5d¹","[Xe]5d²","[Kr]4f²5d¹"],
+        ans:1, exp:"Ce (Z=58) a la configuration [Xe]4f¹5d¹6s². La structure simplifiée montre [Xe]4f¹5d¹ (les électrons de valence)." },
+    ]
+  },
+  {
+    id:'thermochimie', icon:'🔥', name:'Thermochimie & Équilibres',
+    questions:[
+      { q:"Une solution d'H₂SO₄ à 49% en masse, de masse volumique 1,385 kg/L. La masse de soluté dans 500 mL est :",
+        opts:["339,3 g","692,5 g","245 g","480 g"],
+        ans:0, exp:"masse solution = 1,385 × 500 = 692,5 g. Masse soluté = 692,5 × 0,49 = 339,3 g." },
+      { q:"La combustion de 200 L de CH₄ (conditions normales) avec ΔH°comb = -891 kJ/mol dégage :",
+        opts:["7 946 kJ","8 910 kJ","178,2 kJ","445,5 kJ"],
+        ans:0, exp:"n(CH₄) = 200/22,4 = 8,93 mol. Q = 8,93 × 891 = 7 954 kJ ≈ 7 946 kJ." },
+      { q:"L'oxydation est une :",
+        opts:["Prise d'électrons","Perte d'électrons","Prise de protons","Perte de protons"],
+        ans:1, exp:"L'oxydation = perte d'électrons (OIL : Oxidation Is Loss). La réduction = gain d'électrons (RIG : Reduction Is Gain)." },
+      { q:"Un réducteur est une espèce susceptible de :",
+        opts:["Gagner des électrons","Céder des électrons","Gagner des protons","Céder des protons"],
+        ans:1, exp:"Un réducteur cède des électrons (il s'oxyde). Un oxydant gagne des électrons (il se réduit)." },
+      { q:"La molarité d'une solution d'H₂SO₄ (M=98 g/mol) à 49% en masse, ρ=1,385 kg/L est :",
+        opts:["3,46 mol/L","6,93 mol/L","4,9 mol/L","9,8 mol/L"],
+        ans:1, exp:"C = (ρ × % × 10)/M = (1385 × 0,49 × 1000)/(98 × 1000) = 678,65/98 ≈ 6,93 mol/L." },
+      { q:"Dans la loi de vitesse V = k[A]^α[B]^β, k est :",
+        opts:["Dépendant des concentrations","Dépendant de la température","Constant en toutes conditions","Égal à α+β"],
+        ans:1, exp:"k est la constante de vitesse. Elle dépend de la température (loi d'Arrhenius) mais pas des concentrations." },
+      { q:"À un acide fort est conjuguée :",
+        opts:["Une base forte","Une base faible","Un acide faible","Un amphotère"],
+        ans:1, exp:"Plus un acide est fort (pKa bas), plus sa base conjuguée est faible. À HCl (acide fort) est conjuguée Cl⁻ (base très faible)." },
+      { q:"Si 50% de la chaleur est utilisable, pour chauffer de l'eau de 15 à 95°C avec Cp=4,18 J/(g·K), la quantité utilisable par gramme est :",
+        opts:["167,2 J","334,4 J","668,8 J","83,6 J"],
+        ans:1, exp:"Q_total = 4,18 × 1 × (95-15) = 334,4 J/g. Q_utilisable = 334,4/2 = 167,2 J/g. Attendre : Q à fournir = 334,4/0,5 = 668,8 J/g. La réponse B est la chaleur absorbée par gramme d'eau." },
+      { q:"La cellule électrochimique de Daniell est constituée de :",
+        opts:["Deux cathodes de zinc","Une anode de cuivre et une cathode de zinc","Une anode de zinc et une cathode de cuivre","Deux anodes de cuivre"],
+        ans:2, exp:"Dans la pile Daniell : l'anode est en Zn (s'oxyde : Zn→Zn²⁺+2e⁻) et la cathode est en Cu (se réduit : Cu²⁺+2e⁻→Cu)." },
+      { q:"L'enthalpie est une fonction d'état car :",
+        opts:["Elle dépend du chemin suivi","Elle dépend uniquement de l'état initial et de l'état final","Elle est toujours positive","Elle est mesurable directement"],
+        ans:1, exp:"Une fonction d'état (T, P, V, H, G...) ne dépend que des états initial et final, indépendamment du chemin suivi." },
+    ]
+  },
+  {
+    id:'mecanique', icon:'🔧', name:'Mécanique du Point',
+    questions:[
+      { q:"Une automobile accélère de 0 à 30 m/s en 10 s à accélération constante. Son accélération est :",
+        opts:["3 m/s²","30 m/s²","300 m/s²","0,3 m/s²"],
+        ans:0, exp:"a = Δv/Δt = (30-0)/10 = 3 m/s²." },
+      { q:"En coordonnées cylindriques, les composantes de la vitesse d'un point M sont :",
+        opts:["v = ṙeᵣ + rθ̇eθ + żeᵤ","v = ṙeᵣ + θ̇eθ + żeᵤ","v = reᵣ + rθeθ + zeᵤ","v = ṙeᵣ + ṙθ̇eθ"],
+        ans:0, exp:"En coordonnées cylindriques (r,θ,z) : v = ṙeᵣ + rθ̇eθ + żeᵤ. C'est la formule standard." },
+      { q:"Pour un pendule oscillant d'équation φ̈ + (g/l)sinφ = 0, en petites oscillations sinφ ≈ φ, la période est :",
+        opts:["T = 2π√(g/l)","T = 2π√(l/g)","T = π√(l/g)","T = 2√(l/g)"],
+        ans:1, exp:"L'équation devient φ̈ + (g/l)φ = 0, soit ω² = g/l. La période T = 2π/ω = 2π√(l/g)." },
+      { q:"La distance parcourue par l'automobile pendant son accélération de 0 à 30 m/s est :",
+        opts:["300 m","150 m","450 m","100 m"],
+        ans:1, exp:"v² = v₀² + 2aΔx → (30)² = 0 + 2×3×Δx → Δx = 900/6 = 150 m." },
+      { q:"Un point M se déplace avec OM = r = 2acosθ et θ = ωt. La trajectoire est :",
+        opts:["Une parabole","Un cercle","Une ellipse","Une droite"],
+        ans:1, exp:"r = 2acos(θ) est l'équation d'un cercle de diamètre 2a en coordonnées polaires. M décrit un cercle." },
+      { q:"Pour la seconde formule de Binet, l'accélération radiale est :",
+        opts:["aᵣ = -C²u²(u + d²u/dθ²)","aᵣ = C²u²(u + d²u/dθ²)","aᵣ = -C²(u + d²u/dθ²)","aᵣ = rθ̈"],
+        ans:0, exp:"La seconde formule de Binet : aᵣ = -C²u²(u + d²u/dθ²) avec u = 1/r et C = r²θ̇ = cte (loi des aires)." },
+      { q:"Le principe fondamental de la dynamique s'écrit :",
+        opts:["ΣF = 0","ΣF = ma","ΣF = mv","ΣF = m/a"],
+        ans:1, exp:"Le PFD (2ème loi de Newton) : la résultante des forces = masse × accélération. ΣF⃗ = ma⃗." },
+      { q:"Dans un mouvement circulaire uniforme, l'accélération est :",
+        opts:["Tangentielle uniquement","Nulle","Centripète (vers le centre)","Centrifuge (vers l'extérieur)"],
+        ans:2, exp:"En MCU, la vitesse est constante en module (accélération tangentielle = 0) mais varie en direction. L'accélération est centripète : a = v²/R dirigée vers le centre." },
+      { q:"La loi des aires (théorème de Kepler) pour une force centrale affirme que :",
+        opts:["La vitesse est constante","r²θ̇ = constante","rθ̇ = constante","r²θ = constante"],
+        ans:1, exp:"Pour une force centrale, le moment cinétique est conservé : C = r²θ̇ = constante. C'est la loi des aires." },
+      { q:"La distance parcourue par l'automobile pendant que sa vitesse passe de 10 à 20 m/s (a=3 m/s²) est :",
+        opts:["50 m","100 m","150 m","25 m"],
+        ans:0, exp:"v² - v₀² = 2aΔx → 400-100 = 2×3×Δx → Δx = 300/6 = 50 m." },
+    ]
+  },
+  {
+    id:'electrocinetique', icon:'⚡', name:'Électrocinétique',
+    questions:[
+      { q:"Le théorème de Thévenin stipule qu'un réseau linéaire vu de deux bornes peut être remplacé par :",
+        opts:["Une résistance seule","Un générateur de courant parfait","Un générateur de tension E_th en série avec R_th","Un condensateur"],
+        ans:2, exp:"Thévenin : tout dipôle actif linéaire = générateur de f.e.m. E_th (tension à vide) en série avec résistance R_th (résistance équivalente)." },
+      { q:"Pour un circuit RC série soumis à e(t) = E₀ (tension continue), l'équation différentielle est :",
+        opts:["RC(du/dt) + u = 0","RC(du/dt) + u = E₀","R(du/dt) + u/C = E₀","L(di/dt) + Ri = E₀"],
+        ans:1, exp:"La loi des mailles donne : e(t) = Ri + u = RC(du/dt) + u. Donc RC(du/dt) + u = E₀." },
+      { q:"La capacité équivalente de C₁ et C₂ en série est :",
+        opts:["C₁+C₂","C₁×C₂/(C₁+C₂)","(C₁+C₂)/(C₁×C₂)","1/(1/C₁+1/C₂) = C₁C₂/(C₁+C₂)"],
+        ans:3, exp:"En série : 1/Ceq = 1/C₁ + 1/C₂, soit Ceq = C₁C₂/(C₁+C₂). Les options C et D sont équivalentes et correctes." },
+      { q:"La résistance équivalente de Thévenin R_th est obtenue en :",
+        opts:["Mesurant la tension à vide","Court-circuitant les sources de tension et ouvrant les sources de courant","Ajoutant toutes les résistances","Divisant E_th par le courant de court-circuit"],
+        ans:1, exp:"Pour calculer R_th : on éteint les sources indépendantes (court-circuit pour sources tension, circuit ouvert pour sources courant) puis on calcule R vue des bornes." },
+      { q:"L'énergie stockée dans un condensateur de capacité C chargé à la tension U est :",
+        opts:["CU","CU²","CU²/2","C²U/2"],
+        ans:2, exp:"E_condensateur = QU/2 = CU²/2. Cette énergie est stockée dans le champ électrique entre les armatures." },
+      { q:"La fonction de transfert d'un filtre RC passe-bas est :",
+        opts:["H(jω) = jωRC/(1+jωRC)","H(jω) = 1/(1+jωRC)","H(jω) = 1+jωRC","H(jω) = R/(R+1/jCω)"],
+        ans:1, exp:"Pour le filtre passe-bas RC : H = Z_C/(R+Z_C) = (1/jCω)/(R+1/jCω) = 1/(1+jRCω)." },
+      { q:"Dans le circuit RLC série, la résonance se produit quand :",
+        opts:["R = L/C","ω = 1/√(LC)","ω = RC","ω²LC = R"],
+        ans:1, exp:"À la résonance, ZL = ZC → Lω = 1/(Cω) → ω² = 1/(LC) → ω₀ = 1/√(LC)." },
+      { q:"Le courant dans une inductance L soumise à u(t) = 25cos(250t) mV avec i(t) = 14sin(250t) mA, L vaut :",
+        opts:["L ≈ 7,1 mH","L ≈ 14,3 mH","L ≈ 3,6 mH","L ≈ 25 mH"],
+        ans:0, exp:"Z_L = U/I = 25mV/14mA = 1,786 Ω. Z_L = Lω → L = 1,786/250 ≈ 7,1 mH." },
+      { q:"Pour R₁=R₂=R=100kΩ, R₃=R₅=25kΩ, R₄=50kΩ, E₁=E₂=10V, la résistance de Thévenin R_th entre A et B est :",
+        opts:["50 kΩ","25 kΩ","100 kΩ","75 kΩ"],
+        ans:1, exp:"En éteignant les sources (E₁ et E₂ court-circuités), on calcule R vue de A-B. Le réseau donne R_th = 25 kΩ." },
+      { q:"L'inductance équivalente de 3 bobines L identiques en série est :",
+        opts:["L/3","3L","L","√3 × L"],
+        ans:1, exp:"En série, les inductances s'additionnent : L_eq = L₁ + L₂ + L₃ = 3L." },
+    ]
+  },
+  {
+    id:'electromag', icon:'🧲', name:'Électromagnétisme',
+    questions:[
+      { q:"Le potentiel électrostatique créé par un dipôle électrostatique en un point M distant r est :",
+        opts:["V_M = qd/(4πε₀r²)","V_M = p·cosθ/(4πε₀r²)","V_M = p/(4πε₀r)","V_M = qd·cosθ/(4πε₀r)"],
+        ans:1, exp:"V_M = p·cosθ/(4πε₀r²) où p = qd est le moment dipolaire et θ l'angle entre p et OM." },
+      { q:"Le champ magnétique créé par un solénoïde parcouru par i(t)=I₀cos(ωt) à l'intérieur est :",
+        opts:["B = μ₀nI₀cos(ωt)","B = μ₀I₀cos(ωt)","B = nI₀cos(ωt)","B = μ₀nI₀sin(ωt)"],
+        ans:0, exp:"Le champ magnétique à l'intérieur d'un solénoïde infini de n spires/m est B = μ₀ni. Ici B(t) = μ₀nI₀cos(ωt)." },
+      { q:"Un dipôle électrostatique dans un champ uniforme E⃗ possède :",
+        opts:["Une seule position d'équilibre","Deux positions d'équilibre","Aucune position d'équilibre","Trois positions d'équilibre"],
+        ans:1, exp:"Le dipôle a deux positions d'équilibre : p⃗ parallèle à E⃗ (stable) et p⃗ antiparallèle à E⃗ (instable)." },
+      { q:"Le théorème de Green-Ostrogradski relie :",
+        opts:["La circulation d'un champ à son rotationnel","Le flux d'un champ à sa divergence","Le gradient à la divergence","Le rotationnel au gradient"],
+        ans:1, exp:"Green-Ostrogradski (théorème de la divergence) : ∯S F⃗·dS⃗ = ∭V div(F⃗)dV. Il relie flux et divergence." },
+      { q:"Pour un cylindre (C) d'axe (z'z) uniformément chargé (σ>0), le champ électrostatique à l'extérieur est :",
+        opts:["Nul","Uniforme","En 1/r dirigé radialement","En 1/r² dirigé radialement"],
+        ans:2, exp:"Par le théorème de Gauss, pour r>R : E = σR/(ε₀r) en coordonnées cylindriques, dirigé radialement (∝1/r)." },
+      { q:"L'énergie potentielle électrostatique d'un dipôle p⃗ dans un champ E⃗ est :",
+        opts:["E_p = p·E·sinθ","E_p = -p⃗·E⃗ = -pEcosθ","E_p = p·E·cosθ","E_p = p²E"],
+        ans:1, exp:"E_p = -p⃗·E⃗ = -pEcosθ. Elle est minimale (stable) quand θ=0 (alignement) et maximale (instable) quand θ=π." },
+      { q:"Un champ vectoriel F⃗ est conservatif (dérive d'un potentiel) si et seulement si :",
+        opts:["div(F⃗) = 0","rot(F⃗) = 0⃗","∇F = 0","F⃗ = constante"],
+        ans:1, exp:"F⃗ est conservatif ⟺ rot(F⃗) = 0⃗ (irrotationnel). Il existe alors φ tel que F⃗ = grad(φ)." },
+      { q:"La puissance instantanée dissipée par effet Joule dans un conducteur de conductivité γ parcouru par une densité de courant j⃗ est :",
+        opts:["P = j²/γ","P = j²γ","P = j·γ","P = γ/j²"],
+        ans:0, exp:"La puissance volumique Joule est p = j⃗·E⃗ = j²/γ (car E⃗ = j⃗/γ selon la loi d'Ohm locale)." },
+      { q:"Le moment résultant exercé sur un dipôle p⃗ dans un champ E⃗ est :",
+        opts:["M⃗ = p⃗ × E⃗","M⃗ = p⃗ · E⃗","M⃗ = E⃗ × p⃗","M⃗ = p⃗/E"],
+        ans:0, exp:"Le moment résultant (couple) exercé sur le dipôle : M⃗ = p⃗ × E⃗. Son module est M = pEsinθ." },
+      { q:"Dans l'approximation dipolaire (a≪r), le potentiel du dipôle devient :",
+        opts:["V_M ≈ qd/(4πε₀r²)","V_M ≈ p·cosθ/(4πε₀r²)","V_M ≈ p/(4πε₀r³)","V_M ≈ 0"],
+        ans:1, exp:"Pour a≪r, on garde le premier terme non nul : V_M = p·cosθ/(4πε₀r²), qui est bien l'approximation dipolaire." },
+    ]
+  },
+  {
+    id:'optique', icon:'🔭', name:'Optique Géométrique',
+    questions:[
+      { q:"La relation de conjugaison d'un miroir sphérique (convention algébrique) est :",
+        opts:["1/SA' - 1/SA = 2/SC","1/SA' + 1/SA = 2/R","1/SA' - 1/SA = 2/R","SA' × SA = R²/4"],
+        ans:2, exp:"La relation de conjugaison pour un miroir sphérique : 1/SA' - 1/SA = 2/R = 1/f' (avec R = SC le rayon algébrique)." },
+      { q:"Un miroir concave de rayon SC = -1m. Un écran est placé à 5m du sommet. La nature de l'image est :",
+        opts:["Virtuelle droite","Réelle renversée","Virtuelle renversée","Réelle droite"],
+        ans:1, exp:"f = R/2 = -0,5m. 1/SA' = 2/SC + 1/SA. SA'=5m (écran réel) → image réelle. Le grandissement est négatif → image renversée." },
+      { q:"Les lois de Descartes pour la réfraction donnent :",
+        opts:["n₁sinθ₁ = n₂sinθ₂","n₁cosθ₁ = n₂cosθ₂","n₁θ₁ = n₂θ₂","sinθ₁/sinθ₂ = n₁/n₂"],
+        ans:0, exp:"La loi de Snell-Descartes : n₁·sinθ₁ = n₂·sinθ₂, où θ est l'angle mesuré par rapport à la normale." },
+      { q:"Un dioptre sphérique de rayon R=3cm sépare deux milieux n₁=1 et n₂=1,5. La distance focale image f'₂ est :",
+        opts:["9 cm","6 cm","3 cm","12 cm"],
+        ans:0, exp:"f'₂ = n₂R/(n₂-n₁) = 1,5×3/(1,5-1) = 4,5/0,5 = 9 cm." },
+      { q:"Un système est afocal si :",
+        opts:["Sa distance focale est infinie","O₁O₂ = f'₁ + f'₂","Les deux foyers coïncident","La vergence est nulle"],
+        ans:1, exp:"Un système formé de deux lentilles est afocal si et seulement si O₁O₂ = f'₁ + f'₂ (les foyers image et objet des deux lentilles coïncident)." },
+      { q:"Le grandissement transversal γ d'un miroir sphérique est :",
+        opts:["γ = SA/SA'","γ = SA'/SA","γ = -SA'/SA","γ = f/SA"],
+        ans:2, exp:"Le grandissement transversal γ = A'B'/AB = -SA'/SA (le signe - vient de la convention des miroirs)." },
+      { q:"Pour un rayon lumineux dans l'air frappant un liquide (α=56° avec l'horizontale, déviation θ=13,5°), l'angle d'incidence est :",
+        opts:["56°","34°","13,5°","42,5°"],
+        ans:1, exp:"L'angle d'incidence est mesuré par rapport à la normale. Si α=56° avec le plan, l'angle avec la normale = 90°-56° = 34°." },
+      { q:"La méthode de Huygens pour construire le rayon réfracté consiste à :",
+        opts:["Tracer le rayon symétrique par rapport à la surface","Construire des ondes sphériques secondaires et leur enveloppe","Utiliser la loi des cosinus","Inverser le vecteur vitesse"],
+        ans:1, exp:"Le principe de Huygens : chaque point d'un front d'onde est source d'ondelettes secondaires sphériques. L'enveloppe de ces ondelettes donne le nouveau front d'onde." },
+      { q:"La vergence δ d'un dioptre sphérique séparant n₁ et n₂ de rayon R est :",
+        opts:["δ = (n₂-n₁)/R","δ = n₂/R","δ = (n₁-n₂)/R","δ = n₁n₂/R"],
+        ans:0, exp:"La vergence du dioptre : δ = (n₂-n₁)/R en dioptries (si R en mètres). Elle caractérise le pouvoir de convergence du dioptre." },
+      { q:"Dans une lame de verre d'indice n=1,5, d'épaisseur e=1mm, le déplacement Δᵣ du rayon réfléchi pour i=20° est proportionnel à :",
+        opts:["e/cosθ","2e·sinθ/cosθ","e·sin(i-θ)/cosθ","2e·sin(i)"],
+        ans:2, exp:"Le déplacement entre les deux rayons réfléchis d'une lame à faces parallèles : Δᵣ = 2e·sin(i-θ)/cosθ (formule exacte)." },
+    ]
+  },
+  {
+    id:'outils-math', icon:'📏', name:'Outils Mathématiques',
+    questions:[
+      { q:"La divergence de V⃗ = -yi⃗ + (x+1)j⃗ + zk⃗ est :",
+        opts:["-1","0","1","2"],
+        ans:2, exp:"div(V⃗) = ∂(-y)/∂x + ∂(x+1)/∂y + ∂z/∂z = 0 + 0 + 1 = 1." },
+      { q:"Le rotationnel de V⃗ = -yi⃗ + (x+1)j⃗ + zk⃗ est :",
+        opts:["rot = i⃗","rot = 2j⃗","rot = 2k⃗","rot = 0"],
+        ans:2, exp:"rot(V⃗) = (∂Vz/∂y-∂Vy/∂z)i⃗ + (∂Vx/∂z-∂Vz/∂x)j⃗ + (∂Vy/∂x-∂Vx/∂y)k⃗ = 0·i⃗ + 0·j⃗ + (1-(-1))k⃗ = 2k⃗." },
+      { q:"L'incertitude absolue sur la mesure de D₁ = (19,5 ± 0,1) mm et D₂ = (26,7 ± 0,1) mm pour D₂-D₁ est :",
+        opts:["± 0,1 mm","± 0,2 mm","± 0,01 mm","± 0,3 mm"],
+        ans:1, exp:"Pour une différence : Δ(D₂-D₁) = ΔD₁ + ΔD₂ = 0,1 + 0,1 = 0,2 mm." },
+      { q:"Le gradient en coordonnées cylindriques (ρ,φ,z) de f(ρ,φ) est :",
+        opts:["grad(f) = ∂f/∂ρ·eᵨ + (1/ρ)∂f/∂φ·eφ + ∂f/∂z·ez","grad(f) = ∂f/∂ρ·eᵨ + ∂f/∂φ·eφ","grad(f) = (1/ρ)∂f/∂ρ·eᵨ + ∂f/∂φ·eφ","grad(f) = ∂²f/∂ρ²·eᵨ"],
+        ans:0, exp:"En coordonnées cylindriques : grad(f) = ∂f/∂ρ·eᵨ + (1/ρ)∂f/∂φ·eφ + ∂f/∂z·ez." },
+      { q:"Pour A⃗ = (3x²+6y)i⃗ - 14yzj⃗ + 20xz²k⃗, la circulation entre O(0,0,0) et M(1,1,1) :",
+        opts:["Dépend du chemin","Est nulle","Est identique pour les deux chemins (rot(A⃗)≠0)","Vaut 1 pour tout chemin"],
+        ans:0, exp:"On calcule rot(A⃗). Si rot(A⃗)≠0⃗, A⃗ n'est pas conservatif et la circulation dépend du chemin." },
+      { q:"L'erreur relative de la mesure de R₁ = (1200,0 ± 0,5) Ω est :",
+        opts:["0,5%","0,042%","0,5 Ω","4,2%"],
+        ans:1, exp:"Erreur relative = ΔR₁/R₁ = 0,5/1200 = 4,17×10⁻⁴ ≈ 0,042%." },
+      { q:"En coordonnées sphériques, l'expression du Laplacien de f est :",
+        opts:["Δf = ∂²f/∂r²","Δf = (1/r²)∂(r²∂f/∂r)/∂r + termes angulaires","Δf = ∂²f/∂r² + ∂²f/∂θ²","Δf = (1/r)∂f/∂r"],
+        ans:1, exp:"Le Laplacien en coordonnées sphériques : Δf = (1/r²)∂(r²∂f/∂r)/∂r + (1/r²sinθ)∂(sinθ·∂f/∂θ)/∂θ + (1/r²sin²θ)∂²f/∂φ²." },
+      { q:"Si F⃗ est conservatif sur ℝ², alors pour aller de A(0,1) à B(2,3) :",
+        opts:["Le travail dépend du chemin","Le travail est nul","Le travail ne dépend que des points A et B","Le travail est toujours positif"],
+        ans:2, exp:"Si rot(F⃗)=0 (F⃗ conservatif), il existe U tel que F⃗=-grad(U). Le travail = U(A)-U(B) ne dépend que des points." },
+      { q:"Le passage des coordonnées cartésiennes aux cylindriques donne :",
+        opts:["x=ρcosφ, y=ρsinφ, z=z","x=ρsinφ, y=ρcosφ, z=z","x=ρcosθsinφ, y=ρsinθsinφ, z=ρcosφ","x=rcosθ, y=rsinθ, z=r"],
+        ans:0, exp:"En cylindriques : x = ρcosφ, y = ρsinφ, z = z. (En sphériques : x=rsinθcosφ, y=rsinθsinφ, z=rcosθ)." },
+      { q:"Pour F⃗ = (3x²+6xy²)i⃗ + (6x²y+4y³)j⃗, le potentiel U tel que F⃗ = grad(U) est :",
+        opts:["U = x³+3x²y²+y⁴","U = 3x²+6xy²","U = x³y+3y³","U = 6xy"],
+        ans:0, exp:"∂U/∂x = 3x²+6xy² → U = x³+3x²y²+g(y). ∂U/∂y = 6x²y+g'(y) = 6x²y+4y³ → g'(y)=4y³ → g(y)=y⁴. Donc U = x³+3x²y²+y⁴." },
+    ]
+  },
+  {
+    id:'statistiques', icon:'📊', name:'Statistiques',
+    questions:[
+      { q:"Le coefficient de corrélation linéaire r² entre x et y est :",
+        opts:["[cov(x,y)]²/(V(x)V(y))","cov(x,y)/(σ(x)σ(y))","[cov(x,y)]²/[σ(x)σ(y)]²","cov(x,y)²"],
+        ans:0, exp:"r² = [cov(x,y)]²/(V(x)·V(y)) = [cov(x,y)]²/(σ²(x)·σ²(y)). Le coefficient r = cov(x,y)/(σ(x)σ(y))." },
+      { q:"Pour x̄≈5,5, ȳ≈18,75, σ(x)≈3, σ(y)≈6,8, cov(x,y)≈17,9, l'équation de la droite de régression y en x est :",
+        opts:["y ≈ -1,6x + 0,4","y ≈ 1,99x + 7,8","y ≈ 0,39x - 1,81","y ≈ 0,4x - 1,6"],
+        ans:1, exp:"b = cov/V(x) = 17,9/9 ≈ 1,99. a = ȳ - b·x̄ = 18,75 - 1,99×5,5 ≈ 7,8. Droite : y ≈ 1,99x + 7,8." },
+      { q:"Pour la série de durées d'appels par intervalles [0;2[→14, [2;4[→16, [4;6[→25, [6;8[→15, [8;10[→17, [10;12[→13, la médiane M_e est dans l'intervalle :",
+        opts:["[2;4[","[4;6[","[6;8[","[0;2["],
+        ans:1, exp:"N=100. Effectifs cumulés : 14, 30, 55... La médiane (50ème valeur) est dans [4;6[ (effectif cumulé passe de 30 à 55)." },
+      { q:"L'erreur totale sur R (calculée à partir de U et I avec incertitudes) se calcule par :",
+        opts:["ΔR = ΔU + ΔI","ΔR/R = ΔU/U + ΔI/I","ΔR = √(ΔU²+ΔI²)","ΔR = ΔU × ΔI"],
+        ans:1, exp:"Pour R = U/I, l'erreur relative : ΔR/R = ΔU/U + ΔI/I (les erreurs relatives s'additionnent pour les produits/quotients)." },
+      { q:"Pour estimer R à partir de 10 mesures de U et I, la valeur estimée R_cal est :",
+        opts:["La première mesure U₁/I₁","La moyenne de U_i/I_i","Σ(U_i × I_i)/Σ(I_i²)","ΣU_i/ΣI_i"],
+        ans:2, exp:"La régression linéaire force à l'origine (U=RI) donne R_estimé = Σ(U_i×I_i)/Σ(I_i²) (méthode des moindres carrés)." },
+      { q:"Dans la série statistique de l'exercice de température (N=97), les déciles D₁ et D₉ encadrent :",
+        opts:["50% des données","80% des données","90% des données","10% des données"],
+        ans:1, exp:"D₁ = 1er décile (10% des données en dessous) et D₉ = 9ème décile (90% en dessous). Donc entre D₁ et D₉ = 80% des données." },
+      { q:"Le mode M₀ d'une série groupée en intervalles est :",
+        opts:["La valeur centrale de l'intervalle de plus haute fréquence","La moyenne des valeurs extrêmes","La valeur médiane","L'intervalle de plus faible fréquence"],
+        ans:0, exp:"Pour des données groupées en intervalles, le mode est la valeur centrale (milieu) de la classe modale (celle de plus haute fréquence)." },
+      { q:"Pour x̄≈20 ans et ȳ≈2,72 kg (données mère-nébé), la droite de régression de y en x permet d'estimer pour x=24 ans :",
+        opts:["Directement ȳ","ŷ = a + bx pour x=24","La valeur de σ","Le coefficient r"],
+        ans:1, exp:"Une fois la droite de régression y=a+bx déterminée, on substitue x=24 pour obtenir ŷ, l'estimation du poids du bébé." },
+      { q:"Le coefficient de corrélation r = cov(x,y)/(σ(x)σ(y)). Si r = 0,98, cela indique :",
+        opts:["Pas de corrélation","Corrélation négative forte","Corrélation positive très forte","Données non liées"],
+        ans:2, exp:"r ∈ [-1,1]. r=0,98 ≈ 1 indique une corrélation linéaire positive très forte entre x et y." },
+      { q:"L'écart-type σ(X) d'une série est la racine carrée de :",
+        opts:["La moyenne","La variance","L'étendue","La médiane"],
+        ans:1, exp:"Par définition σ(X) = √V(X) où V(X) = Σf_i(x_i - x̄)²/N est la variance. L'écart-type mesure la dispersion." },
+    ]
+  },
+  {
+    id:'securite', icon:'🛡️', name:'Sécurité & Environnement',
+    questions:[
+      { q:"Parmi les 4 règles de sécurité à observer en laboratoire, laquelle est incorrecte ?",
+        opts:["Porter des lunettes de protection","Fumer est autorisé si ventilé","Ne jamais pipeter à la bouche","Connaître les sorties de secours"],
+        ans:1, exp:"Il est strictement interdit de fumer dans un laboratoire (risques d'explosion, d'incendie, contamination). Les autres règles sont correctes." },
+      { q:"Le dichlore Cl₂ de concentration 42×10⁻⁴ mol/L dans 500mL d'eau est extrait dans une bouteille. Elle se brise dans 20m³. Avec Vm=24L/mol, la teneur en Cl₂ est :",
+        opts:["2,52×10⁻⁶ mol/L","1,26×10⁻⁴ mol/L","2,52×10⁻⁴ mol/L","5,04×10⁻⁶ mol/L"],
+        ans:0, exp:"n(Cl₂) = 42×10⁻⁴ × 0,5 = 2,1×10⁻³ mol. V_gaz = 2,1×10⁻³ × 24 = 0,0504 L. Teneur = 0,0504/(20×10³) = 2,52×10⁻⁶ mol/L." },
+      { q:"Dans le schéma A (sans prise de terre), que se passe-t-il quand le bonhomme touche la carcasse défectueuse ?",
+        opts:["Rien, le circuit est ouvert","Un courant de défaut traverse le corps vers le sol","Le disjoncteur se déclenche immédiatement","La tension est nulle"],
+        ans:1, exp:"Sans prise de terre, le corps humain constitue le chemin de retour du courant. Un courant de défaut traverse le corps, risque d'électrocution." },
+      { q:"Le rôle du disjoncteur différentiel est de :",
+        opts:["Mesurer la tension","Protéger contre les surcharges uniquement","Détecter les courants de fuite et couper le circuit","Réguler la fréquence"],
+        ans:2, exp:"Le disjoncteur différentiel détecte la différence entre courant aller et courant retour (courant de fuite). Si Δi > seuil (30mA), il coupe le circuit." },
+      { q:"Parmi les procédés de traitement des déchets, lequel n'en est pas un ?",
+        opts:["La mise en décharge","L'incinération","Le compostage","La fabrication de nouveaux produits chimiques"],
+        ans:3, exp:"Les 4 procédés principaux sont : mise en décharge, incinération (valorisation énergétique), compostage (valorisation organique), recyclage. La synthèse chimique n'est pas un traitement de déchets." },
+      { q:"Pour faire des économies d'énergie au niveau du transport, on peut :",
+        opts:["Augmenter la vitesse des véhicules","Favoriser le covoiturage et les transports en commun","Éviter les énergies renouvelables","Construire plus de routes"],
+        ans:1, exp:"Le covoiturage et les transports en commun réduisent le nombre de véhicules en circulation, diminuant ainsi la consommation d'énergie et les émissions." },
+      { q:"L'habilitation électrique est :",
+        opts:["Un diplôme universitaire","Une reconnaissance de la capacité à effectuer des travaux électriques en sécurité","Une autorisation de construire","Un outil de mesure"],
+        ans:1, exp:"L'habilitation électrique est une attestation délivrée par l'employeur reconnaissant qu'une personne est apte à effectuer des travaux ou opérations sur des installations électriques." },
+      { q:"La prise de terre (schéma B) permet de :",
+        opts:["Augmenter la tension","Dévier les courants de défaut vers la terre au lieu du corps humain","Couper l'alimentation","Mesurer l'impédance"],
+        ans:1, exp:"La prise de terre offre un chemin de faible résistance pour les courants de fuite, évitant qu'ils passent par le corps humain. Elle protège les personnes." },
+      { q:"En cas d'accident électrique, que faire en premier ?",
+        opts:["Toucher la victime pour la dégager","Couper l'alimentation électrique avant toute intervention","Appeler les secours sans rien faire","Verser de l'eau sur la victime"],
+        ans:1, exp:"La priorité absolue est de couper l'alimentation électrique (interrupteur, disjoncteur) avant de toucher la victime. Toucher une victime sous tension peut électrocuter le secouriste." },
+      { q:"Pour faire des économies d'énergie au niveau de l'habitat, on peut :",
+        opts:["Laisser les appareils en veille","Améliorer l'isolation thermique du bâtiment","Augmenter la puissance des ampoules","Ouvrir les fenêtres en hiver pour ventiler"],
+        ans:1, exp:"L'isolation thermique réduit les besoins en chauffage/climatisation, principal poste de consommation dans l'habitat. C'est l'économie d'énergie la plus efficace." },
+    ]
+  },
+  {
+    id:'teeo', icon:'✍️', name:'TEEO',
+    questions:[
+      { q:"La lettre administrative à forme personnelle est celle qu'un :",
+        opts:["Ministre adresse à un président d'ONG","Recteur adresse à un préfet","Ministre de la Santé du Bénin adresse à celui du Cameroun","Subordonné adresse à son supérieur"],
+        ans:0, exp:"La lettre à forme personnelle s'utilise entre personnes de rang très différent (hiérarchie marquée). Ex: Ministre→Président ONG. Entre pairs d'États, c'est la forme administrative." },
+      { q:"Dans une lettre administrative, la référence est :",
+        opts:["Facultative","Obligatoire","Interdite","Optionnelle selon le contexte"],
+        ans:1, exp:"Dans toute lettre administrative, la référence (numéro d'enregistrement, date, objet) est OBLIGATOIRE. C'est une règle absolue de l'administration." },
+      { q:"La communication de groupe s'assimile à la communication de masse car :",
+        opts:["Elles sont toutes deux verbales","Elles supposent d'interaction entre interlocuteurs différents","Elles utilisent les mêmes médias","Elles sont toutes deux formelles"],
+        ans:1, exp:"La communication de groupe implique plusieurs interlocuteurs différents qui échangent, comme la communication de masse (TV, radio) qui touche des publics variés." },
+      { q:"Dans le style administratif, le supérieur hiérarchique :",
+        opts:["Demande à son subordonné","Informe le subordonné","Sollicite l'avis du subordonné","Consulte le subordonné"],
+        ans:1, exp:"Dans le style administratif : le supérieur INFORME/INSTRUIT le subordonné. Le subordonné DEMANDE/SOLLICITE au supérieur. C'est le sens descendant de l'information." },
+      { q:"La formule «vouloir bien» s'emploie :",
+        opts:["Du subordonné vers le supérieur","Du supérieur vers le subordonné","Entre pairs","Dans les lettres privées uniquement"],
+        ans:1, exp:"«Je vous serais obligé de vouloir bien...» est une formule de politesse atténuée utilisée par le supérieur envers le subordonné dans le style administratif." },
+      { q:"Les discussions par WhatsApp entre deux individus sont une communication :",
+        opts:["De masse","Interpersonnelle","De groupe","Institutionnelle"],
+        ans:1, exp:"La communication interpersonnelle est un échange direct entre deux personnes (face à face, téléphone, messagerie privée). WhatsApp à deux = communication interpersonnelle." },
+      { q:"Dans l'accord du participe passé, 'Les voitures que papa a dessinées' → le participe s'accorde car :",
+        opts:["Le nom est pluriel","Le COD 'que' (= voitures) est placé avant avoir","Le sujet est féminin","Il n'y a pas d'accord"],
+        ans:1, exp:"Le participe passé avec 'avoir' s'accorde avec le COD SEULEMENT si celui-ci est PLACÉ AVANT le verbe. 'Que' = voitures (COD placé avant) → dessinéES." },
+      { q:"Le journal télévisé peut être assimilé à :",
+        opts:["Une communication interpersonnelle","Une communication de groupe","Une communication de masse","Une communication administrative"],
+        ans:2, exp:"Le journal télévisé diffuse un message identique à un très large public simultanément → communication de MASSE (mass media)." },
+      { q:"Le code, dans la communication, est :",
+        opts:["Le message lui-même","L'ensemble des règles guidant la production du message","Le canal de transmission","Le bruit dans la communication"],
+        ans:1, exp:"Le code est l'ensemble des règles partagées par l'émetteur et le récepteur qui permettent d'encoder et de décoder le message (ex: la langue française)." },
+      { q:"La lettre de motivation pour le poste chez ENERGIES PLUS doit contenir obligatoirement :",
+        opts:["Uniquement les diplômes","L'objet, les motivations et les compétences en lien avec le poste","La liste de tous les emplois précédents","Uniquement les coordonnées"],
+        ans:1, exp:"Une lettre de motivation doit comprendre : l'accroche/objet, la présentation adaptée au poste, les motivations spécifiques, les compétences pertinentes, et une formule de politesse." },
+    ]
+  },
+  {
+    id:'informatique', icon:'💻', name:'Informatique & Programmation',
+    questions:[
+      { q:"Quelle est la sortie de print(3 * 'ab') en Python ?",
+        opts:["'ababab'","'3ab'","'ab3'","Erreur"],
+        ans:0, exp:"En Python, l'opérateur * avec une chaîne répète la chaîne. 3 * 'ab' = 'ababab'." },
+      { q:"Que renvoie len([1, [2, 3]]) ?",
+        opts:["3","2","4","Erreur"],
+        ans:1, exp:"La liste [1, [2,3]] contient 2 éléments : l'entier 1 et la liste [2,3]. len() compte les éléments de premier niveau → 2." },
+      { q:"Quelle méthode permet d'ajouter un élément à la fin d'une liste ?",
+        opts:["list.insert()","list.add()","list.append()","list.push()"],
+        ans:2, exp:"list.append(x) ajoute x à la fin de la liste. list.insert(i, x) insère à la position i. list.add() n'existe pas en Python standard." },
+      { q:"Que fait for n in range(2, 6, 2): print(n) ?",
+        opts:["Affiche 2, 4, 6","Affiche 2, 4","Affiche 2, 3, 4, 5","Affiche 6"],
+        ans:1, exp:"range(2, 6, 2) génère la séquence 2, 4 (de 2 à 6 exclu, par pas de 2). L'affichage sera 2 puis 4." },
+      { q:"Comment vérifier si la clé 'age' existe dans un dictionnaire d ?",
+        opts:["if d.has_key('age')","if 'age' in d.keys()","if 'age' in d","Les options B et C sont correctes"],
+        ans:3, exp:"En Python 3, 'age' in d et 'age' in d.keys() fonctionnent tous les deux. d.has_key() n'existe plus en Python 3." },
+      { q:"Quelle est la valeur de bool('0') en Python ?",
+        opts:["False","True","0","Erreur"],
+        ans:1, exp:"En Python, toute chaîne non vide est True. '0' est une chaîne non vide donc bool('0') = True. Ce n'est pas l'entier 0 !" },
+      { q:"Pour sortir d'une boucle while en Python, on utilise :",
+        opts:["exit()","break","stop","return"],
+        ans:1, exp:"break interrompt immédiatement la boucle la plus proche (while ou for). continue passe à l'itération suivante. exit() quitte le programme." },
+      { q:"Dans le programme : def f2(n): return 2*n-1 ; x=3.4 ; y=5.3 ; print(f2(f1(y,x))). Si f1(a,b) retourne 3 si a<b sinon 4. Qu'affiche-t-on ?",
+        opts:["5","7","3","9"],
+        ans:1, exp:"f1(y=5.3, x=3.4) : 5.3 > 3.4 donc retourne 4. f2(4) = 2×4-1 = 7. Le programme affiche 7." },
+      { q:"Quelle est l'erreur dans : whyle True: print('ok') ?",
+        opts:["True doit être False","'ok' doit être entre parenthèses","whyle est mal orthographié (doit être while)","print n'est pas une fonction"],
+        ans:2, exp:"Le mot-clé Python est 'while' (sans y). 'whyle' est une erreur de syntaxe (SyntaxError). Python est sensible à l'orthographe exacte des mots-clés." },
+      { q:"La liste_courses.clear() dans le code de gestion de liste :",
+        opts:["Supprime la liste définitivement","Vide la liste (la liste reste mais est vide)","Copie la liste","Trie la liste"],
+        ans:1, exp:"list.clear() supprime tous les éléments de la liste mais la liste elle-même existe toujours (devient []). C'est différent de del list qui supprime la variable." },
+    ]
+  },
+  {
+    id:'anglais', icon:'🌍', name:'Anglais Scientifique',
+    questions:[
+      { q:"'Solar panel' en français est :",
+        opts:["Panneau solaire","Capteur solaire","Cellule photovoltaïque","Miroir solaire"],
+        ans:0, exp:"'Solar panel' = panneau solaire. Un panneau solaire peut être photovoltaïque (convertit la lumière en électricité) ou thermique (chauffe l'eau)." },
+      { q:"'What does the sun give?' (d'après le texte). The correct answer is :",
+        opts:["Water","Wind","Energy/Light","Heat only"],
+        ans:2, exp:"D'après le texte : 'The sun gives energy, which can be captured by solar panels to produce electricity.' The sun gives energy (and light)." },
+      { q:"'Wind turbines use ____ to make energy.' Le mot manquant est :",
+        opts:["Sun","Wind","Water","Coal"],
+        ans:1, exp:"'A wind turbine uses wind to make energy.' Les éoliennes convertissent l'énergie cinétique du vent en électricité." },
+      { q:"'Energetic Self-sufficiency' en français signifie :",
+        opts:["Efficacité énergétique","Autosuffisance énergétique","Économie d'énergie","Gaspillage énergétique"],
+        ans:1, exp:"'Self-sufficiency' = autosuffisance (capacité à se suffire à soi-même). 'Energetic self-sufficiency' = autosuffisance énergétique (produire sa propre énergie)." },
+      { q:"How would you introduce yourself to Sagbo? The correct structure is :",
+        opts:["My name is... I am a student in ERSE...","I called... student...","Am I... ERSE student...","Hello, Sagbo is my friend..."],
+        ans:0, exp:"La présentation correcte : 'Hello! My name is [Name]. I am a student in [domain] at [university]. I am interested in renewable energy because [reason].'"},
+      { q:"'Is renewable energy clean?' (from the text). The correct answer is :",
+        opts:["No, it pollutes","Yes, it has a minimal carbon footprint","It depends on the country","It is not sustainable"],
+        ans:1, exp:"Le texte dit : 'renewable energy sources have a minimal carbon footprint' → Yes, renewable energy is clean (minimal emissions)." },
+      { q:"'Wind power' en français est :",
+        opts:["Énergie solaire","Énergie hydraulique","Énergie éolienne","Énergie géothermique"],
+        ans:2, exp:"'Wind power' = énergie éolienne (du vent, 'wind' = vent). 'Solar power'=solaire, 'Hydropower'=hydraulique, 'Geothermal'=géothermique." },
+      { q:"Five components of an electricity transmission network include :",
+        opts:["Transformers, power lines, substations, switches, meters","Turbines, generators, water, coal, gas","Solar panels, batteries, wind turbines, dams, nuclear plants","Cables, light bulbs, sockets, switches, fuses"],
+        ans:0, exp:"A transmission network includes: transformers (élèvent/abaissent la tension), power lines (lignes HT), substations (postes), switches (disjoncteurs), meters (compteurs)." },
+      { q:"'Unlimited resources' en français signifie :",
+        opts:["Ressources limitées","Ressources renouvelables","Ressources illimitées","Ressources naturelles"],
+        ans:2, exp:"'Unlimited' = illimité(e). 'Unlimited resources' = ressources illimitées. C'est différent de 'renewable' (renouvelable) qui se régénère mais peut être épuisé localement." },
+      { q:"'Environment-friendly' en français est :",
+        opts:["Environnement fragile","Respectueux de l'environnement","Pollution environnementale","Dégradation environnementale"],
+        ans:1, exp:"'Environment-friendly' (aussi 'eco-friendly') = respectueux de l'environnement, écologique. Ex: 'Solar energy is environment-friendly.'" },
+    ]
+  }
+];
+
+// STATE
+const state = {};
+SUBJECTS.forEach(s => {
+  state[s.id] = { answers: {}, score: 0, total: s.questions.length };
+});
+
+let activeSubject = SUBJECTS[0].id;
+
+// BUILD NAV
+const nav = document.getElementById('nav');
+SUBJECTS.forEach(s => {
+  const btn = document.createElement('button');
+  btn.className = 'nav-btn' + (s.id === activeSubject ? ' active' : '');
+  btn.textContent = s.icon + ' ' + s.name;
+  btn.onclick = () => switchSubject(s.id);
+  btn.id = 'nav-' + s.id;
+  nav.appendChild(btn);
+});
+
+// BUILD CONTENT
+const content = document.getElementById('content');
+SUBJECTS.forEach(s => {
+  const sec = document.createElement('div');
+  sec.className = 'subject-section' + (s.id === activeSubject ? ' active' : '');
+  sec.id = 'sec-' + s.id;
+
+  let html = `<div style="max-width:860px;margin:0 auto;">
+    <div class="subject-title">${s.icon} ${s.name} <span class="subject-badge">${s.questions.length} questions</span></div>
+    <div class="score-box" id="score-${s.id}">
+      <div class="score-num" id="scorenum-${s.id}">0/${s.questions.length}</div>
+      <div><div style="font-weight:600">Score</div><div class="score-label">Répondez aux questions ci-dessous</div></div>
+    </div>
+    <div class="progress-row">
+      <span class="progress-text">0%</span>
+      <div class="progress-bar"><div class="progress-fill" id="prog-${s.id}" style="width:0%"></div></div>
+      <span class="progress-text" id="prog-txt-${s.id}">0/${s.questions.length}</span>
+    </div>`;
+
+  s.questions.forEach((q, qi) => {
+    const letters = ['A','B','C','D'];
+    html += `<div class="question-card" id="qcard-${s.id}-${qi}">
+      <div class="question-num">Question ${qi+1} / ${s.questions.length}</div>
+      <div class="question-text">${q.q}</div>
+      <div class="options">`;
+    q.opts.forEach((opt, oi) => {
+      html += `<button class="option" id="opt-${s.id}-${qi}-${oi}" onclick="answer('${s.id}',${qi},${oi})">
+        <span class="opt-letter">${letters[oi]}</span>${opt}
+      </button>`;
+    });
+    html += `</div>
+      <div class="feedback" id="fb-${s.id}-${qi}"></div>
+    </div>`;
+  });
+
+  html += `<button class="reset-btn" onclick="resetSubject('${s.id}')">🔄 Recommencer cette matière</button></div>`;
+  sec.innerHTML = html;
+  content.appendChild(sec);
+});
+
+// STATS BAR
+function updateStats() {
+  let total = 0, answered = 0, correct = 0;
+  SUBJECTS.forEach(s => {
+    total += s.questions.length;
+    answered += Object.keys(state[s.id].answers).length;
+    correct += state[s.id].score;
+  });
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><div class="stat-dot" style="background:#3b82f6"></div><span>Total questions : </span><strong>${total}</strong></div>
+    <div class="stat"><div class="stat-dot" style="background:#f59e0b"></div><span>Répondues : </span><strong>${answered}</strong></div>
+    <div class="stat"><div class="stat-dot" style="background:#10b981"></div><span>Correctes : </span><strong>${correct}</strong></div>
+    <div class="stat"><div class="stat-dot" style="background:#ef4444"></div><span>Incorrectes : </span><strong>${answered - correct}</strong></div>
+    <div class="stat"><div class="stat-dot" style="background:#8b5cf6"></div><span>Score global : </span><strong>${answered ? Math.round(correct/answered*100) : 0}%</strong></div>
+  `;
+}
+
+function answer(sid, qi, oi) {
+  const s = SUBJECTS.find(x => x.id === sid);
+  const q = s.questions[qi];
+  if (state[sid].answers[qi] !== undefined) return;
+
+  state[sid].answers[qi] = oi;
+  const isCorrect = oi === q.ans;
+  if (isCorrect) state[sid].score++;
+
+  const letters = ['A','B','C','D'];
+  for (let i = 0; i < q.opts.length; i++) {
+    const btn = document.getElementById(`opt-${sid}-${qi}-${i}`);
+    btn.classList.add('disabled');
+    if (i === q.ans) btn.classList.add('show-correct');
+    if (i === oi && oi !== q.ans) btn.classList.add('selected-wrong');
+    if (i === oi && oi === q.ans) btn.classList.add('selected-correct');
+  }
+
+  const fb = document.getElementById(`fb-${sid}-${qi}`);
+  fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = (isCorrect ? '✅ ' : '❌ ') + q.exp;
+
+  // update progress
+  const answered = Object.keys(state[sid].answers).length;
+  const pct = Math.round(answered / s.questions.length * 100);
+  document.getElementById(`prog-${sid}`).style.width = pct + '%';
+  document.getElementById(`prog-txt-${sid}`).textContent = `${answered}/${s.questions.length}`;
+  document.querySelector(`#sec-${sid} .progress-row .progress-text`).textContent = pct + '%';
+  document.getElementById(`scorenum-${sid}`).textContent = `${state[sid].score}/${s.questions.length}`;
+
+  updateStats();
+}
+
+function resetSubject(sid) {
+  const s = SUBJECTS.find(x => x.id === sid);
+  state[sid] = { answers: {}, score: 0, total: s.questions.length };
+
+  s.questions.forEach((q, qi) => {
+    for (let oi = 0; oi < q.opts.length; oi++) {
+      const btn = document.getElementById(`opt-${sid}-${qi}-${oi}`);
+      btn.className = 'option';
+      btn.onclick = () => answer(sid, qi, oi);
+    }
+    const fb = document.getElementById(`fb-${sid}-${qi}`);
+    fb.className = 'feedback';
+    fb.innerHTML = '';
+  });
+
+  document.getElementById(`prog-${sid}`).style.width = '0%';
+  document.getElementById(`prog-txt-${sid}`).textContent = `0/${s.questions.length}`;
+  document.querySelector(`#sec-${sid} .progress-row .progress-text`).textContent = '0%';
+  document.getElementById(`scorenum-${sid}`).textContent = `0/${s.questions.length}`;
+  updateStats();
+}
+
+function switchSubject(id) {
+  document.querySelectorAll('.subject-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+  activeSubject = id;
+  window.scrollTo(0, 0);
+}
+
+updateStats();
+</script>
+</body>
+</html>
