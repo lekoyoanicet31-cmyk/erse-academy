@@ -1360,43 +1360,47 @@ function hideSyncStatus(){
 const DB = {
   users:[],
   subjects:[
-    {id:1,name:'Mathématiques',icon:'📐',level:1,docs:2,active:true,desc:'Algèbre et outils mathématiques',files:[
+    {id:1,name:'Mathématiques',icon:'📐',level:1,docs:2,active:true,desc:'Algèbre, analyse et outils mathématiques pour la physique',files:[
       {name:'Algèbre L1',driveId:'15iV_8nkjtuvanI12zwWUC3TyJbutuwdR'},
       {name:'Outils mathématiques',driveId:'1FFADYlsH4KJIRPAcmcExljjo0nFJTejA'},
     ]},
-    {id:2,name:'Chimie',icon:'⚗️',level:1,docs:3,active:true,desc:'Chimie générale, organique et terres rares',files:[
+    {id:2,name:'Chimie Générale',icon:'⚗️',level:1,docs:1,active:true,desc:'Atomes, liaisons chimiques, structures électroniques',files:[
       {name:'Chimie générale',driveId:'1p7gnebd4e6rNYKXeU8jCZUnAym3JW8Ct'},
+    ]},
+    {id:3,name:'Chimie Organique',icon:'🧪',level:1,docs:1,active:true,desc:'Stéréochimie, réactions et mécanismes réactionnels',files:[
       {name:'Chimie organique générale',driveId:'1FLYhlFwoJXOfsR5FbuSXKa-Xlgo_fX4q'},
+    ]},
+    {id:4,name:'Chimie des Terres Rares',icon:'💎',level:2,docs:1,active:true,desc:'Propriétés électromagnétiques et applications industrielles',files:[
       {name:'Chimie des terres rares',driveId:'1-2ZDgNstthtOkJLF0KfJWVwKKnJTiRbP'},
     ]},
-    {id:3,name:'Physique',icon:'⚡',level:1,docs:3,active:true,desc:'Mécanique, électrocinétique et électromagnétisme',files:[
+    {id:5,name:'Thermochimie & Équilibres',icon:'🔥',level:1,docs:0,active:true,desc:'Thermodynamique chimique, acides-bases, piles électrochimiques',files:[]},
+    {id:6,name:'Mécanique du Point',icon:'⚙️',level:1,docs:1,active:true,desc:'Cinématique, dynamique et forces centrales',files:[
       {name:'Mécanique du point matériel',driveId:'1rz7eLc8o4ZmsUsgbbywFAJVwHgucxzJW'},
+    ]},
+    {id:7,name:'Électrocinétique',icon:'⚡',level:1,docs:1,active:true,desc:'Circuits, théorème de Thévenin, filtres et condensateurs',files:[
       {name:'Électrocinétique',driveId:'10Z8QFxsoZLLfpHob1ttWglKTK7tMfna5'},
+    ]},
+    {id:8,name:'Électromagnétisme',icon:'🧲',level:2,docs:1,active:true,desc:'Dipôles, champs électrique et magnétique, théorème de Gauss',files:[
       {name:'Électromagnétisme',driveId:'19ukXfBQ8RxIpVO5Cj7sgPGCvh8p1BokA'},
     ]},
-    {id:4,name:'Statistiques',icon:'📊',level:2,docs:1,active:true,desc:'Méthodes statistiques et analyse de données',files:[
+    {id:9,name:'Optique Géométrique',icon:'🔭',level:2,docs:0,active:true,desc:'Miroirs sphériques, dioptres, lentilles et réfraction',files:[]},
+    {id:10,name:'Statistiques',icon:'📊',level:2,docs:1,active:true,desc:'Méthodes statistiques univariées et bivariées',files:[
       {name:'Méthodes statistiques et analyse de données',driveId:'1oNLArK7zNIhPF5HTmBbNLItDyOSAcImo'},
     ]},
-    {id:5,name:'Normes & Sécurité',icon:'🛡️',level:2,docs:2,active:true,desc:'Normes, mesures et sécurité environnementale',files:[
+    {id:11,name:'Normes & Mesures',icon:'📏',level:1,docs:1,active:true,desc:'Normes, incertitudes et métrologie',files:[
       {name:'Normes et mesures',driveId:'1Fp3E-B83iDAFdqDzOyRps24JE6uGseLg'},
+    ]},
+    {id:12,name:'Sécurité & Environnement',icon:'🛡️',level:1,docs:1,active:true,desc:'Sécurité électrique, risques chimiques et environnement',files:[
       {name:'Sécurité environnementale',driveId:'1jCzk6XtiBUK5-GWOyZ3rCEpoGl6AXdaw'},
     ]},
-    {id:6,name:'Expression & Communication',icon:'🗣️',level:1,docs:1,active:true,desc:'Techniques d\'expression écrite et orale',files:[
+    {id:13,name:'TEEO',icon:'✍️',level:1,docs:1,active:true,desc:'Techniques d\'expression écrite et orale',files:[
       {name:'Techniques d\'expression écrite et orale',driveId:'1cYtcXVxDtSdf_jAJ1xC4B2xpV2ep6tyz'},
     ]},
-    {id:7,name:'Chimie Générale',icon:'🧪',level:1,docs:0,active:true,desc:'Atomes, liaisons, thermochimie et équilibres chimiques',files:[]},
-    {id:8,name:'Chimie Organique',icon:'🔬',level:1,docs:0,active:true,desc:'Stéréochimie, réactions, mécanismes réactionnels',files:[]},
-    {id:9,name:'Chimie des Terres Rares',icon:'💎',level:2,docs:0,active:true,desc:'Propriétés électromagnétiques et applications industrielles',files:[]},
-    {id:10,name:'Thermochimie & Équilibres',icon:'🔥',level:1,docs:0,active:true,desc:'Thermodynamique chimique, acides-bases, piles',files:[]},
-    {id:11,name:'Mécanique du Point',icon:'⚙️',level:1,docs:0,active:true,desc:'Cinématique, dynamique, forces centrales',files:[]},
-    {id:12,name:'Électrocinétique',icon:'⚡',level:1,docs:0,active:true,desc:'Circuits, Thévenin, filtres, condensateurs',files:[]},
-    {id:13,name:'Électromagnétisme',icon:'🧲',level:2,docs:0,active:true,desc:'Dipôles, champs électrique et magnétique, Gauss',files:[]},
-    {id:14,name:'Optique Géométrique',icon:'🔭',level:2,docs:0,active:true,desc:'Miroirs, dioptres, lentilles, réfraction',files:[]},
-    {id:15,name:'Informatique & Programmation',icon:'💻',level:1,docs:0,active:true,desc:'Python, algorithmes, structures de données',files:[]},
-    {id:16,name:'Anglais Scientifique',icon:'🌍',level:1,docs:0,active:true,desc:'Anglais appliqué aux énergies renouvelables',files:[]},
+    {id:14,name:'Informatique & Programmation',icon:'💻',level:1,docs:0,active:true,desc:'Python, algorithmes et structures de données',files:[]},
+    {id:15,name:'Anglais Scientifique',icon:'🌍',level:1,docs:0,active:true,desc:'Anglais appliqué aux énergies renouvelables',files:[]},
   ],
   exams:[
-    {id:1,subjectId:1,title:'Algèbre & Analyse',difficulty:'Intermédiaire',questions:[
+    {id:1,subjectId:1,title:'Mathématiques — Algèbre & Analyse',difficulty:'Intermédiaire',questions:[
       {q:'Dans le problème de migration Abomey-Calavi/Cotonou, si la moitié des habitants d\'Abomey-Calavi partent à Cotonou et un quart des habitants de Cotonou reviennent, quelle est la matrice M du système ?',opts:['M = (0,5 ; 0,25 / 0,5 ; 0,75)','M = (0,5 ; 0,5 / 0,25 ; 0,75)','M = (0,75 ; 0,25 / 0,5 ; 0,5)','M = (1 ; 0,25 / 0,5 ; 1)'],ans:0,exp:'a_{n+1} = 0,5a_n + 0,25c_n et c_{n+1} = 0,5a_n + 0,75c_n, ce qui donne M=(0,5;0,25/0,5;0,75).'},
       {q:'Pour le système (S) : x+y-z=2, 2x+3y-z=5, 3x+5y-2z=8, le rang de la matrice A associée est :',opts:['1','2','3','4'],ans:1,exp:'En effectuant les opérations élémentaires, on obtient 2 lignes non nulles, donc rang(A)=2.'},
       {q:'La diagonalisation de M = (0,5;0,25/0,5;0,75) donne les valeurs propres :',opts:['λ1=1 et λ2=0,25','λ1=0,5 et λ2=0,75','λ1=1 et λ2=0,5','λ1=0,25 et λ2=0,75'],ans:0,exp:'Le polynôme caractéristique donne λ²-1,25λ+0,25=0, soit λ1=1 et λ2=0,25.'},
@@ -1420,7 +1424,7 @@ const DB = {
       {q:'La configuration électronique de ₂₀Ca est :',opts:['[Ar]4s¹','[Ar]3d²','[Ar]4s²','[Ne]4s²3d²'],ans:2,exp:'Ca (Z=20) : 1s²2s²2p⁶3s²3p⁶4s² = [Ar]4s².'},
       {q:'Une orbitale atomique est définie par combien de nombres quantiques ?',opts:['1','2','3','4'],ans:2,exp:'Une orbitale est définie par n (principal), l (secondaire) et m (magnétique).'},
     ]},
-    {id:3,subjectId:7,title:'Chimie Organique',difficulty:'Avancé',questions:[
+    {id:3,subjectId:3,title:'Chimie Organique',difficulty:'Avancé',questions:[
       {q:'Un stéréoisomère de configuration implique :',opts:['Même formule brute, même enchaînement, configurations différentes','Même formule brute, enchaînements différents','Formules brutes différentes','Même formule développée'],ans:0,exp:'Les stéréoisomères de configuration ont même formule brute et même enchaînement d\'atomes, mais des arrangements spatiaux différents.'},
       {q:'Dans une réaction SN1, on obtient :',opts:['Un seul énantiomère (inversion de Walden)','Un mélange racémique','Le produit de rétention','Aucun produit'],ans:1,exp:'SN1 passe par un carbocation plan (sp²), l\'attaque peut se faire des deux côtés → mélange racémique.'},
       {q:'La réaction de l\'isooctane avec X₂=Br₂ sous hν est une réaction de :',opts:['Addition électrophile','Substitution nucléophile','Substitution radicalaire','Élimination'],ans:2,exp:'La réaction d\'un alcane avec un halogène sous irradiation lumineuse est une substitution radicalaire.'},
@@ -1432,7 +1436,7 @@ const DB = {
       {q:'La capsaïcine possède un stéréoisomère de :',opts:['Configuration Z/E','Configuration R/S','Conformation','Tautomère'],ans:1,exp:'La capsaïcine possède un carbone asymétrique (chirale), donc des stéréoisomères R/S.'},
       {q:'Les formes mésomères de l\'anisole montrent des charges sur :',opts:['Uniquement l\'oxygène','L\'oxygène et le cycle','Uniquement le méthyle','Aucune délocalisation'],ans:1,exp:'Le doublet non liant de l\'oxygène se délocalise dans le cycle, créant des charges en ortho et para.'},
     ]},
-    {id:4,subjectId:8,title:'Chimie des Terres Rares',difficulty:'Intermédiaire',questions:[
+    {id:4,subjectId:4,title:'Chimie des Terres Rares',difficulty:'Intermédiaire',questions:[
       {q:'Les terres rares comprennent combien d\'éléments au total ?',opts:['15','17','21','14'],ans:1,exp:'Les terres rares = 15 lanthanides + Scandium (Sc) + Yttrium (Y) = 17 éléments.'},
       {q:'LaNi₅ absorbe l\'hydrogène pour former :',opts:['LaNi₅H₄','LaNi₅H₆','LaNi₅H₂','LaNi₅H₈'],ans:1,exp:'La réaction est LaNi₅ + 3H₂ → LaNi₅H₆.'},
       {q:'Les propriétés particulières des terres rares dans les technologies du 21ème siècle sont leurs propriétés :',opts:['Mécaniques','Électromagnétiques','Thermiques','Radioactives'],ans:1,exp:'Les terres rares ont des propriétés électromagnétiques dues à leurs électrons 4f non appariés.'},
@@ -1444,7 +1448,7 @@ const DB = {
       {q:'La propriété des terres rares contribuant à réduire les gaz à effet de serre est :',opts:['Leur forte densité','Leur capacité catalytique','Leur radioactivité','Leur résistance à la corrosion'],ans:1,exp:'Les terres rares (Ce, La) sont utilisées comme catalyseurs pour réduire les émissions dans les pots catalytiques.'},
       {q:'La branche étudiant les spectres lumineux et leurs applications industrielles est :',opts:['La cristallographie','La spectroscopie','La thermodynamique','La mécanique quantique'],ans:1,exp:'La spectroscopie étudie l\'interaction entre la matière et le rayonnement électromagnétique.'},
     ]},
-    {id:5,subjectId:9,title:'Thermochimie & Équilibres',difficulty:'Intermédiaire',questions:[
+    {id:5,subjectId:5,title:'Thermochimie & Équilibres',difficulty:'Intermédiaire',questions:[
       {q:'H₂SO₄ à 49% en masse, ρ=1,385 kg/L. La masse de soluté dans 500 mL est :',opts:['339,3 g','692,5 g','245 g','480 g'],ans:0,exp:'masse solution = 1,385×500 = 692,5 g. Masse soluté = 692,5×0,49 = 339,3 g.'},
       {q:'La combustion de 200 L de CH₄ (CNT), ΔH°=-891 kJ/mol dégage :',opts:['~7 946 kJ','8 910 kJ','178,2 kJ','445,5 kJ'],ans:0,exp:'n(CH₄) = 200/22,4 = 8,93 mol. Q = 8,93×891 ≈ 7 954 kJ.'},
       {q:'L\'oxydation est une :',opts:['Prise d\'électrons','Perte d\'électrons','Prise de protons','Perte de protons'],ans:1,exp:'Oxydation = perte d\'électrons (OIL : Oxidation Is Loss).'},
@@ -1456,7 +1460,7 @@ const DB = {
       {q:'La pile Daniell a comme anode :',opts:['Du cuivre','Du zinc','De l\'argent','Du fer'],ans:1,exp:'Dans la pile Daniell, le zinc est l\'anode (s\'oxyde : Zn→Zn²⁺+2e⁻) et le cuivre est la cathode.'},
       {q:'Une variable d\'état extensive est proportionnelle à :',opts:['La température','La pression','La quantité de matière','Le volume molaire'],ans:2,exp:'Une variable extensive (V, m, H, G...) est proportionnelle à la quantité de matière du système.'},
     ]},
-    {id:6,subjectId:10,title:'Mécanique du Point',difficulty:'Intermédiaire',questions:[
+    {id:6,subjectId:6,title:'Mécanique du Point',difficulty:'Intermédiaire',questions:[
       {q:'Une automobile accélère de 0 à 30 m/s en 10 s à accélération constante. Son accélération est :',opts:['3 m/s²','30 m/s²','300 m/s²','0,3 m/s²'],ans:0,exp:'a = Δv/Δt = (30-0)/10 = 3 m/s².'},
       {q:'La distance parcourue pendant l\'accélération de 0 à 30 m/s (a=3 m/s²) est :',opts:['300 m','150 m','450 m','100 m'],ans:1,exp:'v² = v₀²+2aΔx → 900 = 6Δx → Δx = 150 m.'},
       {q:'En coordonnées cylindriques, la vitesse d\'un point M est :',opts:['v = ṙeᵣ+rθ̇eθ+żeᵤ','v = ṙeᵣ+θ̇eθ+żeᵤ','v = reᵣ+rθeθ+zeᵤ','v = ṙeᵣ+ṙθ̇eθ'],ans:0,exp:'En cylindriques (r,θ,z) : v = ṙeᵣ + rθ̇eθ + żeᵤ.'},
@@ -1468,7 +1472,7 @@ const DB = {
       {q:'La loi des aires pour une force centrale affirme que :',opts:['La vitesse est constante','r²θ̇=constante','rθ̇=constante','r²θ=constante'],ans:1,exp:'Pour une force centrale, le moment cinétique est conservé : C=r²θ̇=constante.'},
       {q:'La distance parcourue quand la vitesse passe de 10 à 20 m/s (a=3 m/s²) est :',opts:['50 m','100 m','150 m','25 m'],ans:0,exp:'v²-v₀²=2aΔx → 400-100=6Δx → Δx=300/6=50 m.'},
     ]},
-    {id:7,subjectId:11,title:'Électrocinétique',difficulty:'Avancé',questions:[
+    {id:7,subjectId:7,title:'Électrocinétique',difficulty:'Avancé',questions:[
       {q:'Le théorème de Thévenin : tout réseau linéaire vu de deux bornes peut être remplacé par :',opts:['Une résistance seule','Un générateur de courant parfait','Un générateur E_th en série avec R_th','Un condensateur'],ans:2,exp:'Thévenin : générateur de f.e.m. E_th (tension à vide) en série avec R_th (résistance équivalente).'},
       {q:'Pour le circuit RC série soumis à e(t)=E₀, l\'équation différentielle est :',opts:['RC(du/dt)+u=0','RC(du/dt)+u=E₀','R(du/dt)+u/C=E₀','L(di/dt)+Ri=E₀'],ans:1,exp:'Loi des mailles : e(t)=RC(du/dt)+u → RC(du/dt)+u=E₀.'},
       {q:'La capacité équivalente de C₁ et C₂ en série est :',opts:['C₁+C₂','C₁C₂/(C₁+C₂)','(C₁+C₂)/(C₁C₂)','C₁+C₂+2√(C₁C₂)'],ans:1,exp:'En série : 1/Ceq=1/C₁+1/C₂, soit Ceq=C₁C₂/(C₁+C₂).'},
@@ -1480,7 +1484,7 @@ const DB = {
       {q:'u(t)=25cos(250t)mV, i(t)=14sin(250t)mA. La valeur de L est :',opts:['L≈7,1 mH','L≈14,3 mH','L≈3,6 mH','L≈25 mH'],ans:0,exp:'Z_L=U/I=25/14≈1,786 Ω. Z_L=Lω → L=1,786/250≈7,1 mH.'},
       {q:'La capacité C_eq du circuit : C₁=10μF, C₂=22μF, C₃=10μF, C₄=22μF, C₅=10μF, C₆=8μF :', opts:['≈ 3,6 μF','≈ 82 μF','≈ 44 μF','≈ 10 μF'],ans:0,exp:'Il faut appliquer les formules série/parallèle successivement selon le schéma. Le résultat est environ 3,6 μF.'},
     ]},
-    {id:8,subjectId:12,title:'Électromagnétisme',difficulty:'Avancé',questions:[
+    {id:8,subjectId:8,title:'Électromagnétisme',difficulty:'Avancé',questions:[
       {q:'Le potentiel créé par un dipôle électrostatique en un point M distant r est :',opts:['V_M=qd/(4πε₀r²)','V_M=p·cosθ/(4πε₀r²)','V_M=p/(4πε₀r)','V_M=qd·cosθ/(4πε₀r)'],ans:1,exp:'V_M = p·cosθ/(4πε₀r²) où p=qd est le moment dipolaire.'},
       {q:'Le champ magnétique à l\'intérieur d\'un solénoïde parcouru par i(t)=I₀cos(ωt) est :',opts:['B=μ₀nI₀cos(ωt)','B=μ₀I₀cos(ωt)','B=nI₀cos(ωt)','B=μ₀nI₀sin(ωt)'],ans:0,exp:'B = μ₀ni. Ici B(t) = μ₀nI₀cos(ωt).'},
       {q:'Un dipôle électrostatique dans un champ uniforme E⃗ possède :',opts:['Une seule position d\'équilibre','Deux positions d\'équilibre','Aucune position d\'équilibre','Trois positions d\'équilibre'],ans:1,exp:'Le dipôle a deux positions d\'équilibre : p⃗ parallèle à E⃗ (stable) et antiparallèle (instable).'},
@@ -1492,7 +1496,7 @@ const DB = {
       {q:'Pour le cylindre chargé (σ>0) d\'axe (z\'z), le champ à l\'extérieur (r>R) est :',opts:['Nul','Uniforme','En 1/r radial','En 1/r² radial'],ans:2,exp:'Par Gauss, pour r>R : E=σR/(ε₀r) en coordonnées cylindriques (∝1/r).'},
       {q:'Dans l\'approximation dipolaire (a≪r), le potentiel devient :',opts:['V_M≈qd/(4πε₀r²)','V_M≈p·cosθ/(4πε₀r²)','V_M≈p/(4πε₀r³)','V_M≈0'],ans:1,exp:'Pour a≪r, on garde le premier terme non nul : V_M=p·cosθ/(4πε₀r²).'},
     ]},
-    {id:9,subjectId:13,title:'Optique Géométrique',difficulty:'Intermédiaire',questions:[
+    {id:9,subjectId:9,title:'Optique Géométrique',difficulty:'Intermédiaire',questions:[
       {q:'La relation de conjugaison d\'un miroir sphérique est :',opts:['1/SA\'-1/SA=2/SC','1/SA\'+1/SA=2/R','1/SA\'-1/SA=2/R','SA\'×SA=R²/4'],ans:2,exp:'1/SA\'-1/SA=2/R=1/f\' (R=SC le rayon algébrique).'},
       {q:'Les lois de Descartes pour la réfraction donnent :',opts:['n₁sinθ₁=n₂sinθ₂','n₁cosθ₁=n₂cosθ₂','n₁θ₁=n₂θ₂','sinθ₁/sinθ₂=n₁/n₂'],ans:0,exp:'La loi de Snell-Descartes : n₁·sinθ₁ = n₂·sinθ₂.'},
       {q:'La distance focale image f\'₂ d\'un dioptre sphérique R=3cm, n₁=1, n₂=1,5 est :',opts:['9 cm','6 cm','3 cm','12 cm'],ans:0,exp:'f\'₂ = n₂R/(n₂-n₁) = 1,5×3/0,5 = 9 cm.'},
@@ -1504,31 +1508,33 @@ const DB = {
       {q:'Pour un miroir concave SC=-1m, l\'image d\'un objet sur un écran à 5m est :',opts:['Virtuelle droite','Réelle renversée','Virtuelle renversée','Réelle droite'],ans:1,exp:'f=R/2=-0,5m. SA\'=5m (écran) → image réelle. Grandissement négatif → image renversée.'},
       {q:'Le déplacement Δᵣ des deux rayons réfléchis d\'une lame de verre (e, n) pour angle i est :',opts:['e/cosθ','2e·sinθ/cosθ','2e·sin(i-θ)/cosθ','2e·sin(i)'],ans:2,exp:'Δᵣ = 2e·sin(i-θ)/cosθ (formule exacte de déplacement dans une lame à faces parallèles).'},
     ]},
-    {id:10,subjectId:14,title:'Outils Mathématiques',difficulty:'Avancé',questions:[
-      {q:'La divergence de V⃗ = -yi⃗ + (x+1)j⃗ + zk⃗ est :',opts:['-1','0','1','2'],ans:2,exp:'div(V⃗) = ∂(-y)/∂x + ∂(x+1)/∂y + ∂z/∂z = 0+0+1 = 1.'},
-      {q:'Le rotationnel de V⃗ = -yi⃗ + (x+1)j⃗ + zk⃗ est :',opts:['rot=i⃗','rot=2j⃗','rot=2k⃗','rot=0'],ans:2,exp:'rot(V⃗)_z = ∂(x+1)/∂x - ∂(-y)/∂y = 1-(-1) = 2 → rot = 2k⃗.'},
-      {q:'L\'incertitude sur D₂-D₁ avec D₁=(19,5±0,1)mm, D₂=(26,7±0,1)mm est :',opts:['±0,1 mm','±0,2 mm','±0,01 mm','±0,3 mm'],ans:1,exp:'Δ(D₂-D₁) = ΔD₁+ΔD₂ = 0,1+0,1 = 0,2 mm.'},
-      {q:'Le gradient en coordonnées cylindriques (ρ,φ,z) est :',opts:['grad(f)=∂f/∂ρ·eᵨ+(1/ρ)∂f/∂φ·eφ+∂f/∂z·ez','grad(f)=∂f/∂ρ·eᵨ+∂f/∂φ·eφ','grad(f)=(1/ρ)∂f/∂ρ·eᵨ+∂f/∂φ·eφ','grad(f)=∂²f/∂ρ²·eᵨ'],ans:0,exp:'En cylindriques : grad(f) = ∂f/∂ρ·eᵨ + (1/ρ)∂f/∂φ·eφ + ∂f/∂z·ez.'},
-      {q:'Un champ F⃗ est conservatif sur ℝ². Pour aller de A(0,1) à B(2,3), le travail :',opts:['Dépend du chemin','Est nul','Ne dépend que des points A et B','Est toujours positif'],ans:2,exp:'Si rot(F⃗)=0, F⃗ est conservatif → le travail ne dépend que des points extrêmes.'},
-      {q:'L\'erreur relative de R₁=(1200,0±0,5)Ω est :',opts:['0,5%','0,042%','0,5 Ω','4,2%'],ans:1,exp:'ΔR₁/R₁ = 0,5/1200 = 4,17×10⁻⁴ ≈ 0,042%.'},
-      {q:'Le Laplacien en coordonnées sphériques est :',opts:['Δf=∂²f/∂r²','Δf=(1/r²)∂(r²∂f/∂r)/∂r + termes angulaires','Δf=∂²f/∂r²+∂²f/∂θ²','Δf=(1/r)∂f/∂r'],ans:1,exp:'Δf=(1/r²)∂(r²∂f/∂r)/∂r + (1/r²sinθ)∂(sinθ·∂f/∂θ)/∂θ + (1/r²sin²θ)∂²f/∂φ².'},
-      {q:'Le passage cartésien→cylindrique donne :',opts:['x=ρcosφ, y=ρsinφ, z=z','x=ρsinφ, y=ρcosφ, z=z','x=ρcosθsinφ, y=ρsinθsinφ, z=ρcosφ','x=rcosθ, y=rsinθ, z=r'],ans:0,exp:'En cylindriques : x=ρcosφ, y=ρsinφ, z=z.'},
-      {q:'Pour F⃗=(3x²+6xy²)i⃗+(6x²y+4y³)j⃗, le potentiel U tel que F⃗=grad(U) est :',opts:['U=x³+3x²y²+y⁴','U=3x²+6xy²','U=x³y+3y³','U=6xy'],ans:0,exp:'∂U/∂x=3x²+6xy² → U=x³+3x²y²+g(y). ∂U/∂y=6x²y+g\'(y)=6x²y+4y³ → g(y)=y⁴.'},
-      {q:'Pour A⃗=(3x²+6y)i⃗-14yzj⃗+20xz²k⃗, la circulation entre O et M(1,1,1) :',opts:['Dépend du chemin','Est nulle','Est identique quel que soit le chemin','Vaut 1 toujours'],ans:0,exp:'Il faut vérifier si rot(A⃗)=0. Si rot≠0, A⃗ n\'est pas conservatif et la circulation dépend du chemin.'},
-    ]},
-    {id:11,subjectId:4,title:'Statistiques',difficulty:'Intermédiaire',questions:[
+    {id:10,subjectId:10,title:'Statistiques',difficulty:'Intermédiaire',questions:[
       {q:'Le coefficient de corrélation r² entre x et y est :',opts:['[cov(x,y)]²/(V(x)V(y))','cov(x,y)/(σ(x)σ(y))','[cov(x,y)]²/[σ(x)σ(y)]²','cov(x,y)²'],ans:0,exp:'r²=[cov(x,y)]²/(V(x)·V(y)).'},
       {q:'Pour x̄=5,5, ȳ=18,75, cov(x,y)=17,9, V(x)=9, l\'équation de la droite y en x est :',opts:['y≈-1,6x+0,4','y≈1,99x+7,8','y≈0,39x-1,81','y≈0,4x-1,6'],ans:1,exp:'b=cov/V(x)=17,9/9≈1,99. a=ȳ-b·x̄=18,75-1,99×5,5≈7,8.'},
-      {q:'Pour la série de durées [0;2[→14, [2;4[→16, [4;6[→25, la médiane est dans :',opts:['[2;4[','[4;6[','[6;8[','[0;2['],ans:1,exp:'N=100. Effectifs cumulés: 14, 30, 55. La 50ème valeur est dans [4;6[.'},
+      {q:'Pour la série [0;2[→14, [2;4[→16, [4;6[→25, [6;8[→15, la médiane est dans :',opts:['[2;4[','[4;6[','[6;8[','[0;2['],ans:1,exp:'N=100. Effectifs cumulés: 14, 30, 55. La 50ème valeur est dans [4;6[.'},
       {q:'L\'erreur relative sur R=U/I est :',opts:['ΔR=ΔU+ΔI','ΔR/R=ΔU/U+ΔI/I','ΔR=√(ΔU²+ΔI²)','ΔR=ΔU×ΔI'],ans:1,exp:'Pour un quotient : ΔR/R=ΔU/U+ΔI/I.'},
       {q:'La valeur estimée R_cal par régression linéaire forcée à l\'origine est :',opts:['U₁/I₁','Moyenne de U_i/I_i','Σ(U_i×I_i)/Σ(I_i²)','ΣU_i/ΣI_i'],ans:2,exp:'Méthode des moindres carrés (U=RI) : R_estimé=Σ(U_i×I_i)/Σ(I_i²).'},
       {q:'Entre D₁ et D₉ (1er et 9ème décile), il y a :',opts:['50% des données','80% des données','90% des données','10% des données'],ans:1,exp:'D₁ coupe les 10% inférieurs, D₉ les 10% supérieurs → entre D₁ et D₉ = 80% des données.'},
       {q:'Le mode M₀ d\'une série groupée en intervalles est :',opts:['La valeur centrale de l\'intervalle le plus fréquent','La moyenne des valeurs extrêmes','La valeur médiane','L\'intervalle le moins fréquent'],ans:0,exp:'Pour des données groupées, le mode est la valeur centrale de la classe modale.'},
       {q:'Si r=0,98, cela indique :',opts:['Pas de corrélation','Corrélation négative forte','Corrélation positive très forte','Données non liées'],ans:2,exp:'r∈[-1,1]. r=0,98≈1 indique une corrélation linéaire positive très forte.'},
       {q:'L\'écart-type σ(X) est la racine carrée de :',opts:['La moyenne','La variance','L\'étendue','La médiane'],ans:1,exp:'σ(X) = √V(X) où V(X) = Σf_i(x_i-x̄)²/N.'},
+      {q:'Pour estimer ŷ pour x=24 sur la droite y=a+bx :',opts:['Directement ȳ','ŷ=a+b×24','La valeur de σ','Le coefficient r'],ans:1,exp:'On substitue x=24 dans la droite de régression y=a+bx pour obtenir l\'estimation ŷ.'},
+    ]},
+    {id:11,subjectId:11,title:'Normes & Mesures',difficulty:'Intermédiaire',questions:[
+      {q:'L\'incertitude absolue sur D₂-D₁ avec D₁=(19,5±0,1)mm, D₂=(26,7±0,1)mm est :',opts:['±0,1 mm','±0,2 mm','±0,01 mm','±0,3 mm'],ans:1,exp:'Δ(D₂-D₁) = ΔD₁+ΔD₂ = 0,1+0,1 = 0,2 mm.'},
+      {q:'L\'erreur relative de R₁=(1200,0±0,5)Ω est :',opts:['0,5%','0,042%','0,5 Ω','4,2%'],ans:1,exp:'ΔR₁/R₁ = 0,5/1200 = 4,17×10⁻⁴ ≈ 0,042%.'},
+      {q:'La divergence de V⃗ = -yi⃗ + (x+1)j⃗ + zk⃗ est :',opts:['-1','0','1','2'],ans:2,exp:'div(V⃗) = ∂(-y)/∂x + ∂(x+1)/∂y + ∂z/∂z = 0+0+1 = 1.'},
+      {q:'Le rotationnel de V⃗ = -yi⃗ + (x+1)j⃗ + zk⃗ est :',opts:['rot=i⃗','rot=2j⃗','rot=2k⃗','rot=0'],ans:2,exp:'rot(V⃗)_z = ∂(x+1)/∂x - ∂(-y)/∂y = 1-(-1) = 2 → rot = 2k⃗.'},
+      {q:'Le gradient en coordonnées cylindriques (ρ,φ,z) est :',opts:['grad(f)=∂f/∂ρ·eᵨ+(1/ρ)∂f/∂φ·eφ+∂f/∂z·ez','grad(f)=∂f/∂ρ·eᵨ+∂f/∂φ·eφ','grad(f)=(1/ρ)∂f/∂ρ·eᵨ+∂f/∂φ·eφ','grad(f)=∂²f/∂ρ²·eᵨ'],ans:0,exp:'En cylindriques : grad(f) = ∂f/∂ρ·eᵨ + (1/ρ)∂f/∂φ·eφ + ∂f/∂z·ez.'},
+      {q:'Un champ F⃗ est conservatif si et seulement si :',opts:['div(F⃗)=0','rot(F⃗)=0⃗','∇F=0','F⃗=constante'],ans:1,exp:'F⃗ est conservatif ⟺ rot(F⃗)=0⃗. Il existe alors φ tel que F⃗=grad(φ).'},
+      {q:'Le Laplacien en coordonnées sphériques est :',opts:['Δf=∂²f/∂r²','Δf=(1/r²)∂(r²∂f/∂r)/∂r + termes angulaires','Δf=∂²f/∂r²+∂²f/∂θ²','Δf=(1/r)∂f/∂r'],ans:1,exp:'Δf=(1/r²)∂(r²∂f/∂r)/∂r + (1/r²sinθ)∂(sinθ·∂f/∂θ)/∂θ + (1/r²sin²θ)∂²f/∂φ².'},
+      {q:'Le passage cartésien→cylindrique donne :',opts:['x=ρcosφ, y=ρsinφ, z=z','x=ρsinφ, y=ρcosφ, z=z','x=ρcosθsinφ, y=ρsinθsinφ, z=ρcosφ','x=rcosθ, y=rsinθ, z=r'],ans:0,exp:'En cylindriques : x=ρcosφ, y=ρsinφ, z=z.'},
+      {q:'Pour F⃗=(3x²+6xy²)i⃗+(6x²y+4y³)j⃗, le potentiel U tel que F⃗=grad(U) est :',opts:['U=x³+3x²y²+y⁴','U=3x²+6xy²','U=x³y+3y³','U=6xy'],ans:0,exp:'∂U/∂x=3x²+6xy² → U=x³+3x²y²+g(y). g\'(y)=4y³ → g(y)=y⁴.'},
+      {q:'Pour A⃗=(3x²+6y)i⃗-14yzj⃗+20xz²k⃗, la circulation entre O et M(1,1,1) :',opts:['Dépend du chemin','Est nulle','Est identique quel que soit le chemin','Vaut toujours 1'],ans:0,exp:'Si rot(A⃗)≠0, A⃗ n\'est pas conservatif et la circulation dépend du chemin.'},
+    ]},
       {q:'Pour estimer le prix P de transport pour x=24 ans (droite y=a+bx calculée) :',opts:['Directement ȳ','ŷ=a+b×24','La valeur de σ','Le coefficient r'],ans:1,exp:'On substitue x=24 dans la droite de régression y=a+bx pour obtenir l\'estimation ŷ.'},
     ]},
-    {id:12,subjectId:5,title:'Sécurité & Environnement',difficulty:'Débutant',questions:[
+    {id:12,subjectId:12,title:'Sécurité & Environnement',difficulty:'Débutant',questions:[
       {q:'Parmi ces règles de sécurité en laboratoire, laquelle est INCORRECTE ?',opts:['Porter des lunettes de protection','Fumer est autorisé si le local est ventilé','Ne jamais pipeter à la bouche','Connaître les sorties de secours'],ans:1,exp:'Il est strictement interdit de fumer dans un laboratoire (risques d\'explosion et contamination).'},
       {q:'Cl₂ (42×10⁻⁴ mol/L) dans 500mL d\'eau. Dans 20m³ non ventilé (Vm=24L/mol), la teneur est :',opts:['2,52×10⁻⁶ mol/L','1,26×10⁻⁴ mol/L','2,52×10⁻⁴ mol/L','5,04×10⁻⁶ mol/L'],ans:0,exp:'n(Cl₂)=2,1×10⁻³ mol. V_gaz=0,0504L. Teneur=0,0504/(20×10³)=2,52×10⁻⁶ mol/L.'},
       {q:'Sans prise de terre, quand on touche une carcasse défectueuse :',opts:['Rien','Un courant traverse le corps vers le sol','Le disjoncteur se déclenche','La tension est nulle'],ans:1,exp:'Sans prise de terre, le corps humain constitue le chemin de retour → risque d\'électrocution.'},
@@ -1540,7 +1546,7 @@ const DB = {
       {q:'Le courant de fuite est :',opts:['Le courant normal du circuit','La différence entre courant aller et retour','Le courant dans le neutre','Le courant de court-circuit'],ans:1,exp:'Le courant de fuite = différence entre I_aller et I_retour. En cas de défaut d\'isolement, ce courant passe par la terre ou le corps.'},
       {q:'Pour économiser l\'énergie dans le transport, on peut :',opts:['Augmenter la vitesse','Favoriser le covoiturage et transports en commun','Éviter les énergies renouvelables','Construire plus de routes'],ans:1,exp:'Le covoiturage et les transports en commun réduisent le nombre de véhicules, diminuant la consommation d\'énergie.'},
     ]},
-    {id:13,subjectId:6,title:'TEEO',difficulty:'Débutant',questions:[
+    {id:13,subjectId:13,title:'TEEO',difficulty:'Débutant',questions:[
       {q:'La lettre administrative à forme personnelle est celle qu\'un :',opts:['Ministre adresse à un président d\'ONG','Recteur adresse à un préfet','Ministre du Bénin adresse à celui du Cameroun','Subordonné adresse à son supérieur'],ans:0,exp:'La forme personnelle s\'utilise entre personnes de rang très différent. Ex: Ministre→Président ONG.'},
       {q:'Dans une lettre administrative, la référence est :',opts:['Facultative','Obligatoire','Interdite','Optionnelle'],ans:1,exp:'Dans toute lettre administrative, la référence est OBLIGATOIRE.'},
       {q:'Dans le style administratif, le supérieur hiérarchique :',opts:['Demande à son subordonné','Informe le subordonné','Sollicite l\'avis du subordonné','Consulte le subordonné'],ans:1,exp:'Le supérieur INFORME/INSTRUIT. Le subordonné DEMANDE/SOLLICITE. C\'est le sens descendant de l\'information.'},
@@ -1552,7 +1558,7 @@ const DB = {
       {q:'La communication de groupe s\'assimile à la communication de masse car :',opts:['Elles sont verbales','Elles supposent une interaction entre interlocuteurs différents','Elles utilisent les mêmes médias','Elles sont formelles'],ans:1,exp:'Les deux impliquent plusieurs interlocuteurs différents qui échangent ou reçoivent un message.'},
       {q:'La lettre de motivation doit contenir obligatoirement :',opts:['Uniquement les diplômes','L\'objet, les motivations et les compétences en lien avec le poste','La liste de tous les emplois','Uniquement les coordonnées'],ans:1,exp:'Une lettre de motivation comprend : accroche, présentation adaptée, motivations spécifiques, compétences pertinentes, formule de politesse.'},
     ]},
-    {id:14,subjectId:15,title:'Informatique & Programmation',difficulty:'Débutant',questions:[
+    {id:14,subjectId:14,title:'Informatique & Programmation',difficulty:'Débutant',questions:[
       {q:'Quelle est la sortie de print(3 * "ab") en Python ?',opts:['"ababab"','"3ab"','"ab3"','Erreur'],ans:0,exp:'En Python, l\'opérateur * avec une chaîne répète la chaîne. 3*"ab" = "ababab".'},
       {q:'Que renvoie len([1, [2, 3]]) ?',opts:['3','2','4','Erreur'],ans:1,exp:'La liste contient 2 éléments de premier niveau : 1 et [2,3]. len()=2.'},
       {q:'Quelle méthode ajoute un élément à la fin d\'une liste ?',opts:['list.insert()','list.add()','list.append()','list.push()'],ans:2,exp:'list.append(x) ajoute x à la fin. insert(i,x) insère à la position i. add() n\'existe pas.'},
@@ -1564,7 +1570,7 @@ const DB = {
       {q:'whyle True: print("ok") → l\'erreur est :',opts:['True doit être False','"ok" doit être entre parenthèses','whyle est mal orthographié (doit être while)','print n\'est pas une fonction'],ans:2,exp:'Le mot-clé Python est "while" (sans y). "whyle" → SyntaxError.'},
       {q:'liste_courses.clear() :',opts:['Supprime la liste définitivement','Vide la liste (elle reste mais est vide)','Copie la liste','Trie la liste'],ans:1,exp:'clear() supprime tous les éléments mais la liste existe toujours (devient []).'},
     ]},
-    {id:15,subjectId:16,title:'Anglais Scientifique',difficulty:'Débutant',questions:[
+    {id:15,subjectId:15,title:'Anglais Scientifique',difficulty:'Débutant',questions:[
       {q:'"Solar panel" en français est :',opts:['Panneau solaire','Capteur solaire','Cellule photovoltaïque','Miroir solaire'],ans:0,exp:'"Solar panel" = panneau solaire. Il peut être photovoltaïque (électricité) ou thermique (chaleur).'},
       {q:'"What does the sun give?" — The correct answer is :',opts:['Water','Wind','Energy / Light','Heat only'],ans:2,exp:'The sun gives energy, which can be captured by solar panels to produce electricity.'},
       {q:'"Wind turbines use ____ to make energy." — Le mot manquant est :',opts:['Sun','Wind','Water','Coal'],ans:1,exp:'A wind turbine uses wind to make energy. Les éoliennes convertissent l\'énergie cinétique du vent.'},
