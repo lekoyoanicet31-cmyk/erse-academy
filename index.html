@@ -197,6 +197,12 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 /* ── EXAM LIST ── */
 .exam-item{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:10px;transition:all .2s;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
 .exam-item:hover{border-color:var(--b4);box-shadow:var(--shadow);transform:translateX(3px);}
+.exam-lvl-btn{padding:.45rem 1.1rem;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.8rem;font-weight:600;font-family:var(--font-body);transition:all .2s;}
+.exam-lvl-btn:hover,.exam-lvl-btn.on{background:var(--b5);color:#fff;border-color:var(--b5);}
+.exam-licence-title{font-size:1rem;font-weight:700;margin:1.2rem 0 .6rem;padding:.5rem .8rem;border-radius:8px;display:flex;align-items:center;gap:.5rem;}
+.exam-licence-title.l1{background:rgba(59,130,246,.1);color:#60a5fa;border-left:3px solid #3b82f6;}
+.exam-licence-title.l2{background:rgba(16,185,129,.1);color:#34d399;border-left:3px solid #10b981;}
+.exam-licence-title.l3{background:rgba(245,158,11,.1);color:#fbbf24;border-left:3px solid #f59e0b;}
 .ei-name{font-size:14px;font-weight:500;color:var(--b9);margin-bottom:5px;display:flex;align-items:center;gap:7px;}
 [data-theme="dark"] .ei-name{color:var(--text);}
 .ei-info{font-size:11px;color:var(--muted);display:flex;gap:12px;}
@@ -839,6 +845,12 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
     <div class="wrap">
       <div class="sec-hdr"><div class="sec-hdr-left"><div class="sec-ic">📝</div><div class="sec-ttl">Examens disponibles</div></div></div>
       <p class="sec-sub">Obtenez ≥ 70% pour décrocher votre certificat officiel ERSE ACADEMY.</p>
+      <div style="display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap;">
+        <button class="exam-lvl-btn on" onclick="filterExamLevel(0,this)">🎓 Tous</button>
+        <button class="exam-lvl-btn" onclick="filterExamLevel(1,this)">📘 Licence 1</button>
+        <button class="exam-lvl-btn" onclick="filterExamLevel(2,this)">📗 Licence 2</button>
+        <button class="exam-lvl-btn" onclick="filterExamLevel(3,this)">📕 Licence 3</button>
+      </div>
       <div id="exam-list"></div>
     </div>
   </div>
@@ -2021,20 +2033,46 @@ function togglePdfSection(id){
 /* ═══════════════════════════════════════════
    EXAMENS + QUIZ
 ═══════════════════════════════════════════ */
+let activeExamLevel = 0;
+function filterExamLevel(level, btn){
+  activeExamLevel = level;
+  document.querySelectorAll('.exam-lvl-btn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  renderExamList();
+}
+
 function renderExamList(){
   document.getElementById('exam-list-wrap').style.display='';
   document.getElementById('quiz-wrap').style.display='none';
-  document.getElementById('exam-list').innerHTML=DB.exams.map(e=>{
-    const s=DB.subjects.find(x=>x.id===e.subjectId);
-    const bc=e.difficulty==='Débutant'?'bd':e.difficulty==='Intermédiaire'?'bm':'bh';
-    return `<div class="exam-item">
-      <div>
-        <div class="ei-name">${s?s.icon:''} ${s?s.name:'?'} — Licence ${s?s.level:'?'} <span class="badge ${bc}">${e.difficulty}</span></div>
-        <div class="ei-info"><span>📋 ${e.questions.length} questions</span><span>⏱ ~${e.questions.length*2} min</span><span>✅ Seuil : 70%</span></div>
-      </div>
-      <button class="btn-start" onclick="startQuiz(${e.id})">Commencer →</button>
-    </div>`;
-  }).join('')||'<div style="text-align:center;padding:2rem;color:var(--muted);">Aucun examen disponible.</div>';
+
+  const levels = activeExamLevel === 0 ? [1,2,3] : [activeExamLevel];
+  const licenceLabels = {1:'📘 Licence 1', 2:'📗 Licence 2', 3:'📕 Licence 3'};
+  const licenceClass = {1:'l1', 2:'l2', 3:'l3'};
+
+  let html = '';
+  levels.forEach(lvl => {
+    const examsForLevel = DB.exams.filter(e => {
+      const s = DB.subjects.find(x => x.id === e.subjectId);
+      return s && s.level === lvl;
+    });
+    if(examsForLevel.length === 0) return;
+
+    html += `<div class="exam-licence-title ${licenceClass[lvl]}">${licenceLabels[lvl]} <span style="font-size:.75rem;font-weight:400;opacity:.7;">(${examsForLevel.length} examen${examsForLevel.length>1?'s':''})</span></div>`;
+    examsForLevel.forEach(e => {
+      const s = DB.subjects.find(x => x.id === e.subjectId);
+      const bc = e.difficulty==='Débutant'?'bd':e.difficulty==='Intermédiaire'?'bm':'bh';
+      const mins = e.questions.length * 2;
+      html += `<div class="exam-item">
+        <div>
+          <div class="ei-name">${s?s.icon:''} ${e.title||s?.name||'Examen'} <span class="badge ${bc}">${e.difficulty}</span></div>
+          <div class="ei-info"><span>📋 ${e.questions.length} questions</span><span>⏱ ~${mins} min</span><span>✅ Seuil : 70%</span></div>
+        </div>
+        <button class="btn-start" onclick="startQuiz(${e.id})">Commencer →</button>
+      </div>`;
+    });
+  });
+
+  document.getElementById('exam-list').innerHTML = html || '<div style="text-align:center;padding:2rem;color:var(--muted);">Aucun examen disponible pour cette licence.</div>';
 }
 
 let examTimerInterval = null;
