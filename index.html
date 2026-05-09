@@ -203,6 +203,63 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 .exam-licence-title.l1{background:rgba(59,130,246,.1);color:#60a5fa;border-left:3px solid #3b82f6;}
 .exam-licence-title.l2{background:rgba(16,185,129,.1);color:#34d399;border-left:3px solid #10b981;}
 .exam-licence-title.l3{background:rgba(245,158,11,.1);color:#fbbf24;border-left:3px solid #f59e0b;}
+/* -- BOUTIQUE -- */
+.shop-hero{position:relative;border-radius:16px;overflow:hidden;margin-bottom:1.8rem;padding:2.5rem 2rem;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);}
+.shop-hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(244,114,182,.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(139,92,246,.15) 0%,transparent 50%);pointer-events:none;}
+.shop-hero-content{position:relative;z-index:1;}
+.shop-hero-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(244,114,182,.15);border:1px solid rgba(244,114,182,.3);color:#f472b6;font-size:.75rem;font-weight:600;padding:.35rem .9rem;border-radius:20px;margin-bottom:1rem;letter-spacing:.5px;}
+.shop-hero-title{font-family:var(--font-display);font-size:2rem;font-weight:800;background:linear-gradient(90deg,#f472b6,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.6rem;}
+.shop-hero-sub{color:#94a3b8;font-size:.9rem;max-width:480px;line-height:1.6;margin-bottom:1.4rem;}
+.shop-hero-stats{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;}
+.shop-stat{display:flex;flex-direction:column;align-items:center;gap:.1rem;}
+.shop-stat-num{font-size:1.5rem;font-weight:800;color:#f472b6;font-family:var(--font-display);}
+.shop-stat span:last-child{font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.5px;}
+.shop-stat-sep{width:1px;height:30px;background:rgba(255,255,255,.1);}
+.shop-filters{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:1.5rem;justify-content:space-between;}
+.shop-filter-group{display:flex;gap:.4rem;flex-wrap:wrap;}
+.shop-filter-btn{padding:.4rem .9rem;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.78rem;font-weight:600;font-family:var(--font-body);transition:all .2s;}
+.shop-filter-btn:hover,.shop-filter-btn.on{background:linear-gradient(90deg,#ec4899,#8b5cf6);color:#fff;border-color:transparent;}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;}
+.shop-card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .25s;cursor:pointer;position:relative;}
+.shop-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.3);border-color:rgba(244,114,182,.3);}
+.shop-card-top{padding:1.2rem 1.2rem .8rem;position:relative;}
+.shop-card-licence{display:inline-flex;align-items:center;font-size:.7rem;font-weight:700;padding:.25rem .6rem;border-radius:8px;margin-bottom:.7rem;}
+.shop-card-licence.L1{background:rgba(59,130,246,.15);color:#60a5fa;}
+.shop-card-licence.L2{background:rgba(16,185,129,.15);color:#34d399;}
+.shop-card-licence.L3{background:rgba(245,158,11,.15);color:#fbbf24;}
+.shop-card-title{font-size:.95rem;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:.4rem;}
+.shop-card-meta{font-size:.78rem;color:var(--muted);display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:.6rem;}
+.shop-card-tag{font-size:.68rem;padding:.2rem .5rem;border-radius:6px;background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border);margin-right:.3rem;}
+.shop-card-bottom{padding:.8rem 1.2rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.shop-card-price-free{color:#34d399;font-size:.9rem;font-weight:700;}
+.shop-card-price-paid{color:#f472b6;font-size:.9rem;font-weight:700;}
+.shop-card-btn{padding:.4rem 1rem;border-radius:8px;font-size:.8rem;font-weight:600;border:none;cursor:pointer;font-family:var(--font-body);transition:all .2s;}
+.shop-card-btn-free{background:rgba(16,185,129,.15);color:#34d399;}
+.shop-card-btn-free:hover{background:#10b981;color:#fff;}
+.shop-card-btn-paid{background:linear-gradient(90deg,#ec4899,#8b5cf6);color:#fff;}
+.shop-card-badge-new{position:absolute;top:.8rem;right:.8rem;font-size:.65rem;font-weight:700;padding:.2rem .5rem;border-radius:6px;background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
+.shop-empty{text-align:center;padding:3rem 1rem;grid-column:1/-1;}
+.shop-empty-ic{font-size:3rem;margin-bottom:.8rem;}
+.shop-empty-txt{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:.4rem;}
+.shop-empty-sub{font-size:.85rem;color:var(--muted);}
+.epreuve-modal{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;width:min(600px,95vw);max-height:85vh;overflow-y:auto;position:relative;padding:2rem;}
+.epreuve-close{position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.08);border:none;color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;}
+.epreuve-modal-title{font-size:1.2rem;font-weight:800;margin-bottom:.5rem;}
+.epreuve-modal-meta{font-size:.82rem;color:var(--muted);margin-bottom:1.2rem;display:flex;gap:.8rem;flex-wrap:wrap;}
+.epreuve-section-title{font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.6rem;margin-top:1rem;}
+.epreuve-doc-link{display:flex;align-items:center;gap:.7rem;padding:.7rem 1rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;margin-bottom:.5rem;text-decoration:none;color:var(--text);transition:all .2s;}
+.epreuve-doc-link:hover{border-color:rgba(244,114,182,.4);}
+.epreuve-locked{display:flex;flex-direction:column;align-items:center;padding:1.5rem;background:rgba(244,114,182,.05);border:1px dashed rgba(244,114,182,.3);border-radius:12px;text-align:center;gap:.6rem;margin-top:1rem;}
+.epreuve-locked-ic{font-size:2rem;}
+.epreuve-locked-txt{font-size:.9rem;font-weight:600;color:#f472b6;}
+.epreuve-locked-sub{font-size:.8rem;color:var(--muted);}
+.epreuve-pay-btn{background:linear-gradient(90deg,#ec4899,#8b5cf6);color:#fff;border:none;padding:.7rem 1.6rem;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:var(--font-body);margin-top:.4rem;}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#374151;border-radius:24px;cursor:pointer;transition:.3s;}
+.toggle-slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+.toggle-switch input:checked+.toggle-slider{background:#10b981;}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(20px);}
 .ei-name{font-size:14px;font-weight:500;color:var(--b9);margin-bottom:5px;display:flex;align-items:center;gap:7px;}
 [data-theme="dark"] .ei-name{color:var(--text);}
 .ei-info{font-size:11px;color:var(--muted);display:flex;gap:12px;}
@@ -713,6 +770,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
     <button class="np" onclick="goPage('leaderboard')">Leaderboard</button>
     <button class="np" onclick="goPage('certs')">Certificats</button>
     <button class="np" onclick="goPage('energybot')" style="color:var(--gold-l);">⚡ EnergyBot</button>
+    <button class="np" onclick="goPage('boutique')" style="color:#f472b6;">🛍 Boutique</button>
     <button class="np" onclick="goPage('forum')">💬 Forum</button>
     <button class="np admin-nav-btn" onclick="goPage('admin')" style="display:none !important;">⚙ Admin</button>
   </div>
@@ -738,6 +796,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
   <button class="np" onclick="goPage('leaderboard');toggleMobile()">🏆 Leaderboard</button>
   <button class="np" onclick="goPage('certs');toggleMobile()">🎓 Certificats</button>
   <button class="np" onclick="goPage('energybot');toggleMobile()" style="color:var(--gold-l);">⚡ EnergyBot</button>
+  <button class="np" onclick="goPage('boutique');toggleMobile()" style="color:#f472b6;">🛍 Boutique</button>
   <button class="np admin-nav-btn" onclick="goPage('admin');toggleMobile()" style="display:none;">⚙ Admin</button>
 </div>
 
@@ -862,6 +921,61 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
       </div>
       <div class="quiz-outer"><div class="qbox"><div id="quiz-inner"></div></div></div>
     </div>
+  </div>
+</div>
+
+<!-- BOUTIQUE D'ÉPREUVES -->
+<div id="pg-boutique" class="page">
+  <div class="wrap">
+
+    <!-- HERO BOUTIQUE -->
+    <div class="shop-hero">
+      <div class="shop-hero-bg"></div>
+      <div class="shop-hero-content">
+        <div class="shop-hero-badge">📚 Bibliothèque officielle ERSE</div>
+        <h2 class="shop-hero-title">Boutique d'Épreuves</h2>
+        <p class="shop-hero-sub">Épreuves officielles UAC/FAST avec corrigés détaillés — préparez-vous avec les vrais sujets.</p>
+        <div class="shop-hero-stats" id="shop-stats">
+          <div class="shop-stat"><span class="shop-stat-num" id="stat-total">0</span><span>Épreuves</span></div>
+          <div class="shop-stat-sep"></div>
+          <div class="shop-stat"><span class="shop-stat-num" id="stat-free">0</span><span>Gratuites</span></div>
+          <div class="shop-stat-sep"></div>
+          <div class="shop-stat"><span class="shop-stat-num" id="stat-licences">3</span><span>Licences</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTRES -->
+    <div class="shop-filters">
+      <div class="shop-filter-group">
+        <button class="shop-filter-btn on" onclick="filterShop('all',this)">🎓 Toutes</button>
+        <button class="shop-filter-btn" onclick="filterShop('L1',this)">📘 Licence 1</button>
+        <button class="shop-filter-btn" onclick="filterShop('L2',this)">📗 Licence 2</button>
+        <button class="shop-filter-btn" onclick="filterShop('L3',this)">📕 Licence 3</button>
+      </div>
+      <div class="shop-filter-group">
+        <button class="shop-filter-btn" onclick="filterShop('free',this)" id="shop-filter-free">🆓 Gratuites</button>
+        <button class="shop-filter-btn" onclick="filterShop('paid',this)" id="shop-filter-paid">💎 Premium</button>
+      </div>
+    </div>
+
+    <!-- GRILLE ÉPREUVES -->
+    <div class="shop-grid" id="shop-grid">
+      <div class="shop-empty" id="shop-empty">
+        <div class="shop-empty-ic">📦</div>
+        <div class="shop-empty-txt">Aucune épreuve disponible pour le moment.</div>
+        <div class="shop-empty-sub">L'administrateur ajoutera bientôt des épreuves.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL EPREUVE -->
+<div id="modal-epreuve" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);" onclick="closeEpreuve(event)">
+  <div class="epreuve-modal" id="epreuve-modal-inner" onclick="event.stopPropagation()">
+    <button class="epreuve-close" onclick="closeEpreuve()">✕</button>
+    <div id="epreuve-modal-content"></div>
   </div>
 </div>
 
@@ -1050,6 +1164,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
       <div class="ani" onclick="adminTab('leaderboard-a',this)">🏆 Leaderboard</div>
       <div class="ani" onclick="adminTab('notifs-a',this)">🔔 Notifications</div>
       <div class="ani" onclick="adminTab('docs-a',this)">📄 Documents</div>
+      <div class="ani" onclick="adminTab('boutique-a',this)">🛍 Boutique</div>
     </div>
     <div class="admin-main">
       <div id="at-dashboard"></div>
@@ -1059,6 +1174,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
       <div id="at-leaderboard-a" style="display:none"></div>
       <div id="at-notifs-a" style="display:none"></div>
       <div id="at-docs-a" style="display:none"></div>
+      <div id="at-boutique-a" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -1609,6 +1725,7 @@ const DB = {
     {id:3,title:'EnergyBot est prêt !',sub:'Configurez votre clé API pour accéder à l\'assistant IA.',ic:'⚡',bg:'#F0C96A',unread:false,time:'Il y a 1j'},
   ],
   certificates:[],
+  shop:[],
   nextId:300,
   COLORS:['#185FA5','#0F6E56','#993556','#854F0B','#534AB7','#3B6D11','#993C1D','#3C3489'],
 };
@@ -1847,7 +1964,7 @@ function goPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.np').forEach(b=>b.classList.remove('on'));
-  const idx={home:0,courses:1,exams:2,leaderboard:3,certs:4,energybot:5,forum:6};
+  const idx={home:0,courses:1,exams:2,leaderboard:3,certs:4,energybot:5,boutique:6,forum:7};
   const navLinks=document.querySelectorAll('#nav-links .np');
   if(idx[id]!==undefined && navLinks[idx[id]]) navLinks[idx[id]].classList.add('on');
   document.getElementById('notif-panel').classList.remove('open');
@@ -1858,7 +1975,7 @@ function goPage(id){
     const pg=document.getElementById('pg-'+id);
     if(pg){void pg.offsetHeight;}
   }
-  const renders={home:renderHome,forum:()=>{loadForumData();renderForum(FORUM.posts);},courses:()=>filterLevel(1,document.querySelector('#lvl-tabs .tab')),exams:()=>{ document.getElementById('quiz-wrap').style.display='none'; document.getElementById('exam-list-wrap').style.display=''; renderExamList(); },leaderboard:()=>refreshLeaderboard(),certs:renderCerts,profile:renderProfile,energybot:()=>{
+  const renders={home:renderHome,forum:()=>{loadForumData();renderForum(FORUM.posts);},courses:()=>filterLevel(1,document.querySelector('#lvl-tabs .tab')),exams:()=>{ document.getElementById('quiz-wrap').style.display='none'; document.getElementById('exam-list-wrap').style.display=''; renderExamList(); },leaderboard:()=>refreshLeaderboard(),certs:renderCerts,profile:renderProfile,boutique:()=>loadShop(),energybot:()=>{
     const keyBtn=document.getElementById('eb-key-btn');
     if(keyBtn) keyBtn.style.display=currentUser?.role==='admin'?'':'none';
     // Recalcul explicite du layout EnergyBot
@@ -2031,8 +2148,318 @@ function togglePdfSection(id){
 
 
 /* ═══════════════════════════════════════════
-   EXAMENS + QUIZ
+   BOUTIQUE D'ÉPREUVES
 ═══════════════════════════════════════════ */
+let shopFilter = 'all';
+
+function filterShop(f, btn){
+  shopFilter = f;
+  document.querySelectorAll('.shop-filter-btn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  renderShop();
+}
+
+function renderShop(){
+  const grid = document.getElementById('shop-grid');
+  if(!grid) return;
+  const items = DB.shop || [];
+
+  // Stats
+  const statTotal = document.getElementById('stat-total');
+  const statFree = document.getElementById('stat-free');
+  if(statTotal) statTotal.textContent = items.length;
+  if(statFree) statFree.textContent = items.filter(i=>i.isFree).length;
+
+  let filtered = items;
+  if(shopFilter === 'L1') filtered = items.filter(i=>i.licence==='L1');
+  else if(shopFilter === 'L2') filtered = items.filter(i=>i.licence==='L2');
+  else if(shopFilter === 'L3') filtered = items.filter(i=>i.licence==='L3');
+  else if(shopFilter === 'free') filtered = items.filter(i=>i.isFree);
+  else if(shopFilter === 'paid') filtered = items.filter(i=>!i.isFree);
+
+  if(filtered.length === 0){
+    grid.innerHTML = `<div class="shop-empty"><div class="shop-empty-ic">📦</div><div class="shop-empty-txt">Aucune épreuve pour ce filtre.</div><div class="shop-empty-sub">Essayez un autre filtre ou revenez plus tard.</div></div>`;
+    return;
+  }
+
+  const licenceColors = {L1:'#60a5fa',L2:'#34d399',L3:'#fbbf24'};
+  const licenceLabels = {L1:'📘 Licence 1',L2:'📗 Licence 2',L3:'📕 Licence 3'};
+
+  grid.innerHTML = filtered.map(item=>{
+    const isFree = item.isFree;
+    const hasCorrige = item.corrigeUrl && item.corrigeUrl.length > 0;
+    const isNew = item.isNew;
+    return `<div class="shop-card" onclick="openEpreuve(${item.id})">
+      <div class="shop-card-top">
+        ${isNew?'<span class="shop-card-badge-new">✨ Nouveau</span>':''}
+        <div class="shop-card-licence ${item.licence}">${licenceLabels[item.licence]||item.licence}</div>
+        <div class="shop-card-title">${item.title}</div>
+        <div class="shop-card-meta">
+          <span>📅 ${item.year||'—'}</span>
+          <span>📐 ${item.matiere||'—'}</span>
+          ${item.session?`<span>🗓 ${item.session}</span>`:''}
+        </div>
+        ${item.tags&&item.tags.length?`<div>${item.tags.map(t=>`<span class="shop-card-tag">${t}</span>`).join('')}</div>`:''}
+        ${hasCorrige?'<div style="font-size:.72rem;color:#a78bfa;margin-top:.5rem;">✅ Corrigé inclus</div>':''}
+      </div>
+      <div class="shop-card-bottom">
+        <span class="${isFree?'shop-card-price-free':'shop-card-price-paid'}">${isFree?'🆓 Gratuit':'💎 Premium'}</span>
+        <button class="shop-card-btn ${isFree?'shop-card-btn-free':'shop-card-btn-paid'}" onclick="event.stopPropagation();openEpreuve(${item.id})">${isFree?'Accéder':'Acheter'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openEpreuve(id){
+  const item = (DB.shop||[]).find(i=>i.id===id);
+  if(!item) return;
+  const isFree = item.isFree;
+  const hasCorrige = item.corrigeUrl && item.corrigeUrl.length > 0;
+  const licenceLabels = {L1:'📘 Licence 1',L2:'📗 Licence 2',L3:'📕 Licence 3'};
+
+  document.getElementById('epreuve-modal-content').innerHTML = `
+    <div class="shop-card-licence ${item.licence}" style="margin-bottom:.8rem;">${licenceLabels[item.licence]||item.licence}</div>
+    <div class="epreuve-modal-title">${item.title}</div>
+    <div class="epreuve-modal-meta">
+      <span>📅 ${item.year||'—'}</span>
+      <span>📐 ${item.matiere||'—'}</span>
+      ${item.session?`<span>🗓 Session : ${item.session}</span>`:''}
+      ${item.duree?`<span>⏱ Durée : ${item.duree}</span>`:''}
+    </div>
+    ${item.description?`<p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.6;">${item.description}</p>`:''}
+
+    <div class="epreuve-section-title">📄 Sujet de l'épreuve</div>
+    ${item.sujetUrl?`<a class="epreuve-doc-link" href="${item.sujetUrl}" target="_blank">
+      <span class="epreuve-doc-icon">📄</span>
+      <div>
+        <div class="epreuve-doc-name">${item.title} — Sujet</div>
+        <div class="epreuve-doc-size">PDF · Cliquer pour ouvrir</div>
+      </div>
+      <span style="color:var(--muted);font-size:1.2rem;">↗</span>
+    </a>`:`<div style="font-size:.85rem;color:var(--muted);padding:.5rem 0;">Aucun sujet disponible.</div>`}
+
+    <div class="epreuve-section-title" style="margin-top:1rem;">✅ Corrigé détaillé</div>
+    ${isFree && hasCorrige?`<a class="epreuve-doc-link" href="${item.corrigeUrl}" target="_blank">
+      <span class="epreuve-doc-icon">✅</span>
+      <div>
+        <div class="epreuve-doc-name">${item.title} — Corrigé</div>
+        <div class="epreuve-doc-size">PDF · Cliquer pour ouvrir</div>
+      </div>
+      <span style="color:var(--muted);font-size:1.2rem;">↗</span>
+    </a>`:!isFree && hasCorrige?`<div class="epreuve-locked">
+      <div class="epreuve-locked-ic">🔒</div>
+      <div class="epreuve-locked-txt">Corrigé Premium</div>
+      <div class="epreuve-locked-sub">Accédez au corrigé complet en achetant cette épreuve via Mobile Money.</div>
+      <button class="epreuve-pay-btn" onclick="requestPayment(${item.id})">💳 Acheter via Mobile Money</button>
+    </div>`:`<div style="font-size:.85rem;color:var(--muted);padding:.5rem 0;">Aucun corrigé disponible.</div>`}
+  `;
+
+  const modal = document.getElementById('modal-epreuve');
+  modal.style.display='flex';
+}
+
+function closeEpreuve(e){
+  if(!e || e.target===document.getElementById('modal-epreuve')){
+    document.getElementById('modal-epreuve').style.display='none';
+  }
+}
+
+function requestPayment(id){
+  const item=(DB.shop||[]).find(i=>i.id===id);
+  if(!item) return;
+  toast('Fonctionnalité Mobile Money bientôt disponible. Contactez l\'admin.','ok');
+}
+
+// Sauvegarde Firebase boutique
+async function fbSaveShopItem(item){
+  if(!fbReady) return;
+  try{ await firebase.firestore().collection('shop').doc(String(item.id)).set(item); }catch(e){ console.warn(e); }
+}
+async function fbDeleteShopItem(id){
+  if(!fbReady) return;
+  try{ await firebase.firestore().collection('shop').doc(String(id)).delete(); }catch(e){ console.warn(e); }
+}
+async function loadShop(){
+  if(!fbReady){ renderShop(); return; }
+  try{
+    const snap = await firebase.firestore().collection('shop').get();
+    DB.shop = snap.docs.map(d=>({...d.data(),id:parseInt(d.id)||d.id}));
+    // Charger le mode payant
+    const settingSnap = await firebase.firestore().collection('settings').doc('shop').get();
+    if(settingSnap.exists){
+      DB.shopPayMode = settingSnap.data().payMode || false;
+      shopPayMode = DB.shopPayMode;
+    }
+    renderShop();
+  }catch(e){ console.warn(e); renderShop(); }
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN BOUTIQUE
+═══════════════════════════════════════════ */
+let shopPayMode = false; // false = tout gratuit, true = payant activé
+
+function renderAdminBoutique(){
+  // Charger le mode payant depuis DB
+  shopPayMode = DB.shopPayMode || false;
+  const items = DB.shop || [];
+
+  document.getElementById('at-boutique-a').innerHTML = `
+    <div style="padding:.5rem 0 1.5rem;">
+
+      <!-- MODE PAYANT -->
+      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+        <div>
+          <div style="font-weight:700;font-size:.95rem;margin-bottom:.3rem;">💳 Mode de paiement</div>
+          <div style="font-size:.82rem;color:var(--muted);">Activer le mode payant pour les épreuves Premium. Les épreuves gratuites restent accessibles.</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem;">
+          <span style="font-size:.82rem;color:${shopPayMode?'#34d399':'var(--muted)'};">${shopPayMode?'✅ Payant activé':'🆓 Tout gratuit'}</span>
+          <button onclick="toggleShopPayMode()" style="padding:.5rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:.83rem;font-family:var(--font-body);background:${shopPayMode?'#ef4444':'#10b981'};color:#fff;">
+            ${shopPayMode?'Désactiver':'Activer le mode payant'}
+          </button>
+        </div>
+      </div>
+
+      <!-- FORMULAIRE AJOUT -->
+      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.4rem;">
+        <div style="font-weight:700;font-size:.95rem;margin-bottom:1rem;">➕ Ajouter une épreuve</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Titre *</label>
+            <input id="sh-title" placeholder="Ex: Chimie Générale — Session Normale" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);"></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Matière *</label>
+            <input id="sh-matiere" placeholder="Ex: Chimie Générale" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);"></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Licence *</label>
+            <select id="sh-licence" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);">
+              <option value="L1">Licence 1</option>
+              <option value="L2">Licence 2</option>
+              <option value="L3">Licence 3</option>
+            </select></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Année académique</label>
+            <input id="sh-year" placeholder="Ex: 2024-2025" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);"></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Session</label>
+            <select id="sh-session" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);">
+              <option value="Normale">Session Normale</option>
+              <option value="Rattrapage">Rattrapage</option>
+            </select></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Durée</label>
+            <input id="sh-duree" placeholder="Ex: 2 heures" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);"></div>
+          <div style="grid-column:1/-1;"><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Description</label>
+            <input id="sh-desc" placeholder="Ex: Épreuve officielle UAC/FAST avec exercices sur les atomes..." style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);"></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">🔗 Lien PDF Sujet (Google Drive)</label>
+            <input id="sh-sujet" placeholder="https://drive.google.com/..." style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);"></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">🔗 Lien PDF Corrigé (Google Drive)</label>
+            <input id="sh-corrige" placeholder="https://drive.google.com/..." style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);"></div>
+          <div style="display:flex;align-items:center;gap:.6rem;padding-top:1rem;">
+            <input type="checkbox" id="sh-isfree" checked style="width:16px;height:16px;cursor:pointer;">
+            <label for="sh-isfree" style="font-size:.85rem;cursor:pointer;">🆓 Épreuve gratuite</label>
+          </div>
+          <div style="display:flex;align-items:center;gap:.6rem;padding-top:1rem;">
+            <input type="checkbox" id="sh-isnew" style="width:16px;height:16px;cursor:pointer;">
+            <label for="sh-isnew" style="font-size:.85rem;cursor:pointer;">✨ Marquer comme nouveau</label>
+          </div>
+        </div>
+        <button onclick="addShopItem()" style="margin-top:1rem;padding:.6rem 1.4rem;border-radius:8px;background:linear-gradient(90deg,#ec4899,#8b5cf6);color:#fff;border:none;cursor:pointer;font-weight:600;font-size:.85rem;font-family:var(--font-body);">
+          ➕ Ajouter l'épreuve
+        </button>
+      </div>
+
+      <!-- LISTE ÉPREUVES -->
+      <div style="font-weight:700;font-size:.95rem;margin-bottom:.8rem;">📋 Épreuves en ligne (${items.length})</div>
+      ${items.length === 0 ? `<div style="text-align:center;padding:2rem;color:var(--muted);background:var(--card-bg);border:1px solid var(--border);border-radius:12px;">Aucune épreuve ajoutée.</div>` :
+        items.map(item=>`
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;">
+          <div>
+            <div style="font-weight:600;font-size:.9rem;">${item.title}</div>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:.2rem;">
+              ${item.licence} · ${item.matiere||'—'} · ${item.year||'—'} · ${item.session||'—'}
+              ${item.isFree?'<span style="color:#10b981;margin-left:.5rem;">🆓 Gratuit</span>':'<span style="color:#f59e0b;margin-left:.5rem;">💎 Premium</span>'}
+              ${item.corrigeUrl?'<span style="color:#a78bfa;margin-left:.5rem;">✅ Corrigé</span>':''}
+            </div>
+          </div>
+          <div style="display:flex;gap:.5rem;">
+            <button onclick="toggleShopItemFree(${item.id})" style="padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.75rem;font-family:var(--font-body);">
+              ${item.isFree?'→ Premium':'→ Gratuit'}
+            </button>
+            <button onclick="deleteShopItem(${item.id})" style="padding:.35rem .8rem;border-radius:6px;border:none;background:#ef4444;color:#fff;cursor:pointer;font-size:.75rem;font-family:var(--font-body);">🗑</button>
+          </div>
+        </div>`).join('')
+      }
+    </div>
+  `;
+}
+
+function extractDriveId(url){
+  if(!url) return '';
+  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? `https://drive.google.com/file/d/${m[1]}/preview` : url;
+}
+
+function addShopItem(){
+  const title = document.getElementById('sh-title').value.trim();
+  const matiere = document.getElementById('sh-matiere').value.trim();
+  const licence = document.getElementById('sh-licence').value;
+  const year = document.getElementById('sh-year').value.trim();
+  const session = document.getElementById('sh-session').value;
+  const duree = document.getElementById('sh-duree').value.trim();
+  const desc = document.getElementById('sh-desc').value.trim();
+  const sujetRaw = document.getElementById('sh-sujet').value.trim();
+  const corrigeRaw = document.getElementById('sh-corrige').value.trim();
+  const isFree = document.getElementById('sh-isfree').checked;
+  const isNew = document.getElementById('sh-isnew').checked;
+
+  if(!title || !matiere || !licence){ toast('Titre, matière et licence requis','err'); return; }
+
+  if(!DB.shop) DB.shop = [];
+  const id = Date.now();
+  const item = {
+    id, title, matiere, licence, year, session, duree,
+    description: desc,
+    sujetUrl: extractDriveId(sujetRaw),
+    corrigeUrl: extractDriveId(corrigeRaw),
+    isFree, isNew,
+    createdAt: new Date().toISOString()
+  };
+  DB.shop.push(item);
+  fbSaveShopItem(item);
+  saveData();
+  toast('Épreuve ajoutée !','ok');
+  renderAdminBoutique();
+  renderShop();
+}
+
+function deleteShopItem(id){
+  if(!confirm('Supprimer cette épreuve ?')) return;
+  DB.shop = (DB.shop||[]).filter(i=>i.id!==id);
+  fbDeleteShopItem(id);
+  saveData();
+  toast('Épreuve supprimée','ok');
+  renderAdminBoutique();
+  renderShop();
+}
+
+function toggleShopItemFree(id){
+  const item = (DB.shop||[]).find(i=>i.id===id);
+  if(!item) return;
+  item.isFree = !item.isFree;
+  fbSaveShopItem(item);
+  saveData();
+  toast(item.isFree?'Épreuve passée en gratuit':'Épreuve passée en Premium','ok');
+  renderAdminBoutique();
+  renderShop();
+}
+
+function toggleShopPayMode(){
+  shopPayMode = !shopPayMode;
+  DB.shopPayMode = shopPayMode;
+  saveData();
+  if(fbReady){
+    firebase.firestore().collection('settings').doc('shop').set({payMode: shopPayMode}).catch(e=>console.warn(e));
+  }
+  toast(shopPayMode?'Mode payant activé ✅':'Mode gratuit activé 🆓','ok');
+  renderAdminBoutique();
+  renderShop();
+}
 let activeExamLevel = 0;
 function filterExamLevel(level, btn){
   activeExamLevel = level;
@@ -3260,10 +3687,10 @@ function updateNotifDot(){
 function adminTab(tab,el){
   document.querySelectorAll('.ani').forEach(i=>i.classList.remove('on'));
   if(el)el.classList.add('on');
-  ['dashboard','subjects','exams-a','students','leaderboard-a','notifs-a','docs-a'].forEach(t=>{
+  ['dashboard','subjects','exams-a','students','leaderboard-a','notifs-a','docs-a','boutique-a'].forEach(t=>{
     document.getElementById('at-'+t).style.display=t===tab?'':'none';
   });
-  const renders={dashboard:renderAdminDash,subjects:renderAdminSubjects,'exams-a':renderAdminExams,students:renderAdminStudents,'leaderboard-a':renderAdminLB,'notifs-a':renderAdminNotifs,'docs-a':renderAdminDocs};
+  const renders={dashboard:renderAdminDash,subjects:renderAdminSubjects,'exams-a':renderAdminExams,students:renderAdminStudents,'leaderboard-a':renderAdminLB,'notifs-a':renderAdminNotifs,'docs-a':renderAdminDocs,'boutique-a':renderAdminBoutique};
   if(renders[tab])renders[tab]();
 }
 
