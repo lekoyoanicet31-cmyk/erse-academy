@@ -551,7 +551,12 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
-  .hero h1{font-size:32px;}
+  html,body{overflow-x:hidden;max-width:100vw;}
+  *{max-width:100%;}
+  .hero h1{font-size:28px;}
+  .hero{padding:3rem 1rem 2.5rem!important;}
+  .hero-btns{flex-direction:column;gap:.5rem;}
+  .hero-btns button{width:100%;}
   .nav-links{display:none;}
   .hamburger{display:block;}
   .kpi-grid{grid-template-columns:repeat(2,1fr);}
@@ -566,7 +571,15 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
   .eb-main{height:auto;flex:1;min-height:calc(100vh - 130px);}
   .eb-messages{flex:1;min-height:300px;overflow-y:auto;}
   .notif-panel{right:.5rem;left:.5rem;width:auto;}
-  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+  .shop-grid{grid-template-columns:1fr;}
+  .shop-hero-title{font-size:1.4rem;}
+  .shop-filters{flex-direction:column;gap:.5rem;}
+  .wrap{padding:1rem;}
+  table{display:block;overflow-x:auto;white-space:nowrap;}
+  .forum-post{flex-direction:column;}
+  .cert-card{width:100%!important;}
+  .stats-bar{overflow-x:auto;}
 }
 
   /* Admin button — hidden by default, shown only for admin role via JS */
@@ -1210,16 +1223,28 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
     <button class="bn-item" onclick="goPage('exams');updateBottomNav('exams')">
       <span class="bn-ic">📝</span><span class="bn-lbl">Examens</span>
     </button>
+    <button class="bn-item" onclick="goPage('boutique');updateBottomNav('boutique')">
+      <span class="bn-ic">🛍</span><span class="bn-lbl">Boutique</span>
+    </button>
     <button class="bn-item" onclick="goPage('energybot');updateBottomNav('energybot')">
       <span class="bn-ic">⚡</span><span class="bn-lbl">IA</span>
     </button>
-    <button class="bn-item" onclick="goPage('forum');updateBottomNav('forum')">
-      <span class="bn-ic">💬</span><span class="bn-lbl">Forum</span>
-    </button>
-    <button class="bn-item" onclick="goPage('profile');updateBottomNav('profile')">
-      <span class="bn-ic">👤</span><span class="bn-lbl">Profil</span>
+    <button class="bn-item" onclick="showMoreMenu()" id="bn-more">
+      <span class="bn-ic">⋯</span><span class="bn-lbl">Plus</span>
     </button>
   </div>
+</div>
+
+<!-- MORE MENU MOBILE -->
+<div id="mobile-more-menu" style="display:none;position:fixed;bottom:70px;left:0;right:0;background:var(--nav-bg);border-top:1px solid rgba(255,255,255,0.1);z-index:400;padding:.8rem;box-shadow:0 -8px 24px rgba(0,0,0,0.3);">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+    <button onclick="goPage('forum');updateBottomNav('forum');hideMoreMenu()" style="padding:.7rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-family:var(--font-body);font-size:.85rem;text-align:left;">💬 Forum</button>
+    <button onclick="goPage('leaderboard');updateBottomNav('leaderboard');hideMoreMenu()" style="padding:.7rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-family:var(--font-body);font-size:.85rem;text-align:left;">🏆 Leaderboard</button>
+    <button onclick="goPage('certs');updateBottomNav('certs');hideMoreMenu()" style="padding:.7rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-family:var(--font-body);font-size:.85rem;text-align:left;">🎓 Certificats</button>
+    <button onclick="goPage('profile');updateBottomNav('profile');hideMoreMenu()" style="padding:.7rem;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-family:var(--font-body);font-size:.85rem;text-align:left;">👤 Profil</button>
+    <button id="bn-admin-btn" onclick="goPage('admin');updateBottomNav('admin');hideMoreMenu()" style="display:none;padding:.7rem;border-radius:8px;border:1px solid var(--border);background:rgba(245,158,11,0.1);color:#fbbf24;cursor:pointer;font-family:var(--font-body);font-size:.85rem;text-align:left;">⚙ Admin</button>
+  </div>
+  <button onclick="hideMoreMenu()" style="width:100%;margin-top:.5rem;padding:.5rem;border-radius:8px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:.8rem;font-family:var(--font-body);">✕ Fermer</button>
 </div>
 </div><!-- /main-app -->
 
@@ -1874,6 +1899,9 @@ async function loginUser(user){
   avatar.textContent=user.initials;
   avatar.style.background=user.color;
   document.querySelectorAll('.admin-nav-btn').forEach(b=>b.style.setProperty('display', user.role==='admin' ? 'inline-block' : 'none', 'important'));
+  // Bouton admin dans le menu mobile "Plus"
+  const bnAdmin = document.getElementById('bn-admin-btn');
+  if(bnAdmin) bnAdmin.style.display = user.role==='admin' ? 'block' : 'none';
   pushNotif('Connexion réussie','Bienvenue '+user.name+' !','👋','#b0d4f4');
   // Charger certificats depuis Firebase
   if(fbReady){
@@ -1998,6 +2026,14 @@ function goPage(id){
   if(renders[id]) renders[id]();
 }
 
+function showMoreMenu(){
+  const m = document.getElementById('mobile-more-menu');
+  if(m) m.style.display = m.style.display==='none'?'block':'none';
+}
+function hideMoreMenu(){
+  const m = document.getElementById('mobile-more-menu');
+  if(m) m.style.display='none';
+}
 function toggleMobile(){document.getElementById('mobile-menu').classList.toggle('open');}
 
 /* ═══════════════════════════════════════════
