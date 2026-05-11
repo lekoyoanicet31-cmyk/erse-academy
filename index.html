@@ -1904,6 +1904,8 @@ async function loginUser(user){
   const bnAdmin = document.getElementById('bn-admin-btn');
   if(bnAdmin) bnAdmin.style.display = user.role==='admin' ? 'block' : 'none';
   pushNotif('Connexion réussie','Bienvenue '+user.name+' !','👋','#b0d4f4');
+  // Lancer Firebase sync maintenant que l'utilisateur est authentifié
+  if(!fbReady) initFirebase();
   // Charger certificats depuis Firebase
   if(fbReady){
     try{
@@ -4816,7 +4818,7 @@ function openModalStudent(){
 loadData();
 updateNotifDot();
 // Initialiser Firebase après chargement
-setTimeout(initFirebase, 500);
+// initFirebase est appelé après la connexion dans onAuthStateChanged
 // Fallback: cacher le loading après 3 secondes max
 setTimeout(hideLoadingScreen, 3000);
 
