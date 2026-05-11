@@ -2512,16 +2512,89 @@ function toggleShopItemFree(id){
 function editShopItem(id){
   const item = (DB.shop||[]).find(i=>String(i.id)===String(id));
   if(!item) return;
-  const newTitle = prompt("Titre :", item.title);
-  if(newTitle===null) return;
-  if(newTitle.trim()) item.title = newTitle.trim();
-  const newPrice = prompt("Prix (FCFA, 0=gratuit) :", item.price||0);
-  if(newPrice!==null) item.price = parseInt(newPrice)||0;
-  const newDesc = prompt("Description :", item.description||"");
-  if(newDesc!==null) item.description = newDesc;
+
+  // Créer modal d'édition
+  const existing = document.getElementById('edit-shop-modal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'edit-shop-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.innerHTML = `
+    <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+        <div style="font-weight:700;font-size:1rem;">✏ Modifier l'épreuve</div>
+        <button onclick="document.getElementById('edit-shop-modal').remove()" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.8rem;">
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Titre *</label>
+          <input id="es-title" value="${item.title||''}" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);box-sizing:border-box;"></div>
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Matière</label>
+          <input id="es-matiere" value="${item.matiere||''}" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);box-sizing:border-box;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Licence</label>
+            <select id="es-licence" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);">
+              <option value="L1" ${item.licence==='L1'?'selected':''}>Licence 1</option>
+              <option value="L2" ${item.licence==='L2'?'selected':''}>Licence 2</option>
+              <option value="L3" ${item.licence==='L3'?'selected':''}>Licence 3</option>
+            </select></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Session</label>
+            <select id="es-session" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);">
+              <option value="Normale" ${item.session==='Normale'?'selected':''}>Normale</option>
+              <option value="Rattrapage" ${item.session==='Rattrapage'?'selected':''}>Rattrapage</option>
+            </select></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Année</label>
+            <input id="es-year" value="${item.year||''}" placeholder="2024-2025" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);box-sizing:border-box;"></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Durée</label>
+            <input id="es-duree" value="${item.duree||''}" placeholder="2 heures" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);box-sizing:border-box;"></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Prix (FCFA)</label>
+            <input id="es-price" type="number" min="0" value="${item.price||0}" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);box-sizing:border-box;"></div>
+          <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Statut</label>
+            <select id="es-isfree" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);">
+              <option value="1" ${item.isFree?'selected':''}>🆓 Gratuit</option>
+              <option value="0" ${!item.isFree?'selected':''}>🔒 Payant</option>
+            </select></div>
+        </div>
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">Description</label>
+          <input id="es-desc" value="${item.description||''}" style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);box-sizing:border-box;"></div>
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">🔗 Lien PDF Sujet</label>
+          <input id="es-sujet" value="${item.sujetUrl||''}" placeholder="https://drive.google.com/..." style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);box-sizing:border-box;"></div>
+        <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">🔗 Lien PDF Corrigé</label>
+          <input id="es-corrige" value="${item.corrigeUrl||''}" placeholder="https://drive.google.com/..." style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);box-sizing:border-box;"></div>
+      </div>
+      <div style="display:flex;gap:.6rem;margin-top:1.2rem;justify-content:flex-end;">
+        <button onclick="document.getElementById('edit-shop-modal').remove()" style="padding:.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-body);font-size:.85rem;">Annuler</button>
+        <button onclick="saveEditShopItem('${id}')" style="padding:.55rem 1.4rem;border-radius:8px;border:none;background:var(--b5);color:#fff;cursor:pointer;font-weight:600;font-family:var(--font-body);font-size:.85rem;">💾 Enregistrer</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+  document.getElementById('es-title').focus();
+}
+
+function saveEditShopItem(id){
+  const item = (DB.shop||[]).find(i=>String(i.id)===String(id));
+  if(!item) return;
+  const title = document.getElementById('es-title').value.trim();
+  if(!title){ toast('Le titre est obligatoire','err'); return; }
+  item.title = title;
+  item.matiere = document.getElementById('es-matiere').value.trim();
+  item.licence = document.getElementById('es-licence').value;
+  item.session = document.getElementById('es-session').value;
+  item.year = document.getElementById('es-year').value.trim();
+  item.duree = document.getElementById('es-duree').value.trim();
+  item.price = parseInt(document.getElementById('es-price').value)||0;
+  item.isFree = document.getElementById('es-isfree').value === '1';
+  item.description = document.getElementById('es-desc').value.trim();
+  const sujet = document.getElementById('es-sujet').value.trim();
+  const corrige = document.getElementById('es-corrige').value.trim();
+  if(sujet) item.sujetUrl = extractDriveId(sujet);
+  if(corrige) item.corrigeUrl = extractDriveId(corrige);
   fbSaveShopItem(item);
   saveData();
-  toast("Épreuve modifiée ✅","ok");
+  document.getElementById('edit-shop-modal').remove();
+  toast('Épreuve modifiée ✅','ok');
   renderAdminBoutique();
   renderShop();
 }
