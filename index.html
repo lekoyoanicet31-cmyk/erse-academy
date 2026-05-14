@@ -2220,45 +2220,89 @@ function filterLevel(l,btn){
   const isAdmin = currentUser && currentUser.role==='admin';
   const userLvl = getUserLevel();
 
-  // Verrouiller les tabs supérieurs visuellement
   document.querySelectorAll('#lvl-tabs .tab').forEach(t=>{
     const tlvl = parseInt(t.dataset.lvl||1);
     if(!isAdmin && tlvl > userLvl){
       t.classList.remove('on');
       t.style.opacity='.4';
       t.style.cursor='not-allowed';
-      t.onclick = ()=>toast(`🔒 Validez la Licence ${tlvl-1} avec 80/100 pour débloquer`,'err');
     } else {
       t.style.opacity='1';
       t.style.cursor='pointer';
     }
   });
 
-  // Si l'étudiant essaie d'accéder à un niveau verrouillé
+  // Bloquer accès aux niveaux SUPÉRIEURS seulement
   if(!isAdmin && l > userLvl){
-    toast(`🔒 Niveau L${l} verrouillé. Validez d'abord la Licence ${l-1}.`,'err');
-    return;
-  }
-
-  document.querySelectorAll('#lvl-tabs .tab').forEach(t=>t.classList.remove('on'));
-  if(btn) btn.classList.add('on');
-
-  if(!checkLevelAccess(l)){
+    toast(`🔒 Niveau L${l} verrouillé. Validez d'abord la Licence ${l-1} avec 80/100.`,'err');
+    // Afficher le message de verrouillage
     const prog = getLevelProgress();
     document.getElementById('course-list').innerHTML=`
-      <div style="text-align:center;padding:3rem 1rem;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;">
+      <div style="text-align:center;padding:3rem 1rem;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;margin-top:.5rem;">
         <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
         <div style="font-weight:700;font-size:1.1rem;margin-bottom:.5rem;">Niveau L${l} verrouillé</div>
         <div style="color:var(--muted);font-size:.85rem;margin-bottom:1.2rem;">Validez la Licence ${l-1} avec 80/100 de moyenne.<br>Votre progression : <strong style="color:var(--text);">${prog.avg}/100</strong> (${prog.done}/${prog.total} examens)</div>
-        ${prog.canPass?`<button onclick="requestLevelUp()" style="padding:.6rem 1.5rem;border-radius:10px;border:none;background:#10b981;color:#fff;cursor:pointer;font-weight:700;font-family:var(--font-body);">🎉 Valider ma Licence ${userLvl} →</button>`:`<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:.8rem 1.5rem;font-size:.82rem;color:var(--muted);display:inline-block;">Completez tous les examens L${userLvl} avec 80/100.</div>`}
+        ${prog.canPass?`<button onclick="requestLevelUp()" style="padding:.6rem 1.5rem;border-radius:10px;border:none;background:#10b981;color:#fff;cursor:pointer;font-weight:700;font-family:var(--font-body);">🎉 Valider ma Licence ${userLvl} →</button>`:`<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:.8rem 1.5rem;font-size:.82rem;color:var(--muted);display:inline-block;">Complétez tous les examens L${userLvl} avec 80/100.</div>`}
       </div>
     `;
     renderLevelBadge();
     return;
   }
 
-  const subjects=DB.subjects.filter(s=>s.level===l&&s.active);
-  document.getElementById('course-list').innerHTML=subjects.map(s=>`
+  // L'étudiant a accès à ce niveau — afficher les matières
+  document.querySelectorAll('#lvl-tabs .tab').forEach(t=>t.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+
+  const subjects = DB.subjects.filter(s=>s.level===l && s.active);
+  document.getElementById('course-list').innerHTML = subjects.length===0
+    ? `<div style="text-align:center;padding:2rem;color:var(--muted);">Aucune matière disponible pour ce niveau.</div>`
+    : subjects.map(s=>{
+        const files = (s.files||[]);
+        const filesHtml = files.length===0
+          ? `<div class="pdf-placeholder"><div class="pdf-placeholder-ic">📂</div><p>Aucun document pour l'instant.</p></div>`
+          : files.map((f,i)=>{
+              const fileName = f && typeof f==='object' ? (f.name||'Document') : String(f||'Document');
+              const driveId = f && typeof f==='object' ? (f.driveId||null) : null;
+              return `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem .8rem;background:var(--card-bg);border:1px solid var(--border);border-radius:9px;margin-bottom:7px;flex-wrap:wrap;gap:.5rem;">
+                <div style="display:flex;align-items:center;gap:9px;">
+                  <div style="width:32px;height:32px;background:#FCEBEB;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📄</div>
+                  <div>
+                    <div style="font-size:13px;font-weight:500;">${fileName}</div>
+                    <div style="font-size:11px;color:var(--muted);">PDF</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  ${driveId?`<button class="btn-pdf btn-view" onclick="previewPdf('${driveId}',${s.id},${i})">👁 Aperçu</button>`:''}
+                  ${driveId?`<button class="btn-pdf btn-dl2" onclick="downloadPdf('${driveId}','${fileName.replace(/'/g,"\\'")}')">⬇ Télécharger</button>`:''}
+                </div>
+              </div>
+              <div id="pdf-embed-${s.id}-${i}" style="display:none;margin-bottom:7px;"></div>`;
+            }).join('');
+
+        return `
+        <div class="pdf-section">
+          <div class="pdf-header" onclick="togglePdfSection(${s.id})">
+            <div class="pdf-header-left">
+              <div style="font-size:24px;">${s.icon||'📚'}</div>
+              <div>
+                <div class="pdf-name">${s.name}</div>
+                <div class="pdf-meta">${files.length} document${files.length>1?'s':''} · L${s.level}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="pill-lvl l${s.level}p">L${s.level}</span>
+              <span style="font-size:14px;color:var(--muted);" id="pdf-arrow-${s.id}">▼</span>
+            </div>
+          </div>
+          <div class="pdf-preview" id="pdf-section-${s.id}">
+            <div class="pdf-embed-area">${filesHtml}</div>
+          </div>
+        </div>`;
+      }).join('');
+
+  renderLevelBadge();
+}
     <div class="pdf-section">
       <div class="pdf-header" onclick="togglePdfSection(${s.id})">
         <div class="pdf-header-left">
@@ -2271,34 +2315,6 @@ function filterLevel(l,btn){
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="pill-lvl l${s.level}p">L${s.level}</span>
           <span style="font-size:14px;color:var(--muted);" id="pdf-arrow-${s.id}">▼</span>
-        </div>
-      </div>
-      <div class="pdf-preview" id="pdf-section-${s.id}">
-        <div class="pdf-embed-area">
-          ${(s.files||[]).map((f,i)=>{
-            const fileName = typeof f==='object' ? f.name : f;
-            const driveId = typeof f==='object' ? f.driveId : null;
-            return `
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem .8rem;background:var(--card-bg);border:1px solid var(--border);border-radius:9px;margin-bottom:7px;">
-              <div style="display:flex;align-items:center;gap:9px;">
-                <div style="width:32px;height:32px;background:#FCEBEB;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;">📄</div>
-                <div>
-                  <div style="font-size:13px;font-weight:500;">${fileName}</div>
-                  <div style="font-size:11px;color:var(--muted);">PDF</div>
-                </div>
-              </div>
-              <div style="display:flex;gap:6px;">
-                ${driveId?`<button class="btn-pdf btn-view" onclick="previewPdf('${driveId}',${s.id},${i})">👁 Aperçu</button>`:''}
-                ${driveId?`<button class="btn-pdf btn-dl2" onclick="downloadPdf('${driveId}','${fileName.replace(/'/g,"\\'")}')">⬇ Télécharger</button>`:''}
-              </div>
-            </div>
-            <div id="pdf-embed-${s.id}-${i}" style="display:none;margin-bottom:7px;"></div>
-          `}).join('')}
-          ${!s.files||s.files.length===0?'<div class="pdf-placeholder"><div class="pdf-placeholder-ic">📂</div><p>Aucun document pour l\'instant.</p></div>':''}
-        </div>
-      </div>
-    </div>
-  `).join('');
 }
 
 function togglePdfSection(id){
