@@ -3462,7 +3462,7 @@ function getUserXP(user){
   return (user.passed||0)*50 + (user.certs||0)*100 + Math.max(0,((user.avgScore||0)-50)*2);
 }
 
-function getUserLevel(xp){
+function getXPLevel(xp){
   let lvl = XP_LEVELS[0];
   for(const l of XP_LEVELS){
     if(xp >= l.xpRequired) lvl = l;
@@ -3480,7 +3480,7 @@ function getNextLevel(xp){
 
 function renderXPBar(user){
   const xp = getUserXP(user);
-  const lvl = getUserLevel(xp);
+  const lvl = getXPLevel(xp);
   const next = getNextLevel(xp);
   const pct = next ? Math.round(((xp - lvl.xpRequired)/(next.xpRequired - lvl.xpRequired))*100) : 100;
   return `
