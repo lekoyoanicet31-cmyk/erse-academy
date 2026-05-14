@@ -669,7 +669,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
   <div class="modal-box">
     <div class="modal-ttl">Modifier mon profil</div>
     <div class="form-row"><label class="form-lbl">Nom complet</label><input id="ep-name" placeholder="Votre nom"></div>
-    <div class="form-row"><label class="form-lbl">Niveau</label><select id="ep-level"><option value="1">Licence 1</option><option value="2">Licence 2</option><option value="3">Licence 3</option></select></div>
+    <div class="form-row" id="ep-level-row" style="display:none;"><label class="form-lbl">Niveau</label><select id="ep-level"><option value="1">Licence 1</option><option value="2">Licence 2</option><option value="3">Licence 3</option></select></div>
     <div class="form-row"><label class="form-lbl">Spécialité</label><input id="ep-spec" placeholder="Ex: Sciences exactes"></div>
     <div class="modal-acts"><button class="btn-cancel" onclick="closeModal('modal-edit-profile')">Annuler</button><button class="btn-save" onclick="saveProfile()">Enregistrer</button></div>
   </div>
@@ -1950,7 +1950,7 @@ async function doLogout(){
 async function saveProfile(){
   if(!currentUser)return;
   currentUser.name=document.getElementById('ep-name').value.trim()||currentUser.name;
-  currentUser.level=+document.getElementById('ep-level').value;
+  if(currentUser.role==='admin') currentUser.level=+document.getElementById('ep-level').value;
   currentUser.spec=document.getElementById('ep-spec').value.trim();
   currentUser.initials=currentUser.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'??';
   document.getElementById('user-avatar-nav').textContent=currentUser.initials;
@@ -1980,6 +1980,8 @@ function openEditProfile(){
   document.getElementById('ep-name').value=currentUser.name;
   document.getElementById('ep-level').value=currentUser.level;
   document.getElementById('ep-spec').value=currentUser.spec||'';
+  const lvlRow=document.getElementById('ep-level-row');
+  if(lvlRow) lvlRow.style.display=(currentUser.role==='admin')?'flex':'none';
   openModal('modal-edit-profile');
 }
 
@@ -2158,7 +2160,7 @@ function getLevelProgress(){
     if(r){ totalScore += r.score; done++; }
   });
   const avg = done>0 ? Math.round(totalScore/examsForLevel.length) : 0;
-  const canPass = done===examsForLevel.length && avg>=80;
+  const canPass = done>0 && avg>=80;
   return {total:examsForLevel.length, done, avg, canPass};
 }
 
@@ -2178,6 +2180,10 @@ async function requestLevelUp(){
   const newLevel = lvl + 1;
   if(newLevel > 3){ toast('Vous êtes déjà au niveau maximum !','ok'); return; }
   currentUser.level = newLevel;
+  const stuIdx = DB.students.findIndex(s=>s.email===currentUser.email||s.id===currentUser.id);
+  if(stuIdx!==-1) DB.students[stuIdx].level = newLevel;
+  const usrIdx = DB.users.findIndex(u=>u.email===currentUser.email||u.id===currentUser.id);
+  if(usrIdx!==-1) DB.users[usrIdx].level = newLevel;
   if(fbReady && currentUser.email){
     await firebase.firestore().collection('users').doc(currentUser.email).update({level: newLevel});
   }
@@ -2343,13 +2349,9 @@ function renderShop(){
   if(freeBtn) freeBtn.style.display = shopPayMode ? 'inline-block' : 'none';
   if(paidBtn) paidBtn.style.display = shopPayMode ? 'inline-block' : 'none';
 
-  // Filtrer par niveau utilisateur
+  // Filtrer par niveau utilisateur (on garde tout, on marquera les verrouillés)
   const userLvl = getUserLevel();
-  let filtered = items.filter(item=>{
-    if(currentUser && currentUser.role==='admin') return true;
-    const itemLvl = item.licence==='L1'?1:item.licence==='L2'?2:3;
-    return itemLvl <= userLvl;
-  });
+  let filtered = [...items];
   if(shopFilter==='L1') filtered = filtered.filter(i=>i.licence==='L1');
   else if(shopFilter==='L2') filtered = filtered.filter(i=>i.licence==='L2');
   else if(shopFilter==='L3') filtered = filtered.filter(i=>i.licence==='L3');
@@ -2368,7 +2370,11 @@ function renderShop(){
     const price=item.price||0;
     const hasCorrige=item.corrigeUrl&&item.corrigeUrl.length>0;
     const [col,bg]=lCol[item.licence]||['#6366f1','rgba(99,102,241,.12)'];
-    return `<div onclick="openEpreuve(${item.id})" style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 32px rgba(0,0,0,.3)';this.style.borderColor='${col}50'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
+    const itemLvl = item.licence==='L1'?1:item.licence==='L2'?2:3;
+    const isLocked = !(currentUser && currentUser.role==='admin') && itemLvl > userLvl;
+    const clickHandler = isLocked ? `toast('Validez la Licence ${itemLvl-1} pour débloquer ce niveau.','err')` : `openEpreuve(${item.id})`;
+    return `<div onclick="${clickHandler}" style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:${isLocked?'not-allowed':'pointer'};transition:all .25s;position:relative;opacity:${isLocked?'0.55':'1'};" ${isLocked?'':`onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 32px rgba(0,0,0,.3)';this.style.borderColor='${col}50'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'"`}>
+      ${isLocked?`<div style="position:absolute;top:10px;right:10px;font-size:1.3rem;z-index:2;">🔒</div>`:''}
       <div style="height:3px;background:${col};"></div>
       <div style="padding:1.2rem 1.2rem .8rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;">
