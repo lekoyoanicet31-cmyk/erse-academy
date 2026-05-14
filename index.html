@@ -2303,19 +2303,6 @@ function filterLevel(l,btn){
 
   renderLevelBadge();
 }
-    <div class="pdf-section">
-      <div class="pdf-header" onclick="togglePdfSection(${s.id})">
-        <div class="pdf-header-left">
-          <div style="font-size:24px;">${s.icon}</div>
-          <div>
-            <div class="pdf-name">${s.name}</div>
-            <div class="pdf-meta">${s.files?s.files.length:0} documents · L${s.level}</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="pill-lvl l${s.level}p">L${s.level}</span>
-          <span style="font-size:14px;color:var(--muted);" id="pdf-arrow-${s.id}">▼</span>
-}
 
 function togglePdfSection(id){
   const sec=document.getElementById('pdf-section-'+id);
