@@ -5007,13 +5007,20 @@ function openModalStudent(){
 ═══════════════════════════════════════════ */
 loadData();
 updateNotifDot();
-// Initialiser Firebase après chargement
-// initFirebase est appelé après la connexion dans onAuthStateChanged
-// Fallback: cacher le loading après 3 secondes max
-setTimeout(hideLoadingScreen, 3000);
+
+// Fallback : si Firebase ne répond pas dans 8 secondes, on débloque quand même
+let authResolved = false;
+const loadingFallback = setTimeout(() => {
+  if (!authResolved) {
+    console.warn('Firebase Auth timeout — affichage forcé du login');
+    hideLoadingScreen();
+  }
+}, 8000);
 
 // ── Écouter l'état de connexion Firebase Auth ──
 auth.onAuthStateChanged(async (firebaseUser) => {
+  authResolved = true;
+  clearTimeout(loadingFallback);
   hideLoadingScreen();
   if(firebaseUser){
     const email = firebaseUser.email;
