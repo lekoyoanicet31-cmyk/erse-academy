@@ -1927,6 +1927,18 @@ async function loginUser(user){
         currentUser.avgScore = d.avgScore||0;
         currentUser.certs = d.certs||0;
       }
+      // Charger les résultats d'examens depuis Firestore
+      const resultsSnap = await db.collection('examResults').doc(user.email).collection('results').get();
+      if(!resultsSnap.empty){
+        if(!DB.examResults) DB.examResults = [];
+        resultsSnap.forEach(doc=>{
+          const r = doc.data();
+          const existing = DB.examResults.findIndex(x=>x.examId===r.examId&&x.userId===r.userId);
+          if(existing!==-1) DB.examResults[existing] = r;
+          else DB.examResults.push(r);
+        });
+        saveData();
+      }
     }catch(e){console.warn('Erreur chargement Firebase:',e);}
   }
   renderHome();
@@ -3136,6 +3148,13 @@ function showScore(total){
     if(existing!==-1) DB.examResults[existing] = result;
     else DB.examResults.push(result);
     saveData();
+    // Sauvegarder dans Firestore (source de vérité principale)
+    if(fbReady && currentUser.email){
+      db.collection('examResults').doc(currentUser.email)
+        .collection('results').doc(String(curExamId))
+        .set(result, {merge:true})
+        .catch(e=>console.warn('fbSaveResult error:',e));
+    }
     // Vérifier si l'étudiant peut passer au niveau supérieur
     const prog = getLevelProgress();
     if(prog.canPass){
