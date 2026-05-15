@@ -4053,56 +4053,111 @@ function renderAdminDash(){
   const totalDocs=DB.subjects.reduce((a,s)=>a+s.docs,0);
   const totalCerts=DB.students.reduce((a,s)=>a+s.certs,0)+DB.certificates.length;
   const avg=DB.students.length?Math.round(DB.students.reduce((a,s)=>a+s.avgScore,0)/DB.students.length):0;
-  document.getElementById('at-dashboard').innerHTML=`
-    <div class="admin-ttl">📊 Tableau de bord</div>
-    <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-val">${DB.subjects.filter(s=>s.active).length}</div><div class="kpi-lbl">Matières actives</div></div>
-      <div class="kpi"><div class="kpi-val">${DB.exams.length}</div><div class="kpi-lbl">Examens</div></div>
-      <div class="kpi kpi-gold"><div class="kpi-val">${totalCerts}</div><div class="kpi-lbl">Certificats délivrés</div></div>
-      <div class="kpi kpi-green"><div class="kpi-val">${avg}%</div><div class="kpi-lbl">Score moyen</div></div>
-    </div>
-    <div class="kpi-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));">
-      <div class="kpi kpi-blue"><div class="kpi-val">${DB.students.length}</div><div class="kpi-lbl">Étudiants</div></div>
-      <div class="kpi"><div class="kpi-val">${totalDocs}</div><div class="kpi-lbl">Documents</div></div>
-      <div class="kpi"><div class="kpi-val">${DB.users.length}</div><div class="kpi-lbl">Comptes créés</div></div>
-    </div>
-    <div style="font-size:13px;font-weight:500;color:var(--b8);margin:1.2rem 0 .6rem;">Actions rapides</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn-primary" onclick="adminTab('subjects',document.querySelectorAll('.ani')[1]);setTimeout(openModalSubj,50)">+ Matière</button>
-      <button class="btn-primary" onclick="adminTab('exams-a',document.querySelectorAll('.ani')[2]);setTimeout(openModalExam,50)">+ Examen</button>
-      <button class="btn-primary" onclick="adminTab('students',document.querySelectorAll('.ani')[3]);setTimeout(openModalStudent,50)">+ Étudiant</button>
-      <button class="btn-primary" onclick="sendPlatformNotif()">🔔 Envoyer notification</button>
-      <button onclick="resetAllData()" style="font-size:13px;padding:9px 18px;border-radius:9px;border:1px solid #F09595;background:var(--r);color:var(--rc);cursor:pointer;font-family:var(--font-body);">⚠️ Réinitialiser</button>
-    </div>
-    <div style="margin-top:1.5rem;">
-      <div style="font-size:13px;font-weight:500;color:var(--b8);margin-bottom:.8rem;">📈 Statistiques détaillées</div>
-      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;">
-        <div class="kpi" style="border-left:3px solid var(--gold);">
-          <div class="kpi-val kpi-gold">${Math.round(DB.students.filter(s=>s.avgScore>=70).length/Math.max(DB.students.length,1)*100)}%</div>
-          <div class="kpi-lbl">Taux de réussite</div>
-        </div>
-        <div class="kpi" style="border-left:3px solid var(--b4);">
-          <div class="kpi-val kpi-blue">${DB.students.filter(s=>s.level===1).length}</div>
-          <div class="kpi-lbl">Étudiants L1</div>
-        </div>
-        <div class="kpi" style="border-left:3px solid var(--gc);">
-          <div class="kpi-val kpi-green">${DB.subjects.reduce((a,s)=>a+(s.files||[]).length,0)}</div>
-          <div class="kpi-lbl">Documents ajoutés</div>
-        </div>
-        <div class="kpi" style="border-left:3px solid #534AB7;">
-          <div class="kpi-val" style="color:#534AB7;">${DB.students.filter(s=>s.level===2).length}</div>
-          <div class="kpi-lbl">Étudiants L2</div>
-        </div>
-        <div class="kpi" style="border-left:3px solid var(--gc);">
-          <div class="kpi-val kpi-green">${DB.students.filter(s=>s.level===3).length}</div>
-          <div class="kpi-lbl">Étudiants L3</div>
-        </div>
-        <div class="kpi" style="border-left:3px solid var(--gold);">
-          <div class="kpi-val kpi-gold">${DB.exams.reduce((a,e)=>a+e.questions.length,0)}</div>
-          <div class="kpi-lbl">Total questions</div>
-        </div>
-      </div>
-    </div>`;
+
+  // Analytics
+  const results = DB.examResults || [];
+  const totalExamsTaken = results.length;
+
+  // Taux de complétion par matière
+  const subjectStats = DB.subjects.filter(s=>s.active).map(s=>{
+    const examsForSubj = DB.exams.filter(e=>e.subjectId===s.id);
+    if(!examsForSubj.length) return null;
+    const subjResults = results.filter(r=>examsForSubj.some(e=>e.id===r.examId));
+    const scores = subjResults.map(r=>r.score);
+    const avgScore = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+    const passRate = scores.length ? Math.round(scores.filter(sc=>sc>=50).length/scores.length*100) : 0;
+    return {name:s.name, icon:s.icon, level:s.level, avgScore, passRate, total:subjResults.length};
+  }).filter(Boolean).sort((a,b)=>a.avgScore-b.avgScore);
+
+  // Examens les plus ratés
+  const examFailStats = DB.exams.map(e=>{
+    const er = results.filter(r=>r.examId===e.id);
+    if(!er.length) return null;
+    const avgS = Math.round(er.reduce((a,r)=>a+r.score,0)/er.length);
+    const subj = DB.subjects.find(s=>s.id===e.subjectId);
+    return {name:e.title||('Examen #'+e.id), subject:subj?subj.name:'', avgScore:avgS, attempts:er.length};
+  }).filter(Boolean).sort((a,b)=>a.avgScore-b.avgScore).slice(0,5);
+
+  // Répartition niveaux
+  const l1=DB.students.filter(s=>s.level===1).length;
+  const l2=DB.students.filter(s=>s.level===2).length;
+  const l3=DB.students.filter(s=>s.level===3).length;
+  const totalStu=Math.max(DB.students.length,1);
+
+  // Étudiants récents (7 derniers jours)
+  const recentStudents = DB.students.filter(s=>{
+    if(!s.createdAt) return false;
+    return Date.now()-new Date(s.createdAt).getTime() < 7*24*3600*1000;
+  }).length;
+
+  const lvlBars = [{lbl:'Licence 1',val:l1,col:'var(--b4)'},{lbl:'Licence 2',val:l2,col:'#534AB7'},{lbl:'Licence 3',val:l3,col:'var(--gc)'}]
+    .map(function(item){
+      return '<div style="margin-bottom:10px;">'
+        +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">'
+        +'<span style="color:var(--text);font-weight:500;">'+item.lbl+'</span>'
+        +'<span style="color:var(--muted);">'+item.val+' étudiant'+(item.val>1?'s':'')+' · '+Math.round(item.val/totalStu*100)+'%</span>'
+        +'</div>'
+        +'<div style="background:var(--border);border-radius:99px;height:8px;">'
+        +'<div style="background:'+item.col+';width:'+Math.round(item.val/totalStu*100)+'%;height:8px;border-radius:99px;transition:width .5s;"></div>'
+        +'</div></div>';
+    }).join('');
+
+  const subjRows = subjectStats.length ? subjectStats.map(function(s){
+    const c = s.avgScore>=70?'var(--gc)':s.avgScore>=50?'var(--ac)':'var(--rc)';
+    const bc = s.avgScore>=70?'var(--gc)':s.avgScore>=50?'#f59e0b':'var(--rc)';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">'
+      +'<span style="font-size:18px;">'+s.icon+'</span>'
+      +'<div style="flex:1;">'
+      +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">'
+      +'<span style="font-weight:500;">'+s.name+'</span>'
+      +'<span style="color:'+c+';font-weight:600;">'+s.avgScore+'% moy.</span>'
+      +'</div>'
+      +'<div style="background:var(--border);border-radius:99px;height:6px;">'
+      +'<div style="background:'+bc+';width:'+s.avgScore+'%;height:6px;border-radius:99px;"></div>'
+      +'</div>'
+      +'<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+s.total+' tentative'+(s.total>1?'s':'')+' · '+s.passRate+'% réussite</div>'
+      +'</div></div>';
+  }).join('') : '<div style="color:var(--muted);font-size:13px;text-align:center;padding:1rem;">Aucun résultat d'examen encore</div>';
+
+  const failRows = examFailStats.map(function(e,i){
+    const c = e.avgScore>=50?'var(--ac)':'var(--rc)';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">'
+      +'<span style="font-size:11px;font-weight:700;color:var(--muted);width:16px;">#'+(i+1)+'</span>'
+      +'<div style="flex:1;">'
+      +'<div style="font-size:12px;font-weight:500;">'+e.name+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);">'+e.subject+' · '+e.attempts+' tentative'+(e.attempts>1?'s':'')+'</div>'
+      +'</div>'
+      +'<span style="font-size:13px;font-weight:700;color:'+c+';">'+e.avgScore+'%</span>'
+      +'</div>';
+  }).join('');
+
+  document.getElementById('at-dashboard').innerHTML=''
+    +'<div class="admin-ttl">\u{1F4CA} Tableau de bord</div>'
+    +'<div class="kpi-grid">'
+    +'<div class="kpi kpi-blue"><div class="kpi-val">'+DB.students.length+'</div><div class="kpi-lbl">\u00C9tudiants<br><span style="font-size:10px;font-weight:400;color:var(--b4);">+'+recentStudents+' cette semaine</span></div></div>'
+    +'<div class="kpi kpi-gold"><div class="kpi-val">'+totalCerts+'</div><div class="kpi-lbl">Certificats d\u00E9livr\u00E9s</div></div>'
+    +'<div class="kpi kpi-green"><div class="kpi-val">'+avg+'%</div><div class="kpi-lbl">Score moyen global</div></div>'
+    +'<div class="kpi"><div class="kpi-val">'+totalExamsTaken+'</div><div class="kpi-lbl">Examens pass\u00E9s</div></div>'
+    +'</div>'
+    +'<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:12px;">'
+    +'<div style="font-size:13px;font-weight:600;color:var(--b8);margin-bottom:1rem;">\u{1F393} R\u00E9partition par niveau</div>'
+    +lvlBars
+    +'</div>'
+    +'<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:12px;">'
+    +'<div style="font-size:13px;font-weight:600;color:var(--b8);margin-bottom:1rem;">\u{1F4DA} Performance par mati\u00E8re</div>'
+    +subjRows
+    +'</div>'
+    +(examFailStats.length?'<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:12px;">'
+    +'<div style="font-size:13px;font-weight:600;color:var(--b8);margin-bottom:1rem;">\u26A0\uFE0F Examens les plus difficiles</div>'
+    +failRows+'</div>':'')
+    +'<div style="font-size:13px;font-weight:500;color:var(--b8);margin:1.2rem 0 .6rem;">\u26A1 Actions rapides</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+    +'<button class="btn-primary" onclick="adminTab('subjects',document.querySelectorAll('.ani')[1]);setTimeout(openModalSubj,50)">+ Mati\u00E8re</button>'
+    +'<button class="btn-primary" onclick="adminTab('exams-a',document.querySelectorAll('.ani')[2]);setTimeout(openModalExam,50)">+ Examen</button>'
+    +'<button class="btn-primary" onclick="adminTab('students',document.querySelectorAll('.ani')[3]);setTimeout(openModalStudent,50)">+ \u00C9tudiant</button>'
+    +'<button class="btn-primary" onclick="sendPlatformNotif()">\u{1F514} Notification</button>'
+    +'<button onclick="resetAllData()" style="font-size:13px;padding:9px 18px;border-radius:9px;border:1px solid #F09595;background:var(--r);color:var(--rc);cursor:pointer;font-family:var(--font-body);">\u26A0\uFE0F R\u00E9initialiser</button>'
+    +'</div>';
 }
 
 function renderAdminSubjects(){
