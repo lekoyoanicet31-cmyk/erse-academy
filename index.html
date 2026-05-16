@@ -4392,7 +4392,7 @@ function renderAdminDash(){
       +'</div>'
       +'<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+s.total+' tentative'+(s.total>1?'s':'')+' · '+s.passRate+'% réussite</div>'
       +'</div></div>';
-  }).join('') : '<div style="color:var(--muted);font-size:13px;text-align:center;padding:1rem;">Aucun résultat d'examen encore</div>';
+  }).join('') : '<div style="color:var(--muted);font-size:13px;text-align:center;padding:1rem;">Aucun résultat d\'examen encore</div>';
 
   const failRows = examFailStats.map(function(e,i){
     const c = e.avgScore>=50?'var(--ac)':'var(--rc)';
