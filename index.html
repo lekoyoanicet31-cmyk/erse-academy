@@ -3310,6 +3310,8 @@ function showScore(total){
     if(prog.canPass){
       setTimeout(()=>toast(`🎯 Vous avez la moyenne requise ! Vous pouvez passer en Licence ${getUserLevel()+1}.`,'ok'), 2000);
     }
+    // Rafraîchir la liste des examens pour mettre à jour le statut
+    if(typeof renderExamList === 'function') setTimeout(renderExamList, 500);
   }
 }
 
