@@ -2905,7 +2905,19 @@ function updateTimerDisplay(){
   const m = Math.floor(examTimeLeft/60);
   const s = examTimeLeft%60;
   el.textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
-  el.style.color = examTimeLeft < 60 ? '#ef4444' : 'var(--muted)';
+  if(examTimeLeft < 30){
+    el.style.color = '#ef4444';
+    el.style.background = 'rgba(239,68,68,0.12)';
+    el.style.animation = 'pulse 1s infinite';
+  } else if(examTimeLeft < 60){
+    el.style.color = '#f59e0b';
+    el.style.background = 'rgba(245,158,11,0.12)';
+    el.style.animation = '';
+  } else {
+    el.style.color = 'var(--b8)';
+    el.style.background = 'var(--b0)';
+    el.style.animation = '';
+  }
 }
 
 function stopExamTimer(){
@@ -3083,7 +3095,11 @@ function renderQ(){
   answered=false;
   const L=['A','B','C','D'];
   document.getElementById('quiz-inner').innerHTML=`
-    <div class="q-meta"><span>Question ${curQ+1}/${ex.questions.length}</span><span>Score: ${score}</span></div>
+    <div class="q-meta">
+      <span>Question ${curQ+1}/${ex.questions.length}</span>
+      <span id="exam-timer" style="font-weight:600;font-size:13px;padding:4px 10px;border-radius:8px;background:var(--b0);color:var(--b8);transition:color .3s,background .3s;">⏱ --:--</span>
+      <span>Score: ${score}</span>
+    </div>
     <div class="q-prog"><div class="q-bar" style="width:${pct}%"></div></div>
     <div class="q-txt">${q.q}</div>
     ${q.opts.map((o,i)=>`<div class="q-opt" id="qo${i}" onclick="selOpt(${i})"><div class="opt-letter">${L[i]}</div>${o}</div>`).join('')}
