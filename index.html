@@ -3654,7 +3654,7 @@ function checkRevisionReminders(){
     setTimeout(()=>{
       pushNotif(
         r.urgent ? '⚠️ Révision urgente !' : '📚 Rappel de révision',
-        (r.urgent ? 'Plus de ' : '') + r.days + ' jours sans réviser ' + r.subj + '. Reprends là où tu t'es arrêté !',
+        (r.urgent ? 'Plus de ' : '') + r.days + ' jours sans réviser ' + r.subj + '. Reprends là où tu t\'es arrêté !',
         r.urgent ? '⚠️' : '📚',
         r.urgent ? '#FAEEDA' : '#b0d4f4'
       );
