@@ -2902,7 +2902,7 @@ function renderExamList(){
     examsForLevel.forEach(e => {
       const s = DB.subjects.find(x=>x.id===e.subjectId);
       const results = DB.examResults||[];
-      const result = results.find(r=>r.examId===e.id);
+      const result = results.find(r=>String(r.examId)===String(e.id) && (!r.userId || r.userId===(currentUser?.email||currentUser?.id)));
       const scoreStr = result ? `${result.score}/100` : 'Non passé';
       const scoreColor = result ? (result.score>=80?'#34d399':result.score>=50?'#fbbf24':'#f87171') : 'var(--muted)';
       const mins = e.questions.length * 2;
