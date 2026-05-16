@@ -3686,7 +3686,7 @@ function generatePlanning(){
   const hours = parseInt(document.getElementById('plan-hours').value);
   const level = parseInt(document.getElementById('plan-level').value);
 
-  if(!dateVal){ toast('Choisis une date d'examen','err'); return; }
+  if(!dateVal){ toast('Choisis une date d\'examen','err'); return; }
   const examDate = new Date(dateVal);
   const today = new Date(); today.setHours(0,0,0,0);
   const daysLeft = Math.floor((examDate - today) / 86400000);
@@ -3715,7 +3715,7 @@ function generatePlanning(){
     const dayName = date.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
     const isLastDay = d===daysLeft-1;
     if(isLastDay){
-      plan.push({date:dayName, tasks:['🔁 Révision générale — revoir toutes les notions difficiles','📝 Simulation d'examen chronométré'], special:true});
+      plan.push({date:dayName, tasks:['🔁 Révision générale — revoir toutes les notions difficiles','📝 Simulation d\'examen chronométré'], special:true});
     } else {
       const subj = subjectScores[subIdx % subjectScores.length];
       const tasks = [
