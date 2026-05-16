@@ -1240,20 +1240,22 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 
 
 <!-- FOOTER -->
-<footer style="background:var(--nav-bg);padding:2rem 1.5rem;margin-top:2rem;border-top:1px solid rgba(255,255,255,0.06);">
-  <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div style="font-family:'Playfair Display',serif;font-size:15px;color:#fff;">ERSE <span style="color:#F0C96A;">ACADEMY</span></div>
-      <span style="color:rgba(255,255,255,0.2);">·</span>
-      <span style="font-size:11px;color:rgba(255,255,255,0.4);">Energies Renouvelables et Systèmes Énergétiques</span>
+<footer style="background:var(--nav-bg);padding:2.5rem 1.5rem 5rem;margin-top:2rem;border-top:1px solid rgba(255,255,255,0.06);">
+  <div style="max-width:1100px;margin:0 auto;">
+    <!-- Logo + description -->
+    <div style="text-align:center;margin-bottom:1.8rem;">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;color:#fff;margin-bottom:.3rem;">ERSE <span style="color:#F0C96A;">ACADEMY</span></div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:.5px;">Energies Renouvelables et Systèmes Énergétiques</div>
     </div>
-    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
-      <span onclick="showLegal('cgu')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Conditions d'utilisation</span>
-      <span onclick="showLegal('privacy')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Confidentialité</span>
-      <span onclick="showLegal('contact')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Contact</span>
-      <span onclick="showLegal('about')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">À propos</span>
-      <span style="font-size:12px;color:rgba(255,255,255,0.3);">© 2026 ERSE ACADEMY</span>
+    <!-- Liens -->
+    <div style="display:flex;justify-content:center;align-items:center;gap:0;flex-wrap:wrap;margin-bottom:1.5rem;">
+      <span onclick="showLegal('about')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;padding:4px 14px;transition:color .2s;border-right:1px solid rgba(255,255,255,0.15);" onmouseover="this.style.color='#F0C96A'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">À propos</span>
+      <span onclick="showLegal('cgu')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;padding:4px 14px;transition:color .2s;border-right:1px solid rgba(255,255,255,0.15);" onmouseover="this.style.color='#F0C96A'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Conditions d'utilisation</span>
+      <span onclick="showLegal('privacy')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;padding:4px 14px;transition:color .2s;border-right:1px solid rgba(255,255,255,0.15);" onmouseover="this.style.color='#F0C96A'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Confidentialité</span>
+      <span onclick="showLegal('contact')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;padding:4px 14px;transition:color .2s;" onmouseover="this.style.color='#F0C96A'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Contact</span>
     </div>
+    <!-- Copyright -->
+    <div style="text-align:center;font-size:11px;color:rgba(255,255,255,0.25);">© 2026 ERSE ACADEMY · Tous droits réservés</div>
   </div>
 </footer>
 
