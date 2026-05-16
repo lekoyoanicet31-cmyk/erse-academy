@@ -1763,7 +1763,7 @@ const DB = {
    ÉTAT
 ═══════════════════════════════════════════ */
 let currentUser=null;
-let curExamId=null,curQ=0,score=0,answered=false;
+let curExamId=null,curQ=0,score=0,answered=false,userAnswers=[];
 let deferredPrompt=null;
 let editSubjectId=null;
 let lbFilter=0;
@@ -3047,7 +3047,7 @@ function stopAntiCheat(){
 
 function startQuiz(examId){
   examId=parseInt(examId)||examId;
-  curExamId=examId;curQ=0;score=0;
+  curExamId=examId;curQ=0;score=0;userAnswers=[];
   const ex=DB.exams.find(e=>e.id===examId||e.id===String(examId)||parseInt(e.id)===parseInt(examId));
   if(!ex){toast('Examen introuvable. Rechargez la page.','err');return;}
   const s=DB.subjects.find(x=>x.id===ex.subjectId||parseInt(x.id)===parseInt(ex.subjectId));
@@ -3103,6 +3103,7 @@ function selOpt(i){
   });
   const correct = i===q.ans;
   if(correct)score++;
+  userAnswers.push({q:q.q, opts:q.opts, chosen:i, correct:q.ans, exp:q.exp||''});
   // Afficher l'explication si disponible
   const expEl = document.getElementById('q-exp');
   if(expEl && q.exp){
@@ -3156,6 +3157,21 @@ function showScore(total){
       </div>
       ${passed?`<button class="btn-primary" style="margin-bottom:.6rem;width:100%;" onclick="getCert()">🎓 Obtenir mon certificat</button>`:''}
       <button onclick="startQuiz(${curExamId})" style="font-size:13px;padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-family:var(--font-body);margin-top:.4rem;width:100%;">↺ Réessayer l'examen</button>
+      <div style="margin-top:1.5rem;text-align:left;">
+        <div style="font-size:13px;font-weight:600;color:var(--b8);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);">📋 Correction détaillée</div>
+        ${userAnswers.map((a,i)=>{
+          const ok = a.chosen===a.correct;
+          return '<div style="margin-bottom:1rem;padding:.9rem;border-radius:10px;border:1px solid '+(ok?'rgba(16,185,129,0.3)':'rgba(239,68,68,0.3)')+';background:'+(ok?'rgba(16,185,129,0.05)':'rgba(239,68,68,0.05)')+';">'
+            +'<div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:.4rem;">Question '+(i+1)+'</div>'
+            +'<div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:.6rem;">'+a.q+'</div>'
+            +'<div style="font-size:12px;margin-bottom:.3rem;color:'+(ok?'var(--gc)':'var(--rc)')+';">'
+            +(ok?'✅':'❌')+' Votre réponse : <strong>'+a.opts[a.chosen]+'</strong>'
+            +'</div>'
+            +(!ok?'<div style="font-size:12px;margin-bottom:.3rem;color:var(--gc);">✔ Bonne réponse : <strong>'+a.opts[a.correct]+'</strong></div>':'')
+            +(a.exp?'<div style="font-size:12px;color:var(--muted);margin-top:.4rem;padding:.5rem;background:var(--b0);border-radius:6px;">💡 '+a.exp+'</div>':'')
+            +'</div>';
+        }).join('')}
+      </div>
     </div>
   `;
   if(passed&&currentUser){
