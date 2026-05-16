@@ -4624,7 +4624,7 @@ function saveStudent(){
   DB.students.push(newStu);
   saveData();closeModal('modal-student');toast(name+' ajouté !','ok');renderAdminStudents();
 }
-function removeStudent(id){
+async function removeStudent(id){
   if(!confirm('Retirer cet étudiant définitivement ?')) return;
   // Chercher par ID numérique OU string
   const s = DB.students.find(x=>x.id===id || x.id===String(id) || Number(x.id)===Number(id));
@@ -4636,18 +4636,23 @@ function removeStudent(id){
   // Retirer de DB.users aussi
   DB.users = DB.users.filter(x=>x.email!==s.email);
 
-  // Supprimer de Firestore
+  // Supprimer de Firestore (users + examResults) - await pour garantir la suppression
   if(fbReady && s.email){
-    db.collection('users').doc(s.email).delete().catch(e=>console.warn(e));
+    try{
+      await db.collection('users').doc(s.email).delete();
+      const snap = await db.collection('examResults').doc(s.email).collection('results').get();
+      snap.forEach(doc=>doc.ref.delete());
+    }catch(e){console.warn('Erreur suppression Firestore:',e);}
   }
 
   // Supprimer les certificats de cet étudiant
   DB.certificates = DB.certificates.filter(c=>c.userId!==s.email && c.userId!==id);
+  DB.examResults = (DB.examResults||[]).filter(r=>r.userId!==s.email && String(r.userId)!==String(id));
 
   // Sauvegarder localement
   saveData();
 
-  // Sync RTDB pour propager aux autres appareils
+  // Sync RTDB
   pushToRTDB();
 
   toast(s.name+' retiré avec succès !','ok');
