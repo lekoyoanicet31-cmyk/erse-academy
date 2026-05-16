@@ -1797,6 +1797,7 @@ const DB = {
   ],
   certificates:[],
   shop:[],
+  bannedEmails:[],
   nextId:300,
   COLORS:['#185FA5','#0F6E56','#993556','#854F0B','#534AB7','#3B6D11','#993C1D','#3C3489'],
 };
@@ -1970,6 +1971,12 @@ document.addEventListener('click',()=>{if(currentUser)resetSessionTimer();});
 document.addEventListener('keypress',()=>{if(currentUser)resetSessionTimer();});
 
 async function loginUser(user){
+  // Vérifier si l'email est banni
+  if((DB.bannedEmails||[]).includes(user.email)){
+    auth.signOut();
+    toast('Votre compte a été suspendu. Contactez l\'administrateur.','err');
+    return;
+  }
   currentUser=user;
   resetSessionTimer();
   document.getElementById('auth-screen').style.display='none';
@@ -2009,6 +2016,11 @@ async function loginUser(user){
         currentUser.avgScore = d.avgScore||0;
         currentUser.certs = d.certs||0;
       }
+      // Charger la liste des emails bannis
+      try{
+        const banDoc = await db.collection('bannedEmails').doc('list').get();
+        if(banDoc.exists) DB.bannedEmails = banDoc.data().emails||[];
+      }catch(e){}
       // Charger les résultats d'examens depuis Firestore
       const resultsSnap = await db.collection('examResults').doc(user.email).collection('results').get();
       if(!resultsSnap.empty){
@@ -4612,7 +4624,11 @@ function renderAdminStudents(){
         <td>${s.passed}</td>
         <td><span style="font-weight:500;color:${s.avgScore>=70?'var(--gc)':'var(--rc)'};">${s.avgScore}%</span></td>
         <td>${s.certs}🎓</td>
-        <td><button class="act-btn del-btn" onclick="removeStudent('${s.id}')">Retirer</button></td>
+        <td style="display:flex;gap:4px;">
+          <button class="act-btn del-btn" onclick="removeStudent('${s.id}')">Retirer</button>
+          <button class="act-btn" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);" onclick="banStudent('${s.id}')">🚫 Bannir</button>
+          <button class="act-btn" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);" onclick="banStudent('${s.id}')">🚫 Bannir</button>
+        </td>
       </tr>`).join('')}</tbody>
     </table>`;
 }
@@ -4624,6 +4640,38 @@ function saveStudent(){
   DB.students.push(newStu);
   saveData();closeModal('modal-student');toast(name+' ajouté !','ok');renderAdminStudents();
 }
+
+async function banStudent(id){
+  const s = DB.students.find(x=>x.id===id||x.id===String(id)||Number(x.id)===Number(id));
+  if(!s){toast('Étudiant introuvable','err');return;}
+  if(!confirm('Supprimer et bannir '+s.name+' ? Il pourra recréer un compte avec une autre adresse.')) return;
+
+  // Bannir l'email
+  if(!DB.bannedEmails) DB.bannedEmails = [];
+  if(!DB.bannedEmails.includes(s.email)) DB.bannedEmails.push(s.email);
+
+  // Supprimer de DB local
+  DB.students = DB.students.filter(x=>Number(x.id)!==Number(id)&&x.id!==id&&x.id!==String(id));
+  DB.users = DB.users.filter(x=>x.email!==s.email);
+  DB.certificates = DB.certificates.filter(c=>c.userId!==s.email&&c.userId!==id);
+  DB.examResults = (DB.examResults||[]).filter(r=>r.userId!==s.email&&String(r.userId)!==String(id));
+
+  // Supprimer de Firestore + sauvegarder liste bannis
+  if(fbReady && s.email){
+    try{
+      await db.collection('users').doc(s.email).delete();
+      await db.collection('bannedEmails').doc('list').set({emails: DB.bannedEmails});
+      const snap = await db.collection('examResults').doc(s.email).collection('results').get();
+      snap.forEach(doc=>doc.ref.delete());
+    }catch(e){console.warn('Erreur ban Firestore:',e);}
+  }
+
+  saveData();
+  pushToRTDB();
+  toast(s.name+' banni et supprimé. Il peut recréer un compte avec une autre adresse.','ok');
+  renderAdminStudents();
+}
+
 async function removeStudent(id){
   if(!confirm('Retirer cet étudiant définitivement ?')) return;
   // Chercher par ID numérique OU string
