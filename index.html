@@ -3217,6 +3217,7 @@ function nextQ(){
 
 function showScore(total){
   stopAntiCheat();
+  examActive=false;
   const pct=total>0?Math.round((score/total)*100):0;
   const passed=pct>=70;
   const mins=Math.floor(examSeconds/60).toString().padStart(2,'0');
@@ -3310,8 +3311,8 @@ function showScore(total){
     if(prog.canPass){
       setTimeout(()=>toast(`🎯 Vous avez la moyenne requise ! Vous pouvez passer en Licence ${getUserLevel()+1}.`,'ok'), 2000);
     }
-    // Rafraîchir la liste des examens pour mettre à jour le statut
-    if(typeof renderExamList === 'function') setTimeout(renderExamList, 500);
+    // Rafraîchir la liste des examens seulement si on n'est plus en examen
+    if(typeof renderExamList === 'function') setTimeout(()=>{ if(!examActive) renderExamList(); }, 500);
   }
 }
 
