@@ -611,6 +611,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -1841,6 +1842,43 @@ async function doLoginGoogle(){
   }
 }
 
+
+// ── EmailJS ──
+const EJS = {
+  serviceId: 'service_y5ua3k2',
+  tplWelcome: 'template_wvy5yrv',
+  tplNotif:   'na4ncag',
+  pubKey:     'ctEzadHY3pbYSkI9K'
+};
+(function(){ emailjs.init({publicKey: EJS.pubKey}); })();
+
+function ejsSend(templateId, params){
+  return emailjs.send(EJS.serviceId, templateId, params)
+    .catch(e=>console.warn('EmailJS error:', e));
+}
+
+function sendWelcomeEmail(name, email){
+  ejsSend(EJS.tplWelcome, {to_name: name, to_email: email});
+}
+
+function sendLevelUpEmail(name, email, newLevel){
+  ejsSend(EJS.tplNotif, {
+    to_name: name,
+    to_email: email,
+    subject: 'Félicitations ! Vous passez en Licence ' + newLevel,
+    message: 'Vous venez de valider votre niveau et passez en Licence ' + newLevel + ' sur ERSE ACADEMY.\n\nContinuez sur cette lancée !'
+  });
+}
+
+function sendCertEmail(name, email, subject, score){
+  ejsSend(EJS.tplNotif, {
+    to_name: name,
+    to_email: email,
+    subject: 'Certificat obtenu — ' + subject + ' 🎓',
+    message: 'Félicitations ! Vous avez obtenu votre certificat en ' + subject + ' avec un score de ' + score + '%.'
+  });
+}
+
 async function doRegister(){
   const name=document.getElementById('reg-name').value.trim();
   const email=document.getElementById('reg-email').value.trim();
@@ -1865,6 +1903,7 @@ async function doRegister(){
     await db.collection('users').doc(email).set({name,email,level,initials,color,role:'student',passed:0,avgScore:0,certs:0});
     saveData();
     toast('Compte créé ! Bienvenue '+name+' 🎉','ok');
+    sendWelcomeEmail(name, email);
     // onAuthStateChanged va connecter automatiquement
   }catch(e){
     if(btn){btn.disabled=false;btn.textContent='Créer mon compte';}
@@ -2201,6 +2240,7 @@ async function requestLevelUp(){
   }
   saveData();
   toast(`🎉 Félicitations ! Vous passez en Licence ${newLevel} !`,'ok');
+  sendLevelUpEmail(currentUser.name, currentUser.email, newLevel);
   showLevelUpModal(newLevel);
   renderLevelBadge();
   goPage('courses');
@@ -3183,6 +3223,7 @@ function getCert(){
       },{merge:true}).catch(e=>console.warn(e));
     }
     pushNotif('Certificat obtenu !','Certificat de réussite en '+subj+' délivré.','🎓','#F0C96A');
+    sendCertEmail(currentUser.name, currentUser.email, subj, pct);
   }
   saveData();checkAndNotifyBadges(currentUser);toast('Certificat obtenu pour '+subj+' !','ok');
   goPage('certs');
