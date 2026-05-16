@@ -1945,6 +1945,7 @@ async function loginUser(user){
   const bnAdmin = document.getElementById('bn-admin-btn');
   if(bnAdmin) bnAdmin.style.display = user.role==='admin' ? 'block' : 'none';
   pushNotif('Connexion réussie','Bienvenue '+user.name+' !','👋','#b0d4f4');
+  setTimeout(checkRevisionReminders, 5000);
   // Lancer Firebase sync maintenant que l'utilisateur est authentifié
   if(!fbReady) initFirebase();
   // Charger certificats depuis Firebase
@@ -3249,7 +3250,9 @@ function showScore(total){
   if(currentUser){
     if(!DB.examResults) DB.examResults = [];
     const existing = DB.examResults.findIndex(r=>r.examId===curExamId&&r.userId===(currentUser.email||currentUser.id));
-    const result = {examId:curExamId, userId:currentUser.email||currentUser.id, score:pct, date:new Date().toISOString()};
+    const ex_=DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
+    const subj_=ex_?DB.subjects.find(s=>s.id===ex_.subjectId||parseInt(s.id)===parseInt(ex_.subjectId)):null;
+    const result = {examId:curExamId, userId:currentUser.email||currentUser.id, score:pct, date:new Date().toISOString(), subjectId:ex_?ex_.subjectId:null, subjectName:subj_?subj_.name:null};
     if(existing!==-1) DB.examResults[existing] = result;
     else DB.examResults.push(result);
     saveData();
@@ -3574,6 +3577,50 @@ function clearNotifs(){
   updateNotifDot();
   toast('Notifications effacées','ok');
 }
+
+function checkRevisionReminders(){
+  if(!currentUser || currentUser.role==='admin') return;
+  const results = DB.examResults || [];
+  const userResults = results.filter(r=>r.userId===(currentUser.email||currentUser.id));
+  if(!userResults.length) return;
+  const now = Date.now();
+  const DAYS_5 = 5 * 24 * 3600 * 1000;
+  const DAYS_10 = 10 * 24 * 3600 * 1000;
+
+  // Regrouper par matière — dernière date de révision
+  const lastBySubject = {};
+  userResults.forEach(r=>{
+    if(!r.subjectName || !r.date) return;
+    const t = new Date(r.date).getTime();
+    if(!lastBySubject[r.subjectName] || t > lastBySubject[r.subjectName]) {
+      lastBySubject[r.subjectName] = t;
+    }
+  });
+
+  // Envoyer rappels
+  const reminders = [];
+  Object.entries(lastBySubject).forEach(([subj, last])=>{
+    const diff = now - last;
+    if(diff >= DAYS_10){
+      reminders.push({subj, days: Math.floor(diff/86400000), urgent: true});
+    } else if(diff >= DAYS_5){
+      reminders.push({subj, days: Math.floor(diff/86400000), urgent: false});
+    }
+  });
+
+  // Max 2 rappels par session pour ne pas spammer
+  reminders.slice(0,2).forEach(r=>{
+    setTimeout(()=>{
+      pushNotif(
+        r.urgent ? '⚠️ Révision urgente !' : '📚 Rappel de révision',
+        (r.urgent ? 'Plus de ' : '') + r.days + ' jours sans réviser ' + r.subj + '. Reprends là où tu t'es arrêté !',
+        r.urgent ? '⚠️' : '📚',
+        r.urgent ? '#FAEEDA' : '#b0d4f4'
+      );
+    }, (reminders.indexOf(r)+1) * 3000);
+  });
+}
+
 function pushNotif(title,sub,ic,bg){
   DB.notifications.unshift({id:DB.nextId++,title,sub,ic,bg,unread:true,time:'Maintenant'});
   updateNotifDot();
