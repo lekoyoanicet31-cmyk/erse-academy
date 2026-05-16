@@ -787,6 +787,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
     <button class="np" onclick="goPage('energybot')" style="color:var(--gold-l);">⚡ EnergyBot</button>
     <button class="np" onclick="goPage('boutique')" style="color:#f472b6;">🛍 Boutique</button>
     <button class="np" onclick="goPage('forum')">💬 Forum</button>
+    <button class="np" onclick="goPage('planning')" style="color:#a78bfa;">📅 Planning</button>
     <button class="np admin-nav-btn" onclick="goPage('admin')" style="display:none !important;">⚙ Admin</button>
   </div>
   <div class="nav-right">
@@ -812,6 +813,7 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
   <button class="np" onclick="goPage('certs');toggleMobile()">🎓 Certificats</button>
   <button class="np" onclick="goPage('energybot');toggleMobile()" style="color:var(--gold-l);">⚡ EnergyBot</button>
   <button class="np" onclick="goPage('boutique');toggleMobile()" style="color:#f472b6;">🛍 Boutique</button>
+  <button class="np" onclick="goPage('planning');toggleMobile()" style="color:#a78bfa;">📅 Planning</button>
   <button class="np admin-nav-btn" onclick="goPage('admin');toggleMobile()" style="display:none;">⚙ Admin</button>
 </div>
 
@@ -1131,6 +1133,45 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
   </div>
 </div>
 
+
+<!-- PLANNING -->
+<div id="pg-planning" class="page">
+  <div style="max-width:700px;margin:0 auto;padding:1.5rem 1rem;">
+    <div style="font-size:1.3rem;font-weight:600;color:var(--b8);margin-bottom:1.5rem;">📅 Planning de révision</div>
+
+    <!-- Formulaire -->
+    <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:1.4rem;margin-bottom:1.5rem;">
+      <div style="font-size:13px;font-weight:600;color:var(--b8);margin-bottom:1rem;">Configurer mon planning</div>
+      <div style="display:grid;gap:12px;">
+        <div>
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Date de mon examen</label>
+          <input type="date" id="plan-date" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Heures de révision par jour</label>
+          <select id="plan-hours" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
+            <option value="1">1 heure</option>
+            <option value="2" selected>2 heures</option>
+            <option value="3">3 heures</option>
+            <option value="4">4 heures</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Niveau à réviser</label>
+          <select id="plan-level" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
+            <option value="1">Licence 1</option>
+            <option value="2">Licence 2</option>
+            <option value="3">Licence 3</option>
+          </select>
+        </div>
+        <button onclick="generatePlanning()" style="padding:10px;border-radius:9px;border:none;background:var(--b6);color:#fff;font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;">Générer mon planning</button>
+      </div>
+    </div>
+
+    <!-- Résultat -->
+    <div id="plan-result"></div>
+  </div>
+</div>
 
 <!-- FORUM -->
 <div id="pg-forum" class="page">
@@ -2051,7 +2092,7 @@ function goPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.np').forEach(b=>b.classList.remove('on'));
-  const idx={home:0,courses:1,exams:2,leaderboard:3,certs:4,energybot:5,boutique:6,forum:7};
+  const idx={home:0,courses:1,exams:2,leaderboard:3,certs:4,energybot:5,boutique:6,forum:7,planning:8};
   const navLinks=document.querySelectorAll('#nav-links .np');
   if(idx[id]!==undefined && navLinks[idx[id]]) navLinks[idx[id]].classList.add('on');
   document.getElementById('notif-panel').classList.remove('open');
@@ -2062,7 +2103,7 @@ function goPage(id){
     const pg=document.getElementById('pg-'+id);
     if(pg){void pg.offsetHeight;}
   }
-  const renders={home:renderHome,forum:()=>{loadForumData();renderForum(FORUM.posts);},courses:()=>{
+  const renders={home:renderHome,planning:()=>initPlanning(),forum:()=>{loadForumData();renderForum(FORUM.posts);},courses:()=>{
     const userLvl=getUserLevel();
     const tabs=document.querySelectorAll('#lvl-tabs .tab');
     const targetTab=tabs[userLvl-1]||tabs[0];
@@ -3625,6 +3666,87 @@ function pushNotif(title,sub,ic,bg){
   DB.notifications.unshift({id:DB.nextId++,title,sub,ic,bg,unread:true,time:'Maintenant'});
   updateNotifDot();
 }
+
+/* ═══════════════ PLANNING DE RÉVISION ═══════════════ */
+function initPlanning(){
+  // Pré-sélectionner le niveau de l'étudiant
+  if(currentUser){
+    const sel = document.getElementById('plan-level');
+    if(sel) sel.value = currentUser.level || 1;
+  }
+  // Date min = aujourd'hui + 2 jours
+  const minDate = new Date();
+  minDate.setDate(minDate.getDate()+2);
+  const inp = document.getElementById('plan-date');
+  if(inp) inp.min = minDate.toISOString().split('T')[0];
+}
+
+function generatePlanning(){
+  const dateVal = document.getElementById('plan-date').value;
+  const hours = parseInt(document.getElementById('plan-hours').value);
+  const level = parseInt(document.getElementById('plan-level').value);
+
+  if(!dateVal){ toast('Choisis une date d'examen','err'); return; }
+  const examDate = new Date(dateVal);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const daysLeft = Math.floor((examDate - today) / 86400000);
+
+  if(daysLeft < 2){ toast('Choisis une date dans au moins 2 jours','err'); return; }
+
+  // Matières du niveau sélectionné
+  const subjects = DB.subjects.filter(s=>s.active && s.level===level);
+  if(!subjects.length){ toast('Aucune matière trouvée pour ce niveau','err'); return; }
+
+  // Scores existants par matière (pour prioriser les plus faibles)
+  const results = DB.examResults || [];
+  const subjectScores = subjects.map(s=>{
+    const examsForSubj = DB.exams.filter(e=>e.subjectId===s.id||parseInt(e.subjectId)===parseInt(s.id));
+    const subjResults = results.filter(r=>examsForSubj.some(e=>e.id===r.examId||parseInt(e.id)===parseInt(r.examId)));
+    const avg = subjResults.length ? Math.round(subjResults.reduce((a,r)=>a+r.score,0)/subjResults.length) : 0;
+    return {...s, avg, priority: avg===0 ? 999 : (100-avg)}; // non révisé = priorité max
+  }).sort((a,b)=>b.priority-a.priority);
+
+  // Distribuer les matières sur les jours
+  const plan = [];
+  let subIdx = 0;
+  for(let d=0; d<daysLeft; d++){
+    const date = new Date(today);
+    date.setDate(today.getDate()+d);
+    const dayName = date.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+    const isLastDay = d===daysLeft-1;
+    if(isLastDay){
+      plan.push({date:dayName, tasks:['🔁 Révision générale — revoir toutes les notions difficiles','📝 Simulation d'examen chronométré'], special:true});
+    } else {
+      const subj = subjectScores[subIdx % subjectScores.length];
+      const tasks = [
+        subj.icon+' '+subj.name + (subj.avg>0?' (dernière note : '+subj.avg+'%)':' (pas encore révisé)'),
+        hours>=2 ? '📝 Faire 1 examen QCM sur '+subj.name : '📖 Lire le cours de '+subj.name,
+        hours>=3 ? '🔁 Réviser les questions ratées' : null
+      ].filter(Boolean);
+      plan.push({date:dayName, subj:subj.name, tasks, score:subj.avg, special:false});
+      subIdx++;
+    }
+  }
+
+  // Afficher
+  const colors = ['var(--b4)','#8b5cf6','var(--gc)','#f59e0b','#ec4899'];
+  document.getElementById('plan-result').innerHTML =
+    '<div style="font-size:13px;font-weight:600;color:var(--b8);margin-bottom:1rem;">📋 Ton planning — '+daysLeft+' jour'+(daysLeft>1?'s':'')+' de révision</div>'
+    + plan.map((day,i)=>{
+      const col = day.special ? '#ef4444' : colors[i%colors.length];
+      return '<div style="background:var(--card-bg);border:1px solid var(--border);border-left:4px solid '+col+';border-radius:12px;padding:1rem;margin-bottom:10px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;">'
+        +'<div style="font-size:12px;font-weight:600;color:'+col+';">'+day.date+'</div>'
+        +(day.score>0?'<span style="font-size:11px;padding:2px 8px;border-radius:99px;background:'+(day.score>=70?'var(--g)':day.score>=50?'var(--a)':'var(--r)')+';color:'+(day.score>=70?'var(--gc)':day.score>=50?'var(--ac)':'var(--rc)')+';">'+day.score+'% moy.</span>':'')
+        +'</div>'
+        +day.tasks.map(t=>'<div style="font-size:12px;color:var(--text);padding:3px 0;display:flex;gap:6px;align-items:flex-start;"><span>'+t+'</span></div>').join('')
+        +'</div>';
+    }).join('')
+    +'<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:.5rem;">Les matières avec les scores les plus bas sont placées en priorité</div>';
+
+  toast('Planning généré !','ok');
+}
+
 /* ═══════════════ SYSTÈME XP & NIVEAUX ═══════════════ */
 const XP_LEVELS = [
   {level:1, name:'Novice', xpRequired:0, icon:'🌱'},
