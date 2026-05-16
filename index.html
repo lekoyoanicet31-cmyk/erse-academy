@@ -3057,6 +3057,37 @@ function stopAntiCheat(){
   window.removeEventListener('beforeprint', blockPrint);
 }
 
+
+function startRevision(examId){
+  examId=parseInt(examId)||examId;
+  const wrongQ = userAnswers.filter(a=>a.chosen!==a.correct);
+  if(!wrongQ.length){ toast('Aucune question à réviser — tout est correct !','ok'); return; }
+  curExamId=examId; curQ=0; score=0; userAnswers=[];
+  shuffledQuestions = wrongQ.map(a=>{
+    const shuffledOpts = shuffleArray(a.opts.map((o,i)=>({text:o,isCorrect:i===a.correct})));
+    return {
+      q: a.q,
+      opts: shuffledOpts.map(o=>o.text),
+      ans: shuffledOpts.findIndex(o=>o.isCorrect),
+      exp: a.exp||''
+    };
+  });
+  examActive=true;
+  goPage('exams');
+  startExamTimer();
+  setTimeout(()=>{
+    const ex=DB.exams.find(e=>e.id===examId||parseInt(e.id)===parseInt(examId));
+    const s=ex?DB.subjects.find(x=>x.id===ex.subjectId||parseInt(x.id)===parseInt(ex.subjectId)):null;
+    document.getElementById('quiz-inner').innerHTML='';
+    const qbox=document.querySelector('.qbox');
+    if(qbox) qbox.insertAdjacentHTML('beforebegin',
+      '<div style="text-align:center;padding:.5rem;margin-bottom:.5rem;background:rgba(239,68,68,0.1);border-radius:8px;font-size:12px;color:var(--rc);font-weight:600;">🔁 Mode révision — '+wrongQ.length+' question'+(wrongQ.length>1?'s':'')+' ratée'+(wrongQ.length>1?'s':'')+' à retravailler</div>'
+    );
+    renderQ();
+  },300);
+  toast('Révision de '+wrongQ.length+' question'+(wrongQ.length>1?'s':'')+' ratée'+(wrongQ.length>1?'s':'')+'...','info');
+}
+
 function startQuiz(examId){
   examId=parseInt(examId)||examId;
   curExamId=examId;curQ=0;score=0;userAnswers=[];
@@ -3070,7 +3101,8 @@ function startQuiz(examId){
     return {
       q: q.q,
       opts: shuffledOpts.map(o=>o.text),
-      ans: shuffledOpts.findIndex(o=>o.isCorrect)
+      ans: shuffledOpts.findIndex(o=>o.isCorrect),
+      exp: q.exp||''
     };
   });
 
@@ -3173,6 +3205,7 @@ function showScore(total){
       </div>
       ${passed?`<button class="btn-primary" style="margin-bottom:.6rem;width:100%;" onclick="getCert()">🎓 Obtenir mon certificat</button>`:''}
       <button onclick="startQuiz(${curExamId})" style="font-size:13px;padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-family:var(--font-body);margin-top:.4rem;width:100%;">↺ Réessayer l'examen</button>
+      ${userAnswers.filter(a=>a.chosen!==a.correct).length>0?`<button onclick="startRevision(${curExamId})" style="font-size:13px;padding:8px 18px;border-radius:8px;border:1px solid rgba(239,68,68,0.4);background:rgba(239,68,68,0.08);color:var(--rc);cursor:pointer;font-family:var(--font-body);margin-top:.4rem;width:100%;font-weight:500;">🔁 Réviser les ${userAnswers.filter(a=>a.chosen!==a.correct).length} question(s) ratée(s)</button>`:''}
       <div style="margin-top:1.5rem;text-align:left;">
         <div style="font-size:13px;font-weight:600;color:var(--b8);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);">📋 Correction détaillée</div>
         ${userAnswers.map((a,i)=>{
