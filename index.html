@@ -4673,18 +4673,15 @@ async function banStudent(id){
 }
 
 async function removeStudent(id){
-  if(!confirm('Retirer cet étudiant définitivement ?')) return;
-  // Chercher par ID numérique OU string
   const s = DB.students.find(x=>x.id===id || x.id===String(id) || Number(x.id)===Number(id));
   if(!s){toast('Étudiant introuvable','err');return;}
+  if(!confirm('Supprimer le compte de '+s.name+' ?\nIl perdra toutes ses données mais pourra se réinscrire avec la même adresse.')) return;
 
-  // Retirer de DB.students
   DB.students = DB.students.filter(x=>Number(x.id)!==Number(id)&&x.id!==id&&x.id!==String(id));
-
-  // Retirer de DB.users aussi
   DB.users = DB.users.filter(x=>x.email!==s.email);
+  DB.certificates = DB.certificates.filter(c=>c.userId!==s.email&&c.userId!==id);
+  DB.examResults = (DB.examResults||[]).filter(r=>r.userId!==s.email&&String(r.userId)!==String(id));
 
-  // Supprimer de Firestore (users + examResults) - await pour garantir la suppression
   if(fbReady && s.email){
     try{
       await db.collection('users').doc(s.email).delete();
@@ -4693,19 +4690,12 @@ async function removeStudent(id){
     }catch(e){console.warn('Erreur suppression Firestore:',e);}
   }
 
-  // Supprimer les certificats de cet étudiant
-  DB.certificates = DB.certificates.filter(c=>c.userId!==s.email && c.userId!==id);
-  DB.examResults = (DB.examResults||[]).filter(r=>r.userId!==s.email && String(r.userId)!==String(id));
-
-  // Sauvegarder localement
   saveData();
-
-  // Sync RTDB
   pushToRTDB();
-
-  toast(s.name+' retiré avec succès !','ok');
+  toast(s.name+' supprimé. Il peut se réinscrire avec la même adresse.','ok');
   renderAdminStudents();
 }
+
 
 function renderAdminLB(){
   const sorted=[...DB.students].sort((a,b)=>b.avgScore-a.avgScore);
