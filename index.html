@@ -3792,7 +3792,7 @@ function generatePlanning(){
       +'</div>'
       +'<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+statusLabel[s.status]+' · '+s.attempts+' examen'+(s.attempts>1?'s':'')+'</div>'
       +'</div>'
-      +(s.examId?'<button onclick="startQuiz('+s.examId+');goPage('exams')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--b6);cursor:pointer;white-space:nowrap;font-family:var(--font-body);">▶ Reviser</button>':'')
+      +(s.examId?'<button onclick="startQuiz('+s.examId+');goPage(\'exams\')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--b6);cursor:pointer;white-space:nowrap;font-family:var(--font-body);">&#9654; Reviser</button>':'')
       +'</div>';
   }).join('') + '</div>';
 
@@ -3826,7 +3826,7 @@ function generatePlanning(){
           +(sess.action?'<div style="font-size:11px;color:var(--muted);margin-top:2px;">'+sess.action+'</div>':'')
           +(sess.duration?'<div style="font-size:10px;color:var(--muted);">⏱ '+sess.duration+'</div>':'')
           +'</div>'
-          +(hasBtnExam?'<button onclick="startQuiz('+sess.examId+');goPage('exams')" style="font-size:10px;padding:5px 10px;border-radius:7px;border:none;background:var(--b6);color:#fff;cursor:pointer;white-space:nowrap;font-family:var(--font-body);">▶ Lancer</button>':'')
+          +(hasBtnExam?'<button onclick="startQuiz('+sess.examId+');goPage(\'exams\')" style="font-size:10px;padding:5px 10px;border-radius:7px;border:none;background:var(--b6);color:#fff;cursor:pointer;white-space:nowrap;font-family:var(--font-body);">&#9654; Lancer</button>':'')
           +'</div>';
       }).join('')
       +'</div>';
