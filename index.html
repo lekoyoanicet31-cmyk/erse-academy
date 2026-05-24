@@ -2165,7 +2165,7 @@ function goPage(id){
     const targetTab=tabs[userLvl-1]||tabs[0];
     filterLevel(userLvl,targetTab);
     renderLevelBadge();
-  },exams:()=>{ document.getElementById('quiz-wrap').style.display='none'; document.getElementById('exam-list-wrap').style.display=''; renderExamList(); renderLevelBadge(); },leaderboard:()=>refreshLeaderboard(),certs:renderCerts,profile:renderProfile,boutique:()=>loadShop(),energybot:()=>{
+  },exams:()=>{ examActive=false; document.getElementById('quiz-wrap').style.display='none'; document.getElementById('exam-list-wrap').style.display=''; renderExamList(); renderLevelBadge(); },leaderboard:()=>refreshLeaderboard(),certs:renderCerts,profile:renderProfile,boutique:()=>loadShop(),energybot:()=>{
     const keyBtn=document.getElementById('eb-key-btn');
     if(keyBtn) keyBtn.style.display=currentUser?.role==='admin'?'':'none';
     // Recalcul explicite du layout EnergyBot
@@ -2957,7 +2957,8 @@ function renderExamList(){
     examsForLevel.forEach(e => {
       const s = DB.subjects.find(x=>x.id===e.subjectId);
       const results = DB.examResults||[];
-      const result = results.find(r=>String(r.examId)===String(e.id) && (!r.userId || r.userId===(currentUser?.email||currentUser?.id)));
+      const userKey = currentUser?.email||currentUser?.id;
+      const result = results.find(r=>String(r.examId)===String(e.id) && (r.userId===userKey||String(r.userId)===String(userKey)));
       const scoreStr = result ? `${result.score}/100` : 'Non passé';
       const scoreColor = result ? (result.score>=80?'#34d399':result.score>=50?'#fbbf24':'#f87171') : 'var(--muted)';
       const mins = e.questions.length * 2;
@@ -3366,8 +3367,7 @@ function showScore(total){
     if(prog.canPass){
       setTimeout(()=>toast(`🎯 Vous avez la moyenne requise ! Vous pouvez passer en Licence ${getUserLevel()+1}.`,'ok'), 2000);
     }
-    // Rafraîchir la liste des examens seulement si on n'est plus en examen
-    if(typeof renderExamList === 'function') setTimeout(()=>{ if(!examActive) renderExamList(); }, 500);
+    // renderExamList sera appelé quand l'étudiant revient à la liste manuellement
   }
 }
 
@@ -4255,7 +4255,7 @@ async function pushToRTDB(){
     await adminDataRef.set({
       subjects: safeSubjects,
       exams: DB.exams.map(e=>({
-        id:e.id, subjectId:e.subjectId,
+        id:e.id, subjectId:e.subjectId, title:e.title||'',
         difficulty:e.difficulty, questions:e.questions||[]
       })),
       updatedAt: Date.now(),
