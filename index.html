@@ -2003,6 +2003,14 @@ function resetSessionTimer(){
 document.addEventListener('click',()=>{if(currentUser)resetSessionTimer();});
 document.addEventListener('keypress',()=>{if(currentUser)resetSessionTimer();});
 
+function pushNotif(title, sub, ic, bg){
+  if(!DB.notifications) DB.notifications = [];
+  DB.notifications.unshift({id:Date.now(), title, sub, ic:ic||'🔔', bg:bg||'#b0d4f4', unread:true, time:'Maintenant'});
+  if(DB.notifications.length > 50) DB.notifications.pop();
+  updateNotifDot();
+  saveData();
+}
+
 async function loginUser(user){
   // Vérifier si l'email est banni
   if((DB.bannedEmails||[]).includes(user.email)){
@@ -2045,9 +2053,14 @@ async function loginUser(user){
       const userDoc = await db.collection('users').doc(user.email).get();
       if(userDoc.exists){
         const d = userDoc.data();
+        currentUser.level = d.level || currentUser.level || 1;
         currentUser.passed = d.passed||0;
         currentUser.avgScore = d.avgScore||0;
         currentUser.certs = d.certs||0;
+        // Sync DB.students aussi
+        const stuIdx = DB.students.findIndex(s=>s.email===user.email);
+        if(stuIdx!==-1){ DB.students[stuIdx].level = currentUser.level; DB.students[stuIdx].certs = currentUser.certs; }
+        saveData();
       }
       // Charger la liste des emails bannis
       try{
