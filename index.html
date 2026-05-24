@@ -4291,13 +4291,13 @@ function startRTDBListener(){
       });
     }
 
-    // Mettre à jour les examens
+    // Mettre à jour les examens (seulement si pas en cours d'examen)
     const examsArr = Array.isArray(data.exams) ? data.exams : Object.values(data.exams||{});
-    if(examsArr.length){
+    if(examsArr.length && !examActive){
       examsArr.forEach(e=>{
         if(!e||!e.id) return;
-        // S'assurer que questions est un array
-        e.questions = Array.isArray(e.questions) ? e.questions : Object.values(e.questions||{});
+        // S'assurer que questions est un array ordonné
+        e.questions = Array.isArray(e.questions) ? e.questions : Object.values(e.questions||{}).sort((a,b)=>a._idx-b._idx||0);
         const idx=DB.exams.findIndex(x=>parseInt(x.id)===parseInt(e.id));
         if(idx!==-1) DB.exams[idx]={...DB.exams[idx],...e};
         else DB.exams.push({...e,id:parseInt(e.id)||e.id});
@@ -4313,7 +4313,7 @@ function startRTDBListener(){
         const lvl=tab?[...document.querySelectorAll('#lvl-tabs .tab')].indexOf(tab)+1:1;
         filterLevel(lvl,tab);
       }
-      if(activePage.id==='pg-exams' && document.getElementById('exam-list-wrap').style.display!=='none') renderExamList();
+      if(activePage.id==='pg-exams' && document.getElementById('exam-list-wrap').style.display!=='none' && !examActive) renderExamList();
     }
 
     // Notification visuelle
