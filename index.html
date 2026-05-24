@@ -1151,27 +1151,51 @@ nav{background:var(--nav-bg);height:62px;display:flex;align-items:center;justify
     <!-- Config -->
     <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:1.4rem;margin-bottom:1.5rem;" id="plan-config">
       <div style="font-size:13px;font-weight:600;color:var(--b8);margin-bottom:1rem;">⚙️ Configuration</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div style="grid-column:1/-1;">
+      <div style="display:grid;gap:12px;">
+        <div>
           <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">📆 Date de l'examen</label>
           <input type="date" id="plan-date" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;box-sizing:border-box;">
         </div>
-        <div>
-          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">⏱ Heures/jour</label>
-          <select id="plan-hours" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
-            <option value="1">1h / jour</option>
-            <option value="2" selected>2h / jour</option>
-            <option value="3">3h / jour</option>
-            <option value="4">4h / jour</option>
-          </select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">⏱ Heures/jour</label>
+            <select id="plan-hours" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
+              <option value="1">1h / jour</option>
+              <option value="2" selected>2h / jour</option>
+              <option value="3">3h / jour</option>
+              <option value="4">4h / jour</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">🎓 Niveau</label>
+            <select id="plan-level" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
+              <option value="1">Licence 1</option>
+              <option value="2">Licence 2</option>
+              <option value="3">Licence 3</option>
+            </select>
+          </div>
         </div>
         <div>
-          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">🎓 Niveau</label>
-          <select id="plan-level" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
-            <option value="1">Licence 1</option>
-            <option value="2">Licence 2</option>
-            <option value="3">Licence 3</option>
-          </select>
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;">📚 Matières à évaluer <span style="color:var(--b4);font-weight:400;">(sélectionne celles sur lesquelles tu veux être évalué)</span></label>
+          <div id="plan-subjects-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">☕ Pauses/jour</label>
+            <select id="plan-breaks" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
+              <option value="0">Aucune pause</option>
+              <option value="1" selected>1 pause</option>
+              <option value="2">2 pauses</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">🎮 Détente/jour</label>
+            <select id="plan-relax" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
+              <option value="0">Pas de détente</option>
+              <option value="30" selected>30 min</option>
+              <option value="60">1h de détente</option>
+            </select>
+          </div>
         </div>
       </div>
       <button onclick="generatePlanning()" style="width:100%;margin-top:14px;padding:11px;border-radius:10px;border:none;background:var(--b6);color:#fff;font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.3px;">📅 Générer mon planning</button>
@@ -3695,12 +3719,30 @@ function checkRevisionReminders(){
 function initPlanning(){
   if(currentUser){
     const sel = document.getElementById('plan-level');
-    if(sel) sel.value = currentUser.level || 1;
+    if(sel){
+      sel.value = currentUser.level || 1;
+      renderPlanSubjects(currentUser.level||1);
+    }
   }
   const minDate = new Date();
   minDate.setDate(minDate.getDate()+2);
   const inp = document.getElementById('plan-date');
   if(inp) inp.min = minDate.toISOString().split('T')[0];
+  // Recharger les matières quand le niveau change
+  const lvlSel = document.getElementById('plan-level');
+  if(lvlSel) lvlSel.onchange = function(){ renderPlanSubjects(parseInt(this.value)); };
+}
+
+function renderPlanSubjects(level){
+  const container = document.getElementById('plan-subjects-list');
+  if(!container) return;
+  const subjects = DB.subjects.filter(s=>s.active && s.level===level);
+  container.innerHTML = subjects.map(s=>`
+    <label style="display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);border-radius:99px;cursor:pointer;font-size:12px;background:var(--b0);user-select:none;">
+      <input type="checkbox" value="${s.id}" checked style="accent-color:var(--b6);cursor:pointer;">
+      ${s.icon} ${s.name}
+    </label>
+  `).join('');
 }
 
 function generatePlanning(){
@@ -3714,8 +3756,14 @@ function generatePlanning(){
   const daysLeft = Math.floor((examDate - today) / 86400000);
   if(daysLeft < 2){ toast('Choisis une date dans au moins 2 jours','err'); return; }
 
-  const subjects = DB.subjects.filter(s=>s.active && s.level===level);
-  if(!subjects.length){ toast('Aucune matière pour ce niveau','err'); return; }
+  // Matières cochées par l'étudiant
+  const checkedBoxes = document.querySelectorAll('#plan-subjects-list input[type=checkbox]:checked');
+  const selectedIds = Array.from(checkedBoxes).map(cb=>cb.value);
+  const allSubjects = DB.subjects.filter(s=>s.active && s.level===level);
+  const subjects = selectedIds.length>0 ? allSubjects.filter(s=>selectedIds.includes(String(s.id))||selectedIds.includes(s.id)) : allSubjects;
+  if(!subjects.length){ toast('Sélectionne au moins une matière','err'); return; }
+  const breaks = parseInt(document.getElementById('plan-breaks').value)||1;
+  const relaxMin = parseInt(document.getElementById('plan-relax').value)||30;
 
   const results = (DB.examResults||[]).filter(r=>r.userId===(currentUser?currentUser.email||currentUser.id:''));
 
@@ -3747,19 +3795,28 @@ function generatePlanning(){
     const dayName = date.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
     const isLastDay = d===daysLeft-1;
     const isWeekend = date.getDay()===0||date.getDay()===6;
+    // Calculer les créneaux avec pauses et détentes
+    const daySlots = [...slots];
+    if(breaks>0) for(let b=0;b<breaks;b++) daySlots.splice(Math.floor(daySlots.length/2),0,'break');
+    if(relaxMin>0) daySlots.push('relax');
+
     if(isLastDay){
       plan.push({date:dayName, type:'final', sessions:[
         {slot:'Matin', subj:'Revision generale', action:'Revoir toutes les notions difficiles', color:'#ef4444', icon:'🔁'},
         {slot:'Soir', subj:'Simulation examen', action:'Passer un examen en conditions reelles', color:'#ef4444', icon:'📝'}
       ]});
     } else {
-      const sessions = slots.map(function(slot,si){
-        const subj = subjectStats[(subIdx+si) % subjectStats.length];
+      let studyIdx = 0;
+      const sessions = daySlots.map(function(slot){
+        if(slot==='break') return {slot:'☕ Pause', subj:'Repos', action:'Detends-toi, bois de l eau', color:'#64748b', icon:'☕', isBreak:true};
+        if(slot==='relax') return {slot:'🎮 Detente', subj:relaxMin+'min de loisirs', action:'Musique, balade ou sport leger', color:'#8b5cf6', icon:'🎮', isRelax:true};
+        const subj = subjectStats[(subIdx+studyIdx) % subjectStats.length];
+        studyIdx++;
         const c = subj.status==='never'?'#8b5cf6':subj.status==='danger'?'#ef4444':subj.status==='warn'?'#f59e0b':'var(--gc)';
         return {slot:slot, subj:subj.name, icon:subj.icon, avg:subj.avg, status:subj.status, color:c, examId:subj.examId, duration:slotDuration+'h', attempts:subj.attempts};
       });
       plan.push({date:dayName, type:isWeekend?'weekend':'normal', sessions:sessions});
-      subIdx += slots.length;
+      subIdx += studyIdx;
     }
   }
 
@@ -3838,14 +3895,6 @@ function generatePlanning(){
   const genBtn = document.getElementById('plan-gen-btn');
   if(genBtn) genBtn.style.display = 'block';
   toast('Planning generé !','ok');
-}
-        +'</div>'
-        +day.tasks.map(t=>'<div style="font-size:12px;color:var(--text);padding:3px 0;display:flex;gap:6px;align-items:flex-start;"><span>'+t+'</span></div>').join('')
-        +'</div>';
-    }).join('')
-    +'<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:.5rem;">Les matières avec les scores les plus bas sont placées en priorité</div>';
-
-  toast('Planning généré !','ok');
 }
 
 /* ═══════════════ SYSTÈME XP & NIVEAUX ═══════════════ */
