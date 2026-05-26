@@ -2082,6 +2082,7 @@ async function loginUser(user){
   goPage('home');
   startJsonBinSync();
   startRTDBListener();
+  if(currentUser && currentUser.role==='admin') setTimeout(clearFirebaseExams, 3000);
 }
 
 async function doLogout(){
@@ -4248,6 +4249,22 @@ const adminDataRef = rtdb.ref('adminData');
 let rtdbListenerActive = false;
 
 // Écrire dans RTDB quand admin modifie
+async function clearFirebaseExams(){
+  // Supprimer les examens mal assignés dans Firebase (ids >= 200 uniquement)
+  if(!fbReady || !currentUser || currentUser.role!=='admin') return;
+  try{
+    const snap = await adminDataRef.child('exams').get();
+    if(snap.exists()){
+      const exams = snap.val();
+      const toDelete = Object.entries(exams||{}).filter(([k,v])=>parseInt(v.id||k)>=200);
+      for(const [k] of toDelete){
+        await adminDataRef.child('exams/'+k).remove();
+      }
+      if(toDelete.length) console.log('✅ '+toDelete.length+' examens parasites supprimés de Firebase');
+    }
+  }catch(e){console.warn('clearFirebaseExams error:',e);}
+}
+
 async function pushToRTDB(){
   try{
     // JSON.parse(JSON.stringify(...)) élimine les undefined/fonctions non sérialisables
@@ -4298,9 +4315,20 @@ function startRTDBListener(){
         if(!e||!e.id) return;
         // S'assurer que questions est un array ordonné
         e.questions = Array.isArray(e.questions) ? e.questions : Object.values(e.questions||{}).sort((a,b)=>a._idx-b._idx||0);
+        const eId = parseInt(e.id)||e.id;
+        // Ne pas écraser les examens hardcodés (ids < 200) sauf si Firebase a plus de questions
         const idx=DB.exams.findIndex(x=>parseInt(x.id)===parseInt(e.id));
-        if(idx!==-1) DB.exams[idx]={...DB.exams[idx],...e};
-        else DB.exams.push({...e,id:parseInt(e.id)||e.id});
+        if(idx!==-1){
+          const existing = DB.exams[idx];
+          // Garder le hardcodé si Firebase a moins de questions
+          if(!e.questions||!e.questions.length||(existing.questions&&existing.questions.length>=e.questions.length&&parseInt(e.id)<200)){
+            // Garder l'existant, ne pas écraser
+          } else {
+            DB.exams[idx]={...existing,...e};
+          }
+        } else {
+          DB.exams.push({...e,id:eId});
+        }
       });
     }
 
