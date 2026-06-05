@@ -51,11 +51,8 @@ function renderShop(){
     const price=item.price||0;
     const hasCorrige=item.corrigeUrl&&item.corrigeUrl.length>0;
     const [col,bg]=lCol[item.licence]||['#6366f1','rgba(99,102,241,.12)'];
-    const itemLvl = item.licence==='L1'?1:item.licence==='L2'?2:3;
-    const isLocked = !(currentUser && currentUser.role==='admin') && itemLvl > userLvl;
-    const clickHandler = isLocked ? `toast('Validez la Licence ${itemLvl-1} pour débloquer ce niveau.','err')` : `openEpreuve(${item.id})`;
-    return `<div onclick="${clickHandler}" style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:${isLocked?'not-allowed':'pointer'};transition:all .25s;position:relative;opacity:${isLocked?'0.55':'1'};" ${isLocked?'':`onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 32px rgba(0,0,0,.3)';this.style.borderColor='${col}50'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'"`}>
-      ${isLocked?`<div style="position:absolute;top:10px;right:10px;font-size:1.3rem;z-index:2;">🔒</div>`:''}
+    const clickHandler = `openEpreuve(${item.id})`;
+    return `<div onclick="${clickHandler}" style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 32px rgba(0,0,0,.3)';this.style.borderColor='${col}50'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
       <div style="height:3px;background:${col};"></div>
       <div style="padding:1.2rem 1.2rem .8rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;">
@@ -475,15 +472,7 @@ function renderExamList(){
     });
     if(examsForLevel.length===0) return;
 
-    html += `<div class="exam-licence-title ${licenceClass[lvl]}">${licenceLabels[lvl]} ${locked?'🔒':''}<span style="font-size:.75rem;font-weight:400;opacity:.7;">(${examsForLevel.length} examen${examsForLevel.length>1?'s':''})</span></div>`;
-
-    if(locked){
-      html += `<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.5rem;text-align:center;margin-bottom:.7rem;">
-        <div style="font-size:1.5rem;margin-bottom:.5rem;">🔒</div>
-        <div style="font-size:.88rem;color:var(--muted);">Validez la Licence ${lvl-1} avec 80/100 de moyenne pour débloquer ce niveau.</div>
-      </div>`;
-      return;
-    }
+    html += `<div class="exam-licence-title ${licenceClass[lvl]}">${licenceLabels[lvl]}<span style="font-size:.75rem;font-weight:400;opacity:.7;">(${examsForLevel.length} examen${examsForLevel.length>1?'s':''})</span></div>`;
 
     examsForLevel.forEach(e => {
       const s = DB.subjects.find(x=>x.id===e.subjectId);
@@ -1024,3 +1013,4 @@ function backExams(){
 }
 function var_g(){return '#eaf3de';}
 
+/* ═══════════════════════════════════════════

@@ -23,18 +23,11 @@ function getLevelProgress(){
 }
 
 function checkLevelAccess(targetLevel){
-  const userLevel = getUserLevel();
-  if(currentUser && currentUser.role==='admin') return true;
-  return targetLevel <= userLevel;
+  return true; // Accès libre à tous les niveaux
 }
 
 async function requestLevelUp(){
   const lvl = getUserLevel();
-  const prog = getLevelProgress();
-  if(!prog.canPass){
-    toast(`Score insuffisant : ${prog.avg}/100. Il faut 80/100 de moyenne.`,'err');
-    return;
-  }
   const newLevel = lvl + 1;
   if(newLevel > 3){ toast('Vous êtes déjà au niveau maximum !','ok'); return; }
   currentUser.level = newLevel;
@@ -60,7 +53,7 @@ function showLevelUpModal(newLevel){
     <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;text-align:center;max-width:380px;width:100%;">
       <div style="font-size:3rem;margin-bottom:1rem;">🎓</div>
       <div style="font-size:1.4rem;font-weight:800;margin-bottom:.5rem;background:linear-gradient(90deg,#60a5fa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Niveau validé !</div>
-      <div style="color:var(--muted);font-size:.9rem;margin-bottom:1.5rem;">Vous avez obtenu la moyenne requise et pouvez maintenant accéder à la <strong style="color:var(--text);">Licence ${newLevel}</strong>.</div>
+      <div style="color:var(--muted);font-size:.9rem;margin-bottom:1.5rem;">Vous pouvez maintenant accéder à la <strong style="color:var(--text);">Licence ${newLevel}</strong>.</div>
       <button onclick="this.parentElement.parentElement.remove()" style="padding:.7rem 2rem;border-radius:10px;border:none;background:linear-gradient(90deg,#3b82f6,#10b981);color:#fff;font-weight:700;cursor:pointer;font-size:.95rem;font-family:var(--font-body);">Continuer →</button>
     </div>
   `;
@@ -76,45 +69,16 @@ function renderLevelBadge(){
     <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;">
       <span style="background:rgba(59,130,246,.15);color:#60a5fa;padding:.2rem .6rem;border-radius:6px;font-weight:700;">L${lvl}</span>
       <span style="color:var(--muted);">${prog.done}/${prog.total} examens · ${prog.avg}/100</span>
-      ${prog.canPass?`<button onclick="requestLevelUp()" style="padding:.2rem .7rem;border-radius:6px;border:none;background:#10b981;color:#fff;cursor:pointer;font-size:.75rem;font-weight:600;font-family:var(--font-body);">Passer en L${lvl+1} →</button>`:''}
     </div>
   `;
 }
 
 function filterLevel(l,btn){
-  const isAdmin = currentUser && currentUser.role==='admin';
-  const userLvl = getUserLevel();
-
   document.querySelectorAll('#lvl-tabs .tab').forEach(t=>{
-    const tlvl = parseInt(t.dataset.lvl||1);
-    if(!isAdmin && tlvl > userLvl){
-      t.classList.remove('on');
-      t.style.opacity='.4';
-      t.style.cursor='not-allowed';
-    } else {
-      t.style.opacity='1';
-      t.style.cursor='pointer';
-    }
+    t.style.opacity='1';
+    t.style.cursor='pointer';
   });
 
-  // Bloquer accès aux niveaux SUPÉRIEURS seulement
-  if(!isAdmin && l > userLvl){
-    toast(`🔒 Niveau L${l} verrouillé. Validez d'abord la Licence ${l-1} avec 80/100.`,'err');
-    // Afficher le message de verrouillage
-    const prog = getLevelProgress();
-    document.getElementById('course-list').innerHTML=`
-      <div style="text-align:center;padding:3rem 1rem;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;margin-top:.5rem;">
-        <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
-        <div style="font-weight:700;font-size:1.1rem;margin-bottom:.5rem;">Niveau L${l} verrouillé</div>
-        <div style="color:var(--muted);font-size:.85rem;margin-bottom:1.2rem;">Validez la Licence ${l-1} avec 80/100 de moyenne.<br>Votre progression : <strong style="color:var(--text);">${prog.avg}/100</strong> (${prog.done}/${prog.total} examens)</div>
-        ${prog.canPass?`<button onclick="requestLevelUp()" style="padding:.6rem 1.5rem;border-radius:10px;border:none;background:#10b981;color:#fff;cursor:pointer;font-weight:700;font-family:var(--font-body);">🎉 Valider ma Licence ${userLvl} →</button>`:`<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:.8rem 1.5rem;font-size:.82rem;color:var(--muted);display:inline-block;">Complétez tous les examens L${userLvl} avec 80/100.</div>`}
-      </div>
-    `;
-    renderLevelBadge();
-    return;
-  }
-
-  // L'étudiant a accès à ce niveau — afficher les matières
   document.querySelectorAll('#lvl-tabs .tab').forEach(t=>t.classList.remove('on'));
   if(btn) btn.classList.add('on');
 
@@ -175,5 +139,3 @@ function togglePdfSection(id){
   sec.classList.toggle('open');
   arrow.textContent=sec.classList.contains('open')?'▲':'▼';
 }
-
-
