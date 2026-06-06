@@ -51,7 +51,7 @@ function renderShop(){
     const price=item.price||0;
     const hasCorrige=item.corrigeUrl&&item.corrigeUrl.length>0;
     const [col,bg]=lCol[item.licence]||['#6366f1','rgba(99,102,241,.12)'];
-    const clickHandler = `openEpreuve(${item.id})`;
+    const clickHandler = `openEpreuve('${item.id}')`;
     return `<div onclick="${clickHandler}" style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 32px rgba(0,0,0,.3)';this.style.borderColor='${col}50'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
       <div style="height:3px;background:${col};"></div>
       <div style="padding:1.2rem 1.2rem .8rem;">
@@ -74,7 +74,7 @@ function renderShop(){
           ?`<span style="background:rgba(16,185,129,.15);color:#34d399;font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:6px;">🆓 GRATUIT</span>`
           :`<span style="font-size:.95rem;font-weight:800;color:#60a5fa;">${price>0?price+' FCFA':'—'}</span>`
         }
-        <button onclick="event.stopPropagation();openEpreuve(${item.id})" style="padding:.45rem 1rem;border-radius:8px;border:none;background:${showAsFree?'rgba(16,185,129,.15)':'var(--b5)'};color:${showAsFree?'#34d399':'#fff'};cursor:pointer;font-weight:700;font-size:.78rem;font-family:var(--font-body);">${showAsFree?'Accéder →':'💳 Acheter'}</button>
+        <button onclick="event.stopPropagation();openEpreuve('${item.id}')" style="padding:.45rem 1rem;border-radius:8px;border:none;background:${showAsFree?'rgba(16,185,129,.15)':'var(--b5)'};color:${showAsFree?'#34d399':'#fff'};cursor:pointer;font-weight:700;font-size:.78rem;font-family:var(--font-body);">${showAsFree?'Accéder →':'💳 Acheter'}</button>
       </div>
     </div>`;
   }).join('');
