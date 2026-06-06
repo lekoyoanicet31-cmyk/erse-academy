@@ -197,6 +197,16 @@ async function loginUser(user){
         });
         saveData();
       }
+      // Charger le planning depuis Firestore
+      try{
+        const planSnap = await firebase.firestore().collection('plannings').doc(user.email).get();
+        if(planSnap.exists){
+          const saved = planSnap.data();
+          if(saved && saved.plan && saved.plan.length){
+            setTimeout(()=>{ if(typeof renderPlanningResult==='function') renderPlanningResult(saved.plan, saved.meta); }, 800);
+          }
+        }
+      }catch(e){ console.warn('Erreur chargement planning:', e); }
     }catch(e){console.warn('Erreur chargement Firebase:',e);}
   }
   renderHome();
