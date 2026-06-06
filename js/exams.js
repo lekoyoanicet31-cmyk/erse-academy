@@ -1013,5 +1013,4 @@ function backExams(){
 }
 function var_g(){return '#eaf3de';}
 
-/* ═══════════════════════════════════════════*/
-*/
+/* fin */
