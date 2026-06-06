@@ -149,7 +149,7 @@ const LEGAL = {
     <br>
     <p><strong>8. Modification des CGU</strong><br>ERSE ACADEMY se réserve le droit de modifier les présentes conditions à tout moment. Les utilisateurs en seront informés par notification dans l'application.</p>
     <br>
-    <p><strong>9. Contact</strong><br>Pour toute question relative aux CGU : <a href="mailto:lekoyoanicet31@gmail.com" style="color:var(--b6);">lekoyoanicet31@gmail.com</a></p>`
+    <p><strong>9. Contact</strong><br>Pour toute question relative aux CGU : <a href="mailto:academyerse@gmail.com" style="color:var(--b6);">academyerse@gmail.com</a></p>`
   },
   contact: {
     title: "Nous contacter",
@@ -158,7 +158,7 @@ const LEGAL = {
     <div style="display:flex;flex-direction:column;gap:1rem;">
       <div style="background:var(--b0);border-radius:10px;padding:1rem;">
         <div style="font-size:12px;font-weight:600;color:var(--b8);margin-bottom:.4rem;">📧 Email</div>
-        <a href="mailto:lekoyoanicet31@gmail.com" style="color:var(--b6);font-size:13px;">lekoyoanicet31@gmail.com</a>
+        <a href="mailto:academyerse@gmail.com" style="color:var(--b6);font-size:13px;">academyerse@gmail.com</a>
       </div>
       <div style="background:var(--b0);border-radius:10px;padding:1rem;">
         <div style="font-size:12px;font-weight:600;color:var(--b8);margin-bottom:.4rem;">💬 WhatsApp</div>
@@ -214,7 +214,7 @@ const LEGAL = {
     <br>
     <p><strong>5. Sécurité</strong><br>Nous utilisons Firebase Authentication pour sécuriser les connexions, des règles Firestore pour protéger l'accès aux données, et HTTPS pour chiffrer toutes les communications.</p>
     <br>
-    <p><strong>6. Vos droits</strong><br>Vous disposez d'un droit d'accès, de rectification et de suppression de vos données à tout moment. Pour exercer ces droits, contactez-nous à : <a href="mailto:lekoyoanicet31@gmail.com" style="color:var(--b6);">lekoyoanicet31@gmail.com</a></p>
+    <p><strong>6. Vos droits</strong><br>Vous disposez d'un droit d'accès, de rectification et de suppression de vos données à tout moment. Pour exercer ces droits, contactez-nous à : <a href="mailto:academyerse@gmail.com" style="color:var(--b6);">academyerse@gmail.com</a></p>
     <br>
     <p><strong>7. Cookies</strong><br>ERSE ACADEMY n'utilise pas de cookies de traçage ou publicitaires. Seules des données techniques minimales sont stockées localement dans votre navigateur (préférences d'affichage, dernière page visitée) pour améliorer votre expérience.</p>`
   }
