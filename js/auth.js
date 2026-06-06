@@ -54,7 +54,7 @@ async function doLoginGoogle(){
 const EJS = {
   serviceId: 'service_y5ua3k2',
   tplWelcome: 'template_wvy5yrv',
-  tplNotif:   'na4ncag',
+  tplNotif:   'template_na4ncag',
   pubKey:     'ctEzadHY3pbYSkI9K'
 };
 (function(){ emailjs.init({publicKey: EJS.pubKey}); })();
