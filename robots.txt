@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://lekoyoanicet31-cmyk.github.io/erse-academy/sitemap.xml
