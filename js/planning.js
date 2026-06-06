@@ -53,6 +53,8 @@ function renderPlanningResult(plan, meta) {
     + '<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:.5rem;">Les matières avec les scores les plus bas sont placées en priorité</div>';
 }
 
+let planningLoaded = false;
+
 async function initPlanning() {
   if (currentUser) {
     const sel = document.getElementById('plan-level');
@@ -63,11 +65,13 @@ async function initPlanning() {
   const inp = document.getElementById('plan-date');
   if (inp) inp.min = minDate.toISOString().split('T')[0];
 
-  // Charger le planning sauvegardé
-  const saved = await loadPlanningFromFirestore();
-  if (saved && saved.plan && saved.plan.length) {
-    renderPlanningResult(saved.plan, saved.meta);
-    toast('Planning chargé ✅', 'ok');
+  // Charger le planning seulement si pas encore chargé
+  if (!planningLoaded) {
+    const saved = await loadPlanningFromFirestore();
+    if (saved && saved.plan && saved.plan.length) {
+      planningLoaded = true;
+      renderPlanningResult(saved.plan, saved.meta);
+    }
   }
 }
 
