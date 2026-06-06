@@ -4,10 +4,8 @@ const rtdb = firebase.database();
 const adminDataRef = rtdb.ref('adminData');
 let rtdbListenerActive = false;
 
-// Écrire dans RTDB quand admin modifie
 async function pushToRTDB(){
   try{
-    // JSON.parse(JSON.stringify(...)) élimine les undefined/fonctions non sérialisables
     const safeSubjects = JSON.parse(JSON.stringify(DB.subjects));
     await adminDataRef.set({
       subjects: safeSubjects,
@@ -18,25 +16,19 @@ async function pushToRTDB(){
       updatedAt: Date.now(),
       updatedBy: currentUser?.email||'admin'
     });
-    // Clignoter le point sync
-    const dot=document.getElementById('sync-dot');
-    if(dot){dot.style.background='#22c55e';setTimeout(()=>{if(dot)dot.style.background='rgba(255,255,255,0.3)';},1500);}
     console.log('✅ RTDB mis à jour');
   }catch(e){console.warn('RTDB push error:',e);}
 }
 
-// Écouter les changements en temps réel
 function startRTDBListener(){
   if(rtdbListenerActive) return;
   rtdbListenerActive = true;
   adminDataRef.on('value', snap=>{
     const data = snap.val();
     if(!data) return;
-    // Ne pas appliquer si c'est nous qui avons modifié
     if(data.updatedBy === currentUser?.email) return;
     if(!data.updatedAt || data.updatedAt <= 0) return;
 
-    // Mettre à jour les matières
     const subjArr=Array.isArray(data.subjects)?data.subjects:Object.values(data.subjects||{});
     if(subjArr.length){
       subjArr.forEach(s=>{
@@ -48,12 +40,10 @@ function startRTDBListener(){
       });
     }
 
-    // Mettre à jour les examens
     const examsArr = Array.isArray(data.exams) ? data.exams : Object.values(data.exams||{});
     if(examsArr.length){
       examsArr.forEach(e=>{
         if(!e||!e.id) return;
-        // S'assurer que questions est un array
         e.questions = Array.isArray(e.questions) ? e.questions : Object.values(e.questions||{});
         const idx=DB.exams.findIndex(x=>parseInt(x.id)===parseInt(e.id));
         if(idx!==-1) DB.exams[idx]={...DB.exams[idx],...e};
@@ -61,7 +51,6 @@ function startRTDBListener(){
       });
     }
 
-    // Rafraîchir la page active automatiquement
     const activePage=document.querySelector('.page.on');
     if(activePage){
       if(activePage.id==='pg-home') renderHome();
@@ -72,10 +61,6 @@ function startRTDBListener(){
       }
       if(activePage.id==='pg-exams' && document.getElementById('exam-list-wrap').style.display!=='none') renderExamList();
     }
-
-    // Notification visuelle
-    const dot=document.getElementById('sync-dot');
-    if(dot){dot.style.background='#22c55e';setTimeout(()=>{if(dot)dot.style.background='rgba(255,255,255,0.3)';},2000);}
     console.log('🔄 Données reçues depuis RTDB en temps réel');
   });
 }
@@ -87,15 +72,8 @@ function stopRTDBListener(){
   }
 }
 
-/* ═══════════════ SYNC CENTRALISÉ VIA FIREBASE ═══════════════
-   JSONBin supprimé (clé API retirée pour sécurité GitHub).
-   La synchronisation passe uniquement par Firebase RTDB + Firestore.
-═══════════════════════════════════════════════════════════════ */
-// pushToRTDB est défini plus haut (Firebase RTDB)
-// startJsonBinSync et stopJsonBinSync remplacées par des no-ops
 function startJsonBinSync(){ console.log('Sync Firebase RTDB actif (JSONBin désactivé)'); }
 function stopJsonBinSync(){ }
-
 
 /* ═══════════════ AUTO-REFRESH FIREBASE ═══════════════ */
 let autoRefreshTimer = null;
@@ -121,7 +99,6 @@ async function syncFromFirebase(){
       snapExam.forEach(doc=>{
         const d=doc.data();
         const id=parseInt(doc.id);
-        // S'assurer que questions est un array
         const questions=Array.isArray(d.questions)?d.questions:Object.values(d.questions||{});
         const idx=DB.exams.findIndex(e=>parseInt(e.id)===id);
         if(idx!==-1) DB.exams[idx]={...DB.exams[idx],...d,id,questions};
@@ -137,6 +114,43 @@ async function syncFromFirebase(){
       else DB.students.push(fs);
     });
 
+    // Sync résultats d'examens + certificats + profil utilisateur
+    if(currentUser?.email){
+      try{
+        // Résultats d'examens
+        const snapResults = await db.collection('examResults').doc(currentUser.email).collection('results').get();
+        if(!snapResults.empty){
+          if(!DB.examResults) DB.examResults = [];
+          snapResults.forEach(doc=>{
+            const r = doc.data();
+            const idx = DB.examResults.findIndex(x=>String(x.examId)===String(r.examId)&&x.userId===r.userId);
+            if(idx!==-1) DB.examResults[idx] = r;
+            else DB.examResults.push(r);
+          });
+        }
+
+        // Certificats
+        const snapCerts = await db.collection('certificates').where('userId','==',currentUser.email).get();
+        if(!snapCerts.empty){
+          snapCerts.forEach(doc=>{
+            const c = doc.data();
+            const exists = DB.certificates.find(x=>x.subject===c.subject&&x.userId===c.userId);
+            if(!exists) DB.certificates.push(c);
+          });
+        }
+
+        // Profil utilisateur (passed, avgScore, certs, level)
+        const userDoc = await db.collection('users').doc(currentUser.email).get();
+        if(userDoc.exists){
+          const d = userDoc.data();
+          currentUser.passed = d.passed || currentUser.passed || 0;
+          currentUser.avgScore = d.avgScore || currentUser.avgScore || 0;
+          currentUser.certs = d.certs || currentUser.certs || 0;
+          currentUser.level = d.level || currentUser.level || 1;
+        }
+      }catch(e){ console.warn('Sync user data error:', e); }
+    }
+
     // Rafraîchir la page active
     const activePage=document.querySelector('.page.on');
     if(activePage){
@@ -150,13 +164,6 @@ async function syncFromFirebase(){
       if(activePage.id==='pg-leaderboard') renderLB(DB.students);
     }
 
-    // Indicateur sync discret
-    const dot=document.getElementById('sync-dot');
-    if(dot){
-      dot.style.background='#22c55e';
-      setTimeout(()=>{ if(dot) dot.style.background='rgba(255,255,255,0.3)'; },1000);
-    }
-
   }catch(e){ console.warn('Auto-sync error:', e); }
 }
 
@@ -165,22 +172,14 @@ let lastKnownUpdate = 0;
 async function checkForUpdates(){
   if(!fbReady) return;
   try{
-    // Vérifier si l'admin a fait des modifications
     const metaDoc = await db.collection('meta').doc('lastUpdate').get();
     if(metaDoc.exists){
       const serverTs = metaDoc.data().ts || 0;
       const updatedBy = metaDoc.data().by || '';
-      // Si la mise à jour vient d'un autre appareil
       if(serverTs > lastKnownUpdate && updatedBy !== currentUser?.email){
         lastKnownUpdate = serverTs;
         console.log('🔄 Changement détecté depuis Firebase, sync...');
         await syncFromFirebase();
-        // Afficher indicateur
-        const dot=document.getElementById('sync-dot');
-        if(dot){
-          dot.style.background='#22c55e';
-          setTimeout(()=>{ if(dot) dot.style.background='rgba(255,255,255,0.3)'; },2000);
-        }
         showSyncStatus('✓ Contenu mis à jour', 'ok');
         setTimeout(hideSyncStatus, 2500);
       } else if(serverTs > lastKnownUpdate) {
@@ -192,9 +191,7 @@ async function checkForUpdates(){
 
 function startAutoRefresh(){
   if(autoRefreshTimer) clearInterval(autoRefreshTimer);
-  // Vérifier les mises à jour toutes les 10 secondes
   autoRefreshTimer=setInterval(checkForUpdates, 10000);
-  // Initialiser le timestamp connu
   db.collection('meta').doc('lastUpdate').get().then(doc=>{
     if(doc.exists) lastKnownUpdate = doc.data().ts || 0;
   }).catch(()=>{});
@@ -228,4 +225,3 @@ function updateNotifDot(){
   const hasUnread=DB.notifications.some(n=>n.unread);
   document.getElementById('notif-dot').style.display=hasUnread?'block':'none';
 }
-
