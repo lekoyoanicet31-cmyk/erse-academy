@@ -9,7 +9,8 @@ function saveData(){
       exams:DB.exams.filter(e=>e.id>=200),
       subjects:DB.subjects,
       notifications:DB.notifications.slice(0,20),
-      nextId:DB.nextId
+      nextId:DB.nextId,
+      examResults:DB.examResults||[]
     };
     localStorage.setItem('erse_db',JSON.stringify(toSave));
   }catch(e){console.warn('Sauvegarde impossible:',e);}
@@ -26,6 +27,7 @@ function loadData(){
     if(data.subjects&&data.subjects.length)DB.subjects=data.subjects;
     if(data.notifications)DB.notifications=data.notifications;
     if(data.nextId)DB.nextId=data.nextId;
+    if(data.examResults&&data.examResults.length)DB.examResults=data.examResults;
     if(data.exams&&data.exams.length){
       data.exams.forEach(e=>{if(!DB.exams.find(x=>x.id===e.id))DB.exams.push(e);});
     }
@@ -62,7 +64,6 @@ function openModalStudent(){
 loadData();
 updateNotifDot();
 
-// Fallback : si Firebase ne répond pas dans 8 secondes, on débloque quand même
 let authResolved = false;
 const loadingFallback = setTimeout(() => {
   if (!authResolved) {
@@ -71,7 +72,6 @@ const loadingFallback = setTimeout(() => {
   }
 }, 8000);
 
-// ── Écouter l'état de connexion Firebase Auth ──
 auth.onAuthStateChanged(async (firebaseUser) => {
   authResolved = true;
   clearTimeout(loadingFallback);
@@ -120,6 +120,30 @@ auth.onAuthStateChanged(async (firebaseUser) => {
         };
         DB.users.push(user);
       }
+    } else {
+      // Utilisateur trouvé en local — recharger quand même depuis Firestore
+      try{
+        const doc = await db.collection('users').doc(email).get();
+        if(doc.exists){
+          const d = doc.data();
+          user.passed = d.passed||user.passed||0;
+          user.avgScore = d.avgScore||user.avgScore||0;
+          user.certs = d.certs||user.certs||0;
+          user.level = d.level||user.level||1;
+          user.role = d.role||user.role||'student';
+        }
+        // Recharger examResults depuis Firestore
+        const resultsSnap = await db.collection('examResults').doc(email).collection('results').get();
+        if(!resultsSnap.empty){
+          if(!DB.examResults) DB.examResults = [];
+          resultsSnap.forEach(doc=>{
+            const r = doc.data();
+            const existing = DB.examResults.findIndex(x=>String(x.examId)===String(r.examId)&&x.userId===r.userId);
+            if(existing!==-1) DB.examResults[existing] = r;
+            else DB.examResults.push(r);
+          });
+        }
+      }catch(e){ console.warn('Erreur rechargement Firestore:', e); }
     }
     saveData();
     loginUser(user);
@@ -132,6 +156,5 @@ auth.onAuthStateChanged(async (firebaseUser) => {
   }
 });
 
-// Stub functions for removed PWA features
 function installPWA(){ toast('Pour installer : utilisez le menu de votre navigateur → Ajouter à l\'écran d\'accueil','ok'); }
 function showInstallButton(){}
