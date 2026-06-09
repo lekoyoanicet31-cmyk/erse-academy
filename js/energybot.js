@@ -88,12 +88,10 @@ RÈGLES IMPORTANTES :
 - Pour les formules mathématiques, utilise TOUJOURS la notation LaTeX : $formule$ pour inline, $$formule$$ pour display.
 - Exemple : La formule quadratique est $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$
 - Structure tes réponses avec des titres clairs.
-- Si un étudiant envoie une photo d'épreuve, analyse-la en détail et fournis une correction complète.
-- À la fin de chaque réponse, propose 3 questions de suivi pertinentes sous forme : 
-💡 **Questions de suivi :**
-1. [question 1]
-2. [question 2]
-3. [question 3]`
+- Si un étudiant envoie une photo d'épreuve, fournis une correction concise et structurée.
+- Réponds de façon COURTE et DIRECTE, maximum 5-6 lignes sauf si l'étudiant demande plus.
+- Pas d'introduction, pas de blabla, va droit au but.
+- NE propose JAMAIS de questions de suivi.\`
   };
 
   DB.subjects.filter(s=>s.active).forEach(s=>{
@@ -104,12 +102,10 @@ RÈGLES IMPORTANTES :
 - Réponds toujours en français avec des explications claires et des exemples concrets.
 - Pour les formules mathématiques, utilise TOUJOURS LaTeX : $formule$ pour inline, $$formule$$ pour display.
 - Exemple : $F = ma$, $$E = mc^2$$, $\\int_0^\\infty e^{-x} dx = 1$
-- Si tu reçois une photo d'épreuve, analyse-la et fournis une correction détaillée étape par étape.
-- À la fin de chaque réponse, propose 3 questions de suivi :
-💡 **Questions de suivi :**
-1. [question 1]
-2. [question 2]
-3. [question 3]`;
+- Si tu reçois une photo d'épreuve, fournis une correction concise étape par étape.
+- Réponds de façon COURTE et DIRECTE, maximum 5-6 lignes sauf demande explicite.
+- Pas d'introduction inutile, va droit au but.
+- NE propose JAMAIS de questions de suivi.`;
   });
   return prompts;
 }
@@ -285,10 +281,6 @@ function addEbMsg(role, content){
     div.innerHTML = `<div class="eb-msg-avatar">⚡</div><div class="eb-bubble">${formattedContent}</div>`;
     msgs.appendChild(div);
 
-    // Rendre les questions de suivi cliquables
-    const bubble = div.querySelector('.eb-bubble');
-    makeFollowupsClickable(bubble, content);
-
     // Rendu KaTeX après insertion dans le DOM
     setTimeout(() => renderKaTeX(bubble), 100);
   } else {
@@ -296,7 +288,8 @@ function addEbMsg(role, content){
     msgs.appendChild(div);
   }
 
-  msgs.scrollTop = msgs.scrollHeight;
+  const distFromBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight;
+  if(distFromBottom < 200) msgs.scrollTop = msgs.scrollHeight;
 }
 
 function makeFollowupsClickable(bubble, content){
