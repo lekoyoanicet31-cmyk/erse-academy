@@ -214,17 +214,24 @@ async function summarizeEbChat(){
 let ebPendingImage = null;
 
 function triggerEbImage(){
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  // Pas de capture forcé — laisse le choix entre caméra et galerie
+  // Réutiliser un input existant ou en créer un attaché au DOM
+  let input = document.getElementById('eb-file-input');
+  if(!input){
+    input = document.createElement('input');
+    input.id = 'eb-file-input';
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.style.cssText = 'position:fixed;top:-100px;left:-100px;opacity:0;width:1px;height:1px;';
+    document.body.appendChild(input);
+  }
+  input.value = ''; // Reset pour permettre re-sélection du même fichier
   input.onchange = (e) => {
     const file = e.target.files[0];
     if(!file) return;
     if(file.size > 5 * 1024 * 1024){ toast('Image trop lourde (max 5MB)','err'); return; }
     const reader = new FileReader();
     reader.onload = (ev) => {
-      ebPendingImage = ev.target.result; // base64
+      ebPendingImage = ev.target.result;
       showEbImagePreview(ebPendingImage);
     };
     reader.readAsDataURL(file);
