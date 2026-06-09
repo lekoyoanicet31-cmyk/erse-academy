@@ -282,7 +282,7 @@ function addEbMsg(role, content){
     msgs.appendChild(div);
 
     // Rendu KaTeX après insertion dans le DOM
-    const bubble = div.querySelector('.eb-bubble'); setTimeout(() => renderKaTeX(bubble), 100);
+    const bubble = div.querySelector('.eb-bubble'); setTimeout(() => { if(typeof renderMathInElement === 'function' && typeof katex !== 'undefined') renderKaTeX(bubble); }, 500);
   } else {
     div.innerHTML = `<div class="eb-msg-avatar">${currentUser ? currentUser.initials : 'Moi'}</div><div class="eb-bubble">${fmtEb(content)}</div>`;
     msgs.appendChild(div);
