@@ -91,7 +91,7 @@ RÈGLES IMPORTANTES :
 - Si un étudiant envoie une photo d'épreuve, fournis une correction concise et structurée.
 - Réponds de façon COURTE et DIRECTE, maximum 5-6 lignes sauf si l'étudiant demande plus.
 - Pas d'introduction, pas de blabla, va droit au but.
-- NE propose JAMAIS de questions de suivi.\`
+- NE propose JAMAIS de questions de suivi.`
   };
 
   DB.subjects.filter(s=>s.active).forEach(s=>{
