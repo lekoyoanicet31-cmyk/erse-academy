@@ -217,7 +217,7 @@ function triggerEbImage(){
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
-  input.capture = 'environment'; // caméra arrière sur mobile
+  // Pas de capture forcé — laisse le choix entre caméra et galerie
   input.onchange = (e) => {
     const file = e.target.files[0];
     if(!file) return;
