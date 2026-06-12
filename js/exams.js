@@ -32,7 +32,7 @@ function renderShop(){
 
   // Filtrer par niveau utilisateur (on garde tout, on marquera les verrouillés)
   const userLvl = getUserLevel();
-  let filtered = [...items];
+  let filtered = items.filter(i=>i.active!==false); // Exclure les épreuves désactivées
   if(shopFilter==='L1') filtered = filtered.filter(i=>i.licence==='L1');
   else if(shopFilter==='L2') filtered = filtered.filter(i=>i.licence==='L2');
   else if(shopFilter==='L3') filtered = filtered.filter(i=>i.licence==='L3');
@@ -257,11 +257,13 @@ function renderAdminBoutique(){
                   ?'<span style="color:#10b981;">🆓 Gratuit</span>'
                   :`<span style="color:#60a5fa;">🔒 Payant${item.price>0?' · '+item.price+' FCFA':''}</span>`}
                 ${item.corrigeUrl?'<span style="color:#34d399;">✅ Corrigé</span>':''}
+                ${item.active===false?'<span style="color:#f59e0b;">⏸ Désactivée</span>':''}
               </div>
             </div>
             <div style="display:flex;gap:.4rem;flex-wrap:wrap;flex-shrink:0;">
               <button onclick="editShopItem('${item.id}')" style="padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:transparent;color:#60a5fa;cursor:pointer;font-size:.75rem;font-family:var(--font-body);">✏ Modifier</button>
               <button onclick="toggleShopItemFree('${item.id}')" style="padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.75rem;font-family:var(--font-body);">${item.isFree?'→ Payant':'→ Gratuit'}</button>
+              <button onclick="toggleShopItemActive('${item.id}')" style="padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:${item.active===false?'rgba(245,158,11,0.15)':'transparent'};color:${item.active===false?'#fbbf24':'var(--muted)'};cursor:pointer;font-size:.75rem;font-family:var(--font-body);">${item.active===false?'✅ Activer':'⏸ Désactiver'}</button>
               <button onclick="deleteShopItem('${item.id}')" style="padding:.35rem .8rem;border-radius:6px;border:none;background:#ef4444;color:#fff;cursor:pointer;font-size:.75rem;font-family:var(--font-body);">🗑 Supprimer</button>
             </div>
           </div>
@@ -312,6 +314,17 @@ function deleteShopItem(id){
   fbDeleteShopItem(id);
   saveData();
   toast('Épreuve supprimée','ok');
+  renderAdminBoutique();
+  renderShop();
+}
+
+function toggleShopItemActive(id){
+  const item = (DB.shop||[]).find(i=>String(i.id)===String(id));
+  if(!item) return;
+  item.active = item.active === false ? true : false;
+  fbSaveShopItem(item);
+  saveData();
+  toast(item.active===false ? 'Épreuve désactivée ⏸' : 'Épreuve activée ✅','ok');
   renderAdminBoutique();
   renderShop();
 }
