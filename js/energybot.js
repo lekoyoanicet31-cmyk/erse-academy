@@ -9,23 +9,7 @@
    • Bouton résumé
 ═══════════════════════════════════════════ */
 
-// ── Charger KaTeX dynamiquement ──
-(function loadKaTeX(){
-  if(document.getElementById('katex-css')) return;
-  const link = document.createElement('link');
-  link.id = 'katex-css';
-  link.rel = 'stylesheet';
-  link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
-  document.head.appendChild(link);
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
-  script.defer = true;
-  document.head.appendChild(script);
-  const autorender = document.createElement('script');
-  autorender.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js';
-  autorender.defer = true;
-  document.head.appendChild(autorender);
-})();
+// KaTeX chargé dans index.html <head>
 
 // ── Rendu KaTeX ──
 function renderKaTeX(el){
