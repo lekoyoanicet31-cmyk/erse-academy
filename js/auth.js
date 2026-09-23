@@ -42,8 +42,7 @@ async function doLogin(){
 
 async function doLoginGoogle(){
   try{
-    await auth.signInWithPopup(googleProvider);
-    // onAuthStateChanged va s'occuper du reste
+    await auth.signInWithRedirect(googleProvider);
   }catch(e){
     toast('Connexion Google annulée','err');
   }
