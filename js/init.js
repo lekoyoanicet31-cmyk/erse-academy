@@ -72,13 +72,27 @@ const loadingFallback = setTimeout(() => {
   }
 }, 8000);
 
+// Gérer le résultat du redirect Google
+auth.getRedirectResult().then(result => {
+  if(result && result.user){
+    console.log('Redirect Google OK:', result.user.email);
+  }
+}).catch(e => console.warn('getRedirectResult error:', e));
+
 auth.onAuthStateChanged(async (firebaseUser) => {
   authResolved = true;
   clearTimeout(loadingFallback);
   hideLoadingScreen();
   if(firebaseUser){
-    const email = firebaseUser.email || (firebaseUser.providerData && firebaseUser.providerData[0] && firebaseUser.providerData[0].email) || '';
-    if(!email){ console.warn('Email vide'); hideLoadingScreen(); return; }
+    const email = firebaseUser.email
+      || (firebaseUser.providerData && firebaseUser.providerData[0] && firebaseUser.providerData[0].email)
+      || '';
+    if(!email){
+      console.warn('Email vide — attente redirect Google...');
+      // Attendre que le redirect soit traité
+      setTimeout(() => { if(!authResolved) hideLoadingScreen(); }, 3000);
+      return;
+    }
     let user = DB.users.find(u=>u.email===email);
     if(!user){
       try{
@@ -122,7 +136,6 @@ auth.onAuthStateChanged(async (firebaseUser) => {
         DB.users.push(user);
       }
     } else {
-      // Utilisateur trouvé en local — recharger quand même depuis Firestore
       try{
         const doc = await db.collection('users').doc(email).get();
         if(doc.exists){
@@ -133,7 +146,6 @@ auth.onAuthStateChanged(async (firebaseUser) => {
           user.level = d.level||user.level||1;
           user.role = d.role||user.role||'student';
         }
-        // Recharger examResults depuis Firestore
         const resultsSnap = await db.collection('examResults').doc(email).collection('results').get();
         if(!resultsSnap.empty){
           if(!DB.examResults) DB.examResults = [];
