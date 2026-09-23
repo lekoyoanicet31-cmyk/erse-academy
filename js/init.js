@@ -77,7 +77,8 @@ auth.onAuthStateChanged(async (firebaseUser) => {
   clearTimeout(loadingFallback);
   hideLoadingScreen();
   if(firebaseUser){
-    const email = firebaseUser.email;
+    const email = firebaseUser.email || (firebaseUser.providerData && firebaseUser.providerData[0] && firebaseUser.providerData[0].email) || '';
+    if(!email){ console.warn('Email vide'); hideLoadingScreen(); return; }
     let user = DB.users.find(u=>u.email===email);
     if(!user){
       try{
