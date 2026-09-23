@@ -42,9 +42,19 @@ async function doLogin(){
 
 async function doLoginGoogle(){
   try{
-    await auth.signInWithRedirect(googleProvider);
+    const result = await auth.signInWithPopup(googleProvider);
+    if(result && result.user){
+      console.log('Google Auth OK:', result.user.email);
+    }
   }catch(e){
-    toast('Connexion Google annulée','err');
+    if(e.code === 'auth/popup-blocked'){
+      toast('Popup bloqué — désactivez votre bloqueur de popups','err');
+    } else if(e.code === 'auth/popup-closed-by-user'){
+      toast('Connexion Google annulée','info');
+    } else {
+      console.warn('Google Auth error:', e);
+      toast('Erreur connexion Google','err');
+    }
   }
 }
 

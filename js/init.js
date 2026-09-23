@@ -72,13 +72,6 @@ const loadingFallback = setTimeout(() => {
   }
 }, 8000);
 
-// Gérer le résultat du redirect Google
-auth.getRedirectResult().then(result => {
-  if(result && result.user){
-    console.log('Redirect Google OK:', result.user.email);
-  }
-}).catch(e => console.warn('getRedirectResult error:', e));
-
 auth.onAuthStateChanged(async (firebaseUser) => {
   authResolved = true;
   clearTimeout(loadingFallback);
@@ -163,6 +156,7 @@ auth.onAuthStateChanged(async (firebaseUser) => {
   } else {
     if(currentUser){
       currentUser=null;
+      if(typeof planningLoaded !== 'undefined') planningLoaded = false;
       document.getElementById('auth-screen').style.display='flex';
       document.getElementById('main-app').style.display='none';
     }
