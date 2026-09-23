@@ -264,23 +264,15 @@ function openEditProfile(){
   openModal('modal-edit-profile');
 }
 
-async function changePassword(){
-  const currentPwd = prompt('Entrez votre mot de passe actuel :');
-  if(!currentPwd) return;
-  const newPwd = prompt('Entrez votre nouveau mot de passe (min 8 caractères, 1 majuscule, 1 chiffre) :');
-  if(!newPwd) return;
-  if(newPwd.length < 8){ toast('Mot de passe trop court (min 8 caractères)','err'); return; }
-  if(!/[A-Z]/.test(newPwd)){ toast('Le mot de passe doit contenir au moins une majuscule','err'); return; }
-  if(!/[0-9]/.test(newPwd)){ toast('Le mot de passe doit contenir au moins un chiffre','err'); return; }
-  try{
-    // Réauthentifier l'utilisateur avant de changer le mot de passe
-    const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, currentPwd);
-    await auth.currentUser.reauthenticateWithCredential(credential);
-    await auth.currentUser.updatePassword(newPwd);
-    toast('Mot de passe modifié avec succès !','ok');
-  }catch(e){
-    if(e.code === 'auth/wrong-password') toast('Mot de passe actuel incorrect','err');
-    else if(e.code === 'auth/too-many-requests') toast('Trop de tentatives, réessayez plus tard','err');
-    else toast('Erreur : '+e.message,'err');
+function togglePwdVisibility(inputId, eyeId){
+  const input = document.getElementById(inputId);
+  const eye = document.getElementById(eyeId);
+  if(!input) return;
+  if(input.type === 'password'){
+    input.type = 'text';
+    if(eye) eye.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    if(eye) eye.textContent = '👁';
   }
 }
