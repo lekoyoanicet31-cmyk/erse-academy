@@ -147,9 +147,8 @@
   <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(150,150,150,0.4);font-size:.85rem;pointer-events:none;user-select:none;" id="email-hint">etudiant@erse.ac</span>
 </div></div>
       <div class="form-group"><label class="form-label">Mot de passe</label><div style="position:relative;">
-  <input class="form-input" id="login-pwd" type="password" placeholder="" style="width:100%;padding-right:40px;" oninput="document.getElementById('pwd-hint').style.display=this.value?'none':'block'">
-  <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(150,150,150,0.4);font-size:.85rem;pointer-events:none;user-select:none;" id="pwd-hint">••••••••</span>
-  <button type="button" onclick="togglePwdVisibility('login-pwd','eye-login')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;" id="eye-login">👁</button>
+  <input class="form-input" id="login-pwd" type="password" placeholder="••••••••" style="width:100%;padding-right:40px;">
+  <button type="button" onclick="togglePwdVisibility('login-pwd','eye-login')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;line-height:1;" id="eye-login">👁</button>
 </div></div>
       <button class="btn-auth" id="login-btn" onclick="doLogin()">Se connecter</button>
       
