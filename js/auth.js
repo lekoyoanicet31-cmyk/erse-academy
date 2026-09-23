@@ -42,19 +42,9 @@ async function doLogin(){
 
 async function doLoginGoogle(){
   try{
-    const result = await auth.signInWithPopup(googleProvider);
-    if(result && result.user){
-      console.log('Google Auth OK:', result.user.email);
-    }
+    await auth.signInWithRedirect(googleProvider);
   }catch(e){
-    if(e.code === 'auth/popup-blocked'){
-      toast('Popup bloqué — désactivez votre bloqueur de popups','err');
-    } else if(e.code === 'auth/popup-closed-by-user'){
-      toast('Connexion Google annulée','info');
-    } else {
-      console.warn('Google Auth error:', e);
-      toast('Erreur connexion Google','err');
-    }
+    toast('Connexion Google annulée','err');
   }
 }
 
@@ -274,3 +264,23 @@ function openEditProfile(){
   openModal('modal-edit-profile');
 }
 
+async function changePassword(){
+  const currentPwd = prompt('Entrez votre mot de passe actuel :');
+  if(!currentPwd) return;
+  const newPwd = prompt('Entrez votre nouveau mot de passe (min 8 caractères, 1 majuscule, 1 chiffre) :');
+  if(!newPwd) return;
+  if(newPwd.length < 8){ toast('Mot de passe trop court (min 8 caractères)','err'); return; }
+  if(!/[A-Z]/.test(newPwd)){ toast('Le mot de passe doit contenir au moins une majuscule','err'); return; }
+  if(!/[0-9]/.test(newPwd)){ toast('Le mot de passe doit contenir au moins un chiffre','err'); return; }
+  try{
+    // Réauthentifier l'utilisateur avant de changer le mot de passe
+    const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, currentPwd);
+    await auth.currentUser.reauthenticateWithCredential(credential);
+    await auth.currentUser.updatePassword(newPwd);
+    toast('Mot de passe modifié avec succès !','ok');
+  }catch(e){
+    if(e.code === 'auth/wrong-password') toast('Mot de passe actuel incorrect','err');
+    else if(e.code === 'auth/too-many-requests') toast('Trop de tentatives, réessayez plus tard','err');
+    else toast('Erreur : '+e.message,'err');
+  }
+}
