@@ -8,6 +8,7 @@
 <title>ERSE ACADEMY — Plateforme Académique</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/energybot.css">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -476,15 +477,17 @@
 <!-- ENERGYBOT -->
 <div id="pg-energybot" class="page">
   <div class="eb-layout">
-    <div class="eb-sidebar">
+    <div class="eb-sidebar-backdrop" id="eb-sidebar-backdrop" onclick="toggleEbSidebar(false)"></div>
+    <div class="eb-sidebar" id="eb-sidebar">
       <div class="eb-sidebar-top">
+        <button class="eb-sidebar-close" onclick="toggleEbSidebar(false)" aria-label="Fermer le menu">✕</button>
         <div class="eb-bot-avatar">⚡</div>
         <div class="eb-bot-name">EnergyBot</div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:3px;"><div class="eb-dot"></div><span class="eb-status-txt">Assistant pédagogique IA</span></div>
       </div>
       <div class="eb-sidebar-mid">
         <div class="eb-section-lbl">Contexte</div>
-        <button class="eb-chip on" onclick="setEbCtx('general','🎓','Toutes matières','Assistant général')">
+        <button class="eb-chip on" onclick="setEbCtx('general','🎓','Toutes matières','Assistant général');toggleEbSidebar(false)">
           <span class="eb-chip-ic">🎓</span>Toutes les matières
         </button>
         <div id="eb-subject-chips"></div>
@@ -492,18 +495,19 @@
         <button class="eb-chip" onclick="clearEbChat()"><span class="eb-chip-ic">🗑</span>Effacer conversation</button>
       </div>
       <div class="eb-sidebar-bottom">
-        <div class="eb-model-badge"><div class="eb-model-dot"></div>Llama 3.3 70B via Groq (gratuit)</div>
+        <div class="eb-model-badge"><div class="eb-model-dot"></div>IA via Groq (gratuit)</div>
       </div>
     </div>
     <div class="eb-main">
       <div class="eb-topbar">
-        <div style="display:flex;align-items:center;gap:10px;">
+        <button class="eb-hamburger" onclick="toggleEbSidebar()" aria-label="Ouvrir le menu">☰</button>
+        <div class="eb-topbar-ctx">
           <div class="eb-ctx-ic" id="eb-ctx-ic">🎓</div>
           <div><div class="eb-ctx-name" id="eb-ctx-name">Toutes matières</div><div class="eb-ctx-sub" id="eb-ctx-sub">Assistant général ERSE ACADEMY</div></div>
         </div>
-        <div style="display:flex;gap:6px;">
-          <button class="eb-action-btn" onclick="clearEbChat()">🗑 Effacer</button>
-          <button class="eb-action-btn" onclick="promptApiKey()" id="eb-key-btn" style="display:none;">🔑 Clé API</button>
+        <div class="eb-topbar-actions">
+          <button class="eb-action-btn" onclick="clearEbChat()" title="Effacer">🗑<span class="eb-action-txt"> Effacer</span></button>
+          <button class="eb-action-btn" onclick="promptApiKey()" id="eb-key-btn" style="display:none;" title="Clé API">🔑<span class="eb-action-txt"> Clé API</span></button>
         </div>
       </div>
       <div class="eb-messages" id="eb-messages">
@@ -528,8 +532,8 @@
           <button class="eb-qp" onclick="sendStarter('Donne un exemple concret')">🔍 Exemple</button>
         </div>
         <div class="eb-input-row">
-          <button onclick="triggerEbImage()" title="Envoyer une photo d'épreuve" style="padding:.45rem .6rem;border-radius:8px;border:1px solid var(--border);background:var(--b0);color:var(--muted);cursor:pointer;font-size:1.1rem;flex-shrink:0;" title="Photo/Caméra">📷</button>
-          <button onclick="summarizeEbChat()" title="Résumer la conversation" style="padding:.45rem .6rem;border-radius:8px;border:1px solid var(--border);background:var(--b0);color:var(--muted);cursor:pointer;font-size:1.1rem;flex-shrink:0;">📋</button>
+          <button class="eb-icon-btn" onclick="triggerEbImage()" title="Envoyer une photo d'épreuve">📷</button>
+          <button class="eb-icon-btn eb-icon-btn-desktop" onclick="summarizeEbChat()" title="Résumer la conversation">📋</button>
           <textarea class="eb-input" id="eb-input" placeholder="Posez votre question ou envoyez une photo…" rows="1"
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendEbMessage();}"
             oninput="autoEbResize(this)"></textarea>
@@ -704,25 +708,7 @@
 </div>
 </div><!-- /main-app -->
 
-<!-- ══ WHATSAPP GATE (boutique) ══ -->
-<div id="wg-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(5,8,15,0.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem;">
-  <div style="background:var(--card-bg,#12161f);border:1px solid var(--border,rgba(255,255,255,0.1));border-radius:16px;max-width:420px;width:100%;padding:2rem 1.6rem;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
-    <div style="font-size:2.6rem;margin-bottom:.6rem;">🔒</div>
-    <h3 style="margin:0 0 .5rem;color:var(--text,#fff);font-family:var(--font-body,inherit);">Accès réservé</h3>
-    <p style="margin:0 0 1.4rem;color:var(--muted,#9ca3af);font-size:.92rem;line-height:1.5;">
-      Rejoins d'abord la chaîne WhatsApp ERSE ACADEMY pour débloquer la boutique d'épreuves.
-    </p>
-    <button id="wg-join-btn" onclick="openChannelAndArm()" style="width:100%;padding:.85rem;border:none;border-radius:10px;background:#25D366;color:#0b0b0b;font-weight:700;font-size:.95rem;cursor:pointer;margin-bottom:.7rem;">
-      🟢 Rejoindre la chaîne WhatsApp
-    </button>
-    <button id="wg-confirm-btn" onclick="unlockShop()" disabled style="width:100%;padding:.85rem;border:1px solid var(--border,rgba(255,255,255,0.15));border-radius:10px;background:transparent;color:var(--muted,#9ca3af);font-size:.9rem;cursor:not-allowed;margin-bottom:.7rem;transition:.2s;">
-      ✅ J'ai rejoint, débloquer la boutique
-    </button>
-    <button onclick="wgClose()" style="width:100%;padding:.5rem;border:none;background:transparent;color:var(--muted,#6b7280);font-size:.82rem;cursor:pointer;">
-      ✕ Retour à l'accueil
-    </button>
-  </div>
-</div>
+
 
 <!-- ══ JS MODULES ══ -->
 <script src="js/config.js"></script>
@@ -730,7 +716,6 @@
 <script src="js/utils.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/nav.js"></script>
-<script src="js/whatsapp-gate.js"></script>
 <script src="js/home.js"></script>
 <script src="js/courses.js"></script>
 <script src="js/exams.js"></script>
@@ -739,6 +724,7 @@
 <script src="js/forum.js"></script>
 <script src="js/firebase-sync.js"></script>
 <script src="js/energybot.js"></script>
+<script src="js/energybot-ui.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/init.js"></script>
 </body>
