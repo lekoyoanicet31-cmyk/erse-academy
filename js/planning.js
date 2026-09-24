@@ -1,23 +1,40 @@
 // ═══ planning.js ═══
 /* ═══════════════ PLANNING DE RÉVISION ═══════════════ */
 
+function planningLocalKey(){
+  return 'erse_planning_' + (currentUser?.email || 'guest');
+}
+
 async function savePlanningToFirestore(plan, meta) {
-  if (!fbReady || !currentUser?.email) return;
+  // Toujours garder une copie locale d'abord : si Firestore n'est pas
+  // encore prêt (fbReady peut rester false plusieurs secondes après la
+  // connexion) ou si la requête échoue, le plan n'est pas perdu.
+  try{
+    localStorage.setItem(planningLocalKey(), JSON.stringify({ plan, meta, savedAt: new Date().toISOString() }));
+  }catch(e){}
+  if (!fbReady || !currentUser?.email) return false;
   try {
     await firebase.firestore().collection('plannings').doc(currentUser.email).set({
       plan,
       meta,
       savedAt: new Date().toISOString()
     });
-  } catch(e) { console.warn('savePlanning error:', e); }
+    return true;
+  } catch(e) { console.warn('savePlanning error:', e); return false; }
 }
 
 async function loadPlanningFromFirestore() {
-  if (!fbReady || !currentUser?.email) return null;
-  try {
-    const snap = await firebase.firestore().collection('plannings').doc(currentUser.email).get();
-    if (snap.exists) return snap.data();
-  } catch(e) { console.warn('loadPlanning error:', e); }
+  if (fbReady && currentUser?.email) {
+    try {
+      const snap = await firebase.firestore().collection('plannings').doc(currentUser.email).get();
+      if (snap.exists) return snap.data();
+    } catch(e) { console.warn('loadPlanning error:', e); }
+  }
+  // Repli local si Firestore n'était pas prêt ou n'a rien renvoyé
+  try{
+    const raw = localStorage.getItem(planningLocalKey());
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
   return null;
 }
 
@@ -28,6 +45,7 @@ async function deletePlanning() {
       await firebase.firestore().collection('plannings').doc(currentUser.email).delete();
     } catch(e) { console.warn('deletePlanning error:', e); }
   }
+  try{ localStorage.removeItem(planningLocalKey()); }catch(e){}
   document.getElementById('plan-result').innerHTML = '';
   toast('Planning supprimé', 'ok');
 }
@@ -121,8 +139,8 @@ async function generatePlanning() {
 
   const meta = { dateVal, hours, level, generatedAt: new Date().toISOString() };
   renderPlanningResult(plan, meta);
-  await savePlanningToFirestore(plan, meta);
-  toast('Planning généré et sauvegardé ✅', 'ok');
+  const synced = await savePlanningToFirestore(plan, meta);
+  toast(synced ? 'Planning généré et synchronisé ✅' : 'Planning généré (sauvegardé localement, sync en attente)', synced ? 'ok' : 'info');
 }
 
 /* ═══════════════ SYSTÈME XP & NIVEAUX ═══════════════ */
