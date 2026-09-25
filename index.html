@@ -708,7 +708,25 @@
 </div>
 </div><!-- /main-app -->
 
-
+<!-- ══ WHATSAPP GATE (boutique) ══ -->
+<div id="wg-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(5,8,15,0.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:var(--card-bg,#12161f);border:1px solid var(--border,rgba(255,255,255,0.1));border-radius:16px;max-width:420px;width:100%;padding:2rem 1.6rem;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+    <div style="font-size:2.6rem;margin-bottom:.6rem;">🔒</div>
+    <h3 style="margin:0 0 .5rem;color:var(--text,#fff);font-family:var(--font-body,inherit);">Accès réservé</h3>
+    <p style="margin:0 0 1.4rem;color:var(--muted,#9ca3af);font-size:.92rem;line-height:1.5;">
+      Rejoins d'abord la chaîne WhatsApp ERSE ACADEMY pour débloquer la boutique d'épreuves.
+    </p>
+    <button id="wg-join-btn" onclick="openChannelAndArm()" style="width:100%;padding:.85rem;border:none;border-radius:10px;background:#25D366;color:#0b0b0b;font-weight:700;font-size:.95rem;cursor:pointer;margin-bottom:.7rem;">
+      🟢 Rejoindre la chaîne WhatsApp
+    </button>
+    <button id="wg-confirm-btn" onclick="unlockShop()" disabled style="width:100%;padding:.85rem;border:1px solid var(--border,rgba(255,255,255,0.15));border-radius:10px;background:transparent;color:var(--muted,#9ca3af);font-size:.9rem;cursor:not-allowed;margin-bottom:.7rem;transition:.2s;">
+      ✅ J'ai rejoint, débloquer la boutique
+    </button>
+    <button onclick="wgClose()" style="width:100%;padding:.5rem;border:none;background:transparent;color:var(--muted,#6b7280);font-size:.82rem;cursor:pointer;">
+      ✕ Retour à l'accueil
+    </button>
+  </div>
+</div>
 
 <!-- ══ JS MODULES ══ -->
 <script src="js/config.js"></script>
@@ -716,6 +734,7 @@
 <script src="js/utils.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/nav.js"></script>
+<script src="js/whatsapp-gate.js"></script>
 <script src="js/home.js"></script>
 <script src="js/courses.js"></script>
 <script src="js/exams.js"></script>
