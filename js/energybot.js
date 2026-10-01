@@ -160,6 +160,8 @@ function setEbCtx(id, icon, name, desc, el){
   document.getElementById('eb-ctx-sub').textContent = desc;
   document.querySelectorAll('.eb-chip').forEach(c=>c.classList.remove('on'));
   if(el) el.classList.add('on');
+  const chatArea = document.getElementById('eb-chat-area');
+  if(chatArea) chatArea.classList.add('is-empty');
   const msgs = document.getElementById('eb-messages');
   msgs.innerHTML = `<div class="eb-welcome" id="eb-welcome">
     <div class="eb-welcome-avatar">⚡</div>
@@ -261,7 +263,11 @@ function fmtEb(t){
 
 function addEbMsg(role, content){
   const welcome = document.getElementById('eb-welcome');
-  if(welcome) welcome.remove();
+  if(welcome){
+    welcome.remove();
+    const chatArea = document.getElementById('eb-chat-area');
+    if(chatArea) chatArea.classList.remove('is-empty');
+  }
   const msgs = document.getElementById('eb-messages');
   const div = document.createElement('div');
   div.className = 'eb-msg ' + role;
@@ -311,7 +317,11 @@ function makeFollowupsClickable(bubble, content){
 
 function showEbTyping(){
   const welcome = document.getElementById('eb-welcome');
-  if(welcome) welcome.remove();
+  if(welcome){
+    welcome.remove();
+    const chatArea = document.getElementById('eb-chat-area');
+    if(chatArea) chatArea.classList.remove('is-empty');
+  }
   const msgs = document.getElementById('eb-messages');
   const div = document.createElement('div');
   div.className = 'eb-msg bot';

@@ -501,47 +501,42 @@
     <div class="eb-main">
       <div class="eb-topbar">
         <button class="eb-hamburger" onclick="toggleEbSidebar()" aria-label="Ouvrir le menu">☰</button>
-        <div class="eb-topbar-ctx">
+        <div class="eb-brand"><span class="eb-brand-ic">⚡</span>EnergyBot</div>
+        <div class="eb-topbar-ctx" id="eb-topbar-ctx">
           <div class="eb-ctx-ic" id="eb-ctx-ic">🎓</div>
           <div><div class="eb-ctx-name" id="eb-ctx-name">Toutes matières</div><div class="eb-ctx-sub" id="eb-ctx-sub">Assistant général ERSE ACADEMY</div></div>
         </div>
         <div class="eb-topbar-actions">
-          <button class="eb-action-btn" onclick="clearEbChat()" title="Effacer">🗑<span class="eb-action-txt"> Effacer</span></button>
-          <button class="eb-action-btn" onclick="promptApiKey()" id="eb-key-btn" style="display:none;" title="Clé API">🔑<span class="eb-action-txt"> Clé API</span></button>
+          <button class="eb-action-btn" onclick="clearEbChat()" title="Nouvelle conversation">🗑</button>
+          <button class="eb-action-btn" onclick="promptApiKey()" id="eb-key-btn" style="display:none;" title="Clé API">🔑</button>
         </div>
       </div>
-      <div class="eb-messages" id="eb-messages">
-        <div class="eb-welcome" id="eb-welcome">
-          <div class="eb-welcome-avatar">⚡</div>
-          <h2>Bonjour ! Je suis EnergyBot</h2>
-          <p>Votre assistant pédagogique IA. Posez vos questions, demandez des exercices ou des explications sur n'importe quelle matière.</p>
-          <div class="eb-starter-grid">
-            <button class="eb-starter" onclick="sendStarter('Explique-moi la dérivée en Mathématiques de façon simple')"><span class="eb-starter-ic">💡</span><span class="eb-starter-txt">Expliquer un concept</span><span class="eb-starter-sub">Explication claire et simple</span></button>
-            <button class="eb-starter" onclick="sendStarter('Génère 5 exercices de niveau Licence 1')"><span class="eb-starter-ic">✏️</span><span class="eb-starter-txt">Exercices pratiques</span><span class="eb-starter-sub">Entraîne-toi</span></button>
-            <button class="eb-starter" onclick="sendStarter('Fais un résumé des points clés à retenir')"><span class="eb-starter-ic">📋</span><span class="eb-starter-txt">Résumé de cours</span><span class="eb-starter-sub">Points essentiels</span></button>
-            <button class="eb-starter" onclick="sendStarter('Quels sujets tombent souvent aux examens ?')"><span class="eb-starter-ic">🎯</span><span class="eb-starter-txt">Conseils examen</span><span class="eb-starter-sub">Sujets fréquents</span></button>
+      <div class="eb-chat-area is-empty" id="eb-chat-area">
+        <div class="eb-messages" id="eb-messages">
+          <div class="eb-welcome" id="eb-welcome">
+            <div class="eb-welcome-avatar">⚡</div>
+            <h2>Bonjour ! Je suis EnergyBot</h2>
+            <p>Posez vos questions, demandez des exercices ou envoyez une photo d'épreuve.</p>
+            <div class="eb-starter-grid">
+              <button class="eb-starter" onclick="sendStarter('Explique-moi la dérivée en Mathématiques de façon simple')"><span class="eb-starter-ic">💡</span><span class="eb-starter-txt">Expliquer un concept</span><span class="eb-starter-sub">Explication claire et simple</span></button>
+              <button class="eb-starter" onclick="sendStarter('Génère 5 exercices de niveau Licence 1')"><span class="eb-starter-ic">✏️</span><span class="eb-starter-txt">Exercices pratiques</span><span class="eb-starter-sub">Entraîne-toi</span></button>
+              <button class="eb-starter" onclick="sendStarter('Fais un résumé des points clés à retenir')"><span class="eb-starter-ic">📋</span><span class="eb-starter-txt">Résumé de cours</span><span class="eb-starter-sub">Points essentiels</span></button>
+              <button class="eb-starter" onclick="sendStarter('Quels sujets tombent souvent aux examens ?')"><span class="eb-starter-ic">🎯</span><span class="eb-starter-txt">Conseils examen</span><span class="eb-starter-sub">Sujets fréquents</span></button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="eb-input-area">
-        <div class="eb-quick-prompts">
-          <button class="eb-qp" onclick="sendStarter('Explique ce concept simplement')">💡 Expliquer</button>
-          <button class="eb-qp" onclick="sendStarter('Donne-moi des exercices sur ce sujet')">✏️ Exercices</button>
-          <button class="eb-qp" onclick="sendStarter('Résume les points importants')">📋 Résumé</button>
-          <button class="eb-qp" onclick="sendStarter('Quelles sont les erreurs courantes ?')">⚠️ Erreurs</button>
-          <button class="eb-qp" onclick="sendStarter('Donne un exemple concret')">🔍 Exemple</button>
+        <div class="eb-input-area">
+          <div class="eb-input-row">
+            <button class="eb-icon-btn" onclick="triggerEbImage()" title="Envoyer une photo d'épreuve">📷</button>
+            <button class="eb-icon-btn eb-icon-btn-desktop" onclick="summarizeEbChat()" title="Résumer la conversation">📋</button>
+            <textarea class="eb-input" id="eb-input" placeholder="Posez votre question ou envoyez une photo…" rows="1"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendEbMessage();}"
+              oninput="autoEbResize(this)"></textarea>
+            <button class="eb-send" id="eb-send" onclick="sendEbMessage()">
+              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
         </div>
-        <div class="eb-input-row">
-          <button class="eb-icon-btn" onclick="triggerEbImage()" title="Envoyer une photo d'épreuve">📷</button>
-          <button class="eb-icon-btn eb-icon-btn-desktop" onclick="summarizeEbChat()" title="Résumer la conversation">📋</button>
-          <textarea class="eb-input" id="eb-input" placeholder="Posez votre question ou envoyez une photo…" rows="1"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendEbMessage();}"
-            oninput="autoEbResize(this)"></textarea>
-          <button class="eb-send" id="eb-send" onclick="sendEbMessage()">
-            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-        </div>
-        <div class="eb-api-note" style="color:var(--gc);">⚡ EnergyBot est actif — posez vos questions !</div>
       </div>
     </div>
   </div>

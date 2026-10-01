@@ -1,11 +1,12 @@
 /* ═══════════════════════════════════════════════════════════
-   ENERGYBOT — refonte d'interface
-   < 768px  → inspiré Gemini mobile (plein écran, tiroir latéral,
-              barre d'entrée en pilule flottante, bulles bleutées)
-   ≥ 768px  → inspiré Claude desktop/tablette (sidebar fixe,
-              colonne centrée, bulles chaudes, zone de saisie encadrée)
-   Toutes les variables sont scopées à #pg-energybot pour ne rien
-   casser ailleurs sur le site.
+   ENERGYBOT — interface façon Gemini / ChatGPT
+   Écran vide : logo + "EnergyBot" en haut, saisie centrée au
+   milieu de l'écran, suggestions en dessous.
+   Dès le premier message : la saisie descend en bas, les
+   messages remplissent l'espace au-dessus, défilement normal.
+   Les matières ne s'affichent nulle part par défaut — elles
+   vivent dans un tiroir cassant, ouvert uniquement via le ☰.
+   Toutes les variables sont scopées à #pg-energybot.
 ═══════════════════════════════════════════════════════════ */
 
 #pg-energybot{
@@ -47,7 +48,7 @@ html[data-theme="dark"] #pg-energybot{
 }
 #pg-energybot *{ -webkit-tap-highlight-color:transparent; }
 
-/* ── Backdrop (mobile drawer only) ── */
+/* ── Fond sombre du tiroir (toutes tailles d'écran) ── */
 #pg-energybot .eb-sidebar-backdrop{
   position:fixed;
   inset:0;
@@ -58,14 +59,18 @@ html[data-theme="dark"] #pg-energybot{
 }
 #pg-energybot .eb-sidebar-backdrop.show{ opacity:1; visibility:visible; pointer-events:auto; }
 
-/* ── Sidebar (shared skeleton, positioned differently per breakpoint) ── */
+/* ── Sidebar = tiroir caché par défaut, sur toutes les tailles d'écran ── */
 #pg-energybot .eb-sidebar{
-  display:flex;
-  flex-direction:column;
+  display:flex; flex-direction:column;
   background:var(--eb-bg-2);
   border-right:1px solid var(--eb-border);
   overflow-y:auto;
+  position:fixed; top:0; bottom:0; left:0; width:82%; max-width:300px;
+  z-index:1500; transform:translateX(-100%);
+  transition:transform .28s cubic-bezier(.2,.9,.3,1);
+  box-shadow:var(--eb-shadow);
 }
+#pg-energybot .eb-sidebar.open{ transform:translateX(0); }
 #pg-energybot .eb-sidebar-top{
   position:relative;
   padding:1.4rem 1.1rem 1rem;
@@ -81,7 +86,7 @@ html[data-theme="dark"] #pg-energybot{
 #pg-energybot .eb-dot{ width:7px;height:7px;border-radius:50%;background:#22c55e; }
 #pg-energybot .eb-status-txt{ font-size:11.5px; color:var(--eb-muted); }
 #pg-energybot .eb-sidebar-close{
-  display:none;
+  display:flex; align-items:center; justify-content:center;
   position:absolute; top:1rem; right:1rem;
   width:30px;height:30px;border-radius:50%;border:none;
   background:var(--eb-bg-3); color:var(--eb-muted);
@@ -99,57 +104,67 @@ html[data-theme="dark"] #pg-energybot{
   padding:.55rem .7rem; margin-bottom:3px;
   border:none; border-radius:10px; background:transparent;
   color:var(--eb-text); font-size:13.5px; cursor:pointer;
-  font-family:inherit; transition:background .15s;
+  font-family:inherit; transition:background .15s, transform .12s;
 }
 #pg-energybot .eb-chip:hover{ background:var(--eb-bg-3); }
 #pg-energybot .eb-chip.on{ background:var(--eb-bg-3); font-weight:600; }
 #pg-energybot .eb-chip-ic{ font-size:15px; flex-shrink:0; }
-#pg-energybot .eb-sidebar-bottom{
-  padding:.9rem; border-top:1px solid var(--eb-border);
-}
-#pg-energybot .eb-model-badge{
-  display:flex; align-items:center; gap:7px;
-  font-size:11px; color:var(--eb-muted);
-}
+#pg-energybot .eb-sidebar-bottom{ padding:.9rem; border-top:1px solid var(--eb-border); }
+#pg-energybot .eb-model-badge{ display:flex; align-items:center; gap:7px; font-size:11px; color:var(--eb-muted); }
 #pg-energybot .eb-model-dot{ width:6px;height:6px;border-radius:50%;background:#22c55e; }
 
-/* ── Main column ── */
+/* ── Colonne principale ── */
 #pg-energybot .eb-main{
   flex:1; display:flex; flex-direction:column;
-  min-width:0; background:var(--eb-bg);
+  min-width:0; min-height:0; background:var(--eb-bg);
 }
+
+/* ── Barre du haut : juste "EnergyBot" ── */
 #pg-energybot .eb-topbar{
-  display:flex; align-items:center; gap:.7rem;
+  display:flex; align-items:center; gap:.6rem;
   padding:.7rem 1rem; border-bottom:1px solid var(--eb-border);
   flex-shrink:0;
 }
 #pg-energybot .eb-hamburger{
-  display:none;
+  display:flex; align-items:center; justify-content:center;
   width:34px;height:34px;border-radius:50%;border:none;
   background:transparent; color:var(--eb-text); font-size:18px; cursor:pointer;
-  align-items:center; justify-content:center; flex-shrink:0;
+  flex-shrink:0;
 }
-#pg-energybot .eb-topbar-ctx{ display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
-#pg-energybot .eb-ctx-ic{ font-size:20px; flex-shrink:0; }
-#pg-energybot .eb-ctx-name{ font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-#pg-energybot .eb-ctx-sub{ font-size:11px; color:var(--eb-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#pg-energybot .eb-brand{
+  display:flex; align-items:center; gap:8px;
+  flex:1; font-size:15px; font-weight:700;
+}
+#pg-energybot .eb-brand-ic{ font-size:17px; }
+/* Le contexte de matière (écrit par le JS) reste disponible pour l'accessibilité
+   mais n'est plus affiché — le brief demande de ne plus voir les matières. */
+#pg-energybot .eb-topbar-ctx{ display:none; }
 #pg-energybot .eb-topbar-actions{ display:flex; gap:6px; flex-shrink:0; }
 #pg-energybot .eb-action-btn{
-  display:flex; align-items:center; gap:5px;
-  padding:.4rem .65rem; border-radius:9px; border:1px solid var(--eb-border);
-  background:var(--eb-bg); color:var(--eb-muted); font-size:12px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  width:34px; height:34px; border-radius:9px; border:1px solid var(--eb-border);
+  background:var(--eb-bg); color:var(--eb-muted); font-size:14px; cursor:pointer;
   font-family:inherit;
 }
 #pg-energybot .eb-action-btn:hover{ background:var(--eb-bg-3); }
 
-/* ── Messages ── */
+/* ── Zone de conversation : contient messages + saisie ──
+   Centrée verticalement quand vide, dockée en bas sinon. */
+#pg-energybot .eb-chat-area{
+  flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden;
+}
+#pg-energybot .eb-chat-area:not(.is-empty) .eb-messages{ flex:1; overflow-y:auto; }
+#pg-energybot .eb-chat-area.is-empty{ justify-content:center; }
+#pg-energybot .eb-chat-area.is-empty .eb-messages{ flex:none; overflow:visible; padding-bottom:0; }
+#pg-energybot .eb-chat-area.is-empty .eb-input-area{ position:static; box-shadow:none; }
+
 #pg-energybot .eb-messages{
-  flex:1; overflow-y:auto; padding:1.2rem 1rem 1rem;
+  padding:1.2rem 1rem 1rem;
   display:flex; flex-direction:column; gap:1.1rem;
   scroll-behavior:smooth;
   -webkit-overflow-scrolling:touch;
 }
-#pg-energybot .eb-welcome{ text-align:center; max-width:560px; margin:1.5rem auto; }
+#pg-energybot .eb-welcome{ text-align:center; max-width:560px; margin:0 auto; }
 #pg-energybot .eb-welcome-avatar{
   width:52px;height:52px;border-radius:16px;margin:0 auto .9rem;
   display:flex;align-items:center;justify-content:center;font-size:24px;
@@ -203,27 +218,17 @@ html[data-theme="dark"] #pg-energybot{
 #pg-energybot .eb-typing span:nth-child(3){ animation-delay:.3s; }
 @keyframes eb-bounce{ 0%,60%,100%{ transform:translateY(0); opacity:.4; } 30%{ transform:translateY(-4px); opacity:1; } }
 
-/* ── Input area ── */
+/* ── Zone de saisie : collée en bas une fois la conversation lancée ── */
 #pg-energybot .eb-input-area{
   flex-shrink:0; padding:.7rem 1rem 1rem;
-  border-top:1px solid transparent;
+  position:sticky; bottom:0; background:var(--eb-bg);
 }
-#pg-energybot .eb-quick-prompts{
-  display:flex; gap:6px; overflow-x:auto; padding-bottom:.6rem;
-  max-width:800px; margin:0 auto; scrollbar-width:none;
-}
-#pg-energybot .eb-quick-prompts::-webkit-scrollbar{ display:none; }
-#pg-energybot .eb-qp{
-  flex-shrink:0; white-space:nowrap;
-  padding:.4rem .8rem; border-radius:99px; border:1px solid var(--eb-border);
-  background:var(--eb-bg); color:var(--eb-text); font-size:12px; cursor:pointer; font-family:inherit;
-}
-#pg-energybot .eb-qp:hover{ background:var(--eb-bg-3); }
 #pg-energybot .eb-input-row{
   display:flex; align-items:flex-end; gap:6px;
   max-width:800px; margin:0 auto;
   background:var(--eb-bg-2); border:1px solid var(--eb-border);
   border-radius:var(--eb-radius); padding:.5rem .6rem;
+  box-shadow:var(--eb-shadow);
 }
 #pg-energybot .eb-icon-btn{
   flex-shrink:0; width:34px;height:34px; border-radius:10px; border:none;
@@ -244,12 +249,10 @@ html[data-theme="dark"] #pg-energybot{
 }
 #pg-energybot .eb-send svg{ width:16px;height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 #pg-energybot .eb-send:hover{ opacity:.9; }
-#pg-energybot .eb-api-note{ text-align:center; font-size:10.5px; margin-top:.5rem; }
 
 /* ── Feedback tactile ── */
 #pg-energybot .eb-chip,
 #pg-energybot .eb-starter,
-#pg-energybot .eb-qp,
 #pg-energybot .eb-icon-btn,
 #pg-energybot .eb-send,
 #pg-energybot .eb-action-btn,
@@ -258,47 +261,25 @@ html[data-theme="dark"] #pg-energybot{
 }
 #pg-energybot .eb-chip:active,
 #pg-energybot .eb-starter:active,
-#pg-energybot .eb-qp:active,
 #pg-energybot .eb-icon-btn:active,
 #pg-energybot .eb-action-btn:active,
 #pg-energybot .eb-hamburger:active{ transform:scale(.94); }
 #pg-energybot .eb-send:active{ transform:scale(.90); }
-#pg-energybot .eb-sidebar{ transition:transform .28s cubic-bezier(.2,.9,.3,1); }
 
-/* ═══ < 768px — style Gemini mobile ═══ */
+/* ═══ < 768px — ajustements mobile ═══ */
 @media (max-width:767px){
-  #pg-energybot .eb-sidebar{
-    position:fixed; top:0; bottom:0; left:0; width:82%; max-width:300px;
-    z-index:1500; transform:translateX(-100%); transition:transform .25s ease;
-    box-shadow:var(--eb-shadow);
-  }
-  #pg-energybot .eb-sidebar.open{ transform:translateX(0); }
-  #pg-energybot .eb-sidebar-close{ display:flex; align-items:center; justify-content:center; }
-  #pg-energybot .eb-hamburger{ display:flex; }
-  #pg-energybot .eb-action-txt{ display:none; }
-  #pg-energybot .eb-icon-btn-desktop{ display:none; }
   #pg-energybot .eb-topbar{ padding:.6rem .7rem; }
   #pg-energybot .eb-starter-grid{ grid-template-columns:1fr; }
-  #pg-energybot .eb-input-area{
-    position:sticky; bottom:0; background:var(--eb-bg);
-    padding:.5rem .7rem calc(.7rem + env(safe-area-inset-bottom,0px));
-  }
-  #pg-energybot .eb-input-row{
-    border-radius:26px; padding:.4rem .5rem .4rem .8rem;
-    box-shadow:var(--eb-shadow);
-  }
+  #pg-energybot .eb-input-area{ padding:.5rem .7rem calc(.7rem + env(safe-area-inset-bottom,0px)); }
+  #pg-energybot .eb-input-row{ border-radius:26px; padding:.4rem .5rem .4rem .8rem; }
   #pg-energybot .eb-msg{ max-width:100%; }
   #pg-energybot .eb-msg.user .eb-bubble{ border-radius:18px 18px 4px 18px; }
+  #pg-energybot .eb-icon-btn-desktop{ display:none; }
 }
 
-/* ═══ ≥ 768px — style Claude desktop / tablette ═══ */
+/* ═══ ≥ 768px — ajustements desktop / tablette ═══ */
 @media (min-width:768px){
-  #pg-energybot .eb-sidebar{ width:260px; flex-shrink:0; }
   #pg-energybot .eb-messages{ padding:1.6rem 1.5rem 1rem; }
   #pg-energybot .eb-input-area{ padding:.5rem 1.5rem 1.4rem; }
-  #pg-energybot .eb-welcome{ margin-top:2.4rem; }
   #pg-energybot .eb-send{ border-radius:10px; width:32px; }
-}
-@media (min-width:768px) and (max-width:1024px){
-  #pg-energybot .eb-sidebar{ width:220px; }
 }
