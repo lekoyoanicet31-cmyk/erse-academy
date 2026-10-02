@@ -23,10 +23,36 @@ function getLevelProgress(){
 }
 
 function checkLevelAccess(targetLevel){
-  return true; // Accès libre à tous les niveaux
+  if(currentUser && currentUser.role==='admin') return true;
+  return targetLevel <= getUserLevel();
+}
+
+// Grise/verrouille les boutons de niveau inaccessibles. levelOf(btn) doit
+// renvoyer le niveau (1/2/3) représenté par ce bouton, ou null/undefined
+// pour un bouton qui n'est pas lié à un niveau précis (ex: "Toutes", "Mon niveau").
+function applyLevelLockUI(selector, levelOf){
+  document.querySelectorAll(selector).forEach(btn=>{
+    const lvl = levelOf(btn);
+    if(lvl===null || lvl===undefined || isNaN(lvl)) return;
+    const locked = !checkLevelAccess(lvl);
+    btn.style.opacity = locked ? '.45' : '';
+    btn.style.cursor = locked ? 'not-allowed' : 'pointer';
+    if(locked && !btn.dataset.lockApplied){
+      btn.innerHTML = '🔒 ' + btn.innerHTML;
+      btn.dataset.lockApplied = '1';
+    } else if(!locked && btn.dataset.lockApplied){
+      btn.innerHTML = btn.innerHTML.replace('🔒 ', '');
+      btn.dataset.lockApplied = '';
+    }
+  });
 }
 
 async function requestLevelUp(){
+  const prog = getLevelProgress();
+  if(!prog.canPass){
+    toast('Il faut au moins 80% de moyenne aux examens de ce niveau pour débloquer le suivant','err');
+    return;
+  }
   const lvl = getUserLevel();
   const newLevel = lvl + 1;
   if(newLevel > 3){ toast('Vous êtes déjà au niveau maximum !','ok'); return; }
@@ -74,13 +100,15 @@ function renderLevelBadge(){
 }
 
 function filterLevel(l,btn){
-  document.querySelectorAll('#lvl-tabs .tab').forEach(t=>{
-    t.style.opacity='1';
-    t.style.cursor='pointer';
-  });
+  if(!checkLevelAccess(l)){
+    toast('🔒 Valide ta Licence actuelle avec 80% de moyenne pour débloquer ce niveau','err');
+    applyLevelLockUI('#lvl-tabs .tab', b=>parseInt(b.dataset.lvl));
+    return;
+  }
 
   document.querySelectorAll('#lvl-tabs .tab').forEach(t=>t.classList.remove('on'));
   if(btn) btn.classList.add('on');
+  applyLevelLockUI('#lvl-tabs .tab', b=>parseInt(b.dataset.lvl));
 
   const subjects = DB.subjects.filter(s=>s.level===l && s.active);
   document.getElementById('course-list').innerHTML = subjects.length===0

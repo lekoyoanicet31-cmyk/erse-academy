@@ -6,6 +6,11 @@ let shopFilter = 'all';
 let shopPayMode = false;
 
 function filterShop(f, btn){
+  const lvlMap = {L1:1,L2:2,L3:3};
+  if(lvlMap[f] && !checkLevelAccess(lvlMap[f])){
+    toast('🔒 Valide ta Licence actuelle avec 80% de moyenne pour débloquer ce niveau','err');
+    return;
+  }
   shopFilter = f;
   document.querySelectorAll('.shop-filter-btn').forEach(b=>b.classList.remove('on'));
   if(btn) btn.classList.add('on');
@@ -30,9 +35,19 @@ function renderShop(){
   if(freeBtn) freeBtn.style.display = shopPayMode ? 'inline-block' : 'none';
   if(paidBtn) paidBtn.style.display = shopPayMode ? 'inline-block' : 'none';
 
-  // Filtrer par niveau utilisateur (on garde tout, on marquera les verrouillés)
+  // Filtrer par niveau utilisateur — jamais d'épreuve d'un niveau non débloqué,
+  // quel que soit le filtre sélectionné (y compris "Toutes").
   const userLvl = getUserLevel();
+  const lvlMap = {L1:1,L2:2,L3:3};
   let filtered = items.filter(i=>i.active!==false); // Exclure les épreuves désactivées
+  filtered = filtered.filter(i=>{
+    const lvl = lvlMap[i.licence];
+    return !lvl || checkLevelAccess(lvl);
+  });
+  applyLevelLockUI('.shop-filter-btn', b=>{
+    const m = (b.getAttribute('onclick')||'').match(/filterShop\('L([123])'/);
+    return m ? parseInt(m[1]) : null;
+  });
   if(shopFilter==='L1') filtered = filtered.filter(i=>i.licence==='L1');
   else if(shopFilter==='L2') filtered = filtered.filter(i=>i.licence==='L2');
   else if(shopFilter==='L3') filtered = filtered.filter(i=>i.licence==='L3');
@@ -443,6 +458,10 @@ function toggleShopPayMode(){
 
 let activeExamLevel = 0;
 function filterExamLevel(level, btn){
+  if(level!==0 && !checkLevelAccess(level)){
+    toast('🔒 Valide ta Licence actuelle avec 80% de moyenne pour débloquer ce niveau','err');
+    return;
+  }
   activeExamLevel = level;
   document.querySelectorAll('.exam-lvl-btn').forEach(b=>b.classList.remove('on'));
   if(btn) btn.classList.add('on');
@@ -455,9 +474,17 @@ function renderExamList(){
 
   const userLvl = getUserLevel();
   const prog = getLevelProgress();
-  const levels = activeExamLevel === 0 ? [1,2,3] : [activeExamLevel];
+  // "Mon niveau" (0) = uniquement le niveau courant de l'utilisateur, jamais
+  // les niveaux non débloqués. Un onglet explicite (1/2/3) reste possible
+  // pour l'admin (checkLevelAccess renvoie true pour lui) ; pour un étudiant,
+  // filterExamLevel() bloque déjà la sélection d'un niveau verrouillé.
+  const levels = activeExamLevel === 0 ? [userLvl] : [activeExamLevel];
   const licenceLabels = {1:'📘 Licence 1', 2:'📗 Licence 2', 3:'📕 Licence 3'};
   const licenceClass = {1:'l1', 2:'l2', 3:'l3'};
+  applyLevelLockUI('.exam-lvl-btn', b=>{
+    const lvl = parseInt(b.dataset.lvl);
+    return lvl===0 ? null : lvl;
+  });
 
   // Barre de progression niveau
   let progressHtml = '';
@@ -484,6 +511,14 @@ function renderExamList(){
       return s && s.level===lvl;
     });
     if(examsForLevel.length===0) return;
+
+    if(locked){
+      html += `<div class="exam-licence-title ${licenceClass[lvl]}">${licenceLabels[lvl]} 🔒</div>
+        <div style="text-align:center;padding:1.5rem;color:var(--muted);background:var(--card-bg);border:1px dashed var(--border);border-radius:12px;margin-bottom:1.2rem;">
+          🔒 Valide ta Licence actuelle avec au moins 80% de moyenne pour débloquer ${licenceLabels[lvl]}.
+        </div>`;
+      return;
+    }
 
     html += `<div class="exam-licence-title ${licenceClass[lvl]}">${licenceLabels[lvl]}<span style="font-size:.75rem;font-weight:400;opacity:.7;">(${examsForLevel.length} examen${examsForLevel.length>1?'s':''})</span></div>`;
 
