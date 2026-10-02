@@ -273,11 +273,13 @@ function renderAdminBoutique(){
                   :`<span style="color:#60a5fa;">🔒 Payant${item.price>0?' · '+item.price+' FCFA':''}</span>`}
                 ${item.corrigeUrl?'<span style="color:#34d399;">✅ Corrigé</span>':''}
                 ${item.active===false?'<span style="color:#f59e0b;">⏸ Désactivée</span>':''}
+                ${item.isNew?'<span style="color:#fbbf24;">✨ Nouveau</span>':''}
               </div>
             </div>
             <div style="display:flex;gap:.4rem;flex-wrap:wrap;flex-shrink:0;">
               <button onclick="editShopItem('${item.id}')" style="padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:transparent;color:#60a5fa;cursor:pointer;font-size:.75rem;font-family:var(--font-body);">✏ Modifier</button>
               <button onclick="toggleShopItemFree('${item.id}')" style="padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.75rem;font-family:var(--font-body);">${item.isFree?'→ Payant':'→ Gratuit'}</button>
+              <button onclick="toggleShopItemNew('${item.id}')" style="padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:${item.isNew?'rgba(251,191,36,0.15)':'transparent'};color:${item.isNew?'#fbbf24':'var(--muted)'};cursor:pointer;font-size:.75rem;font-family:var(--font-body);">${item.isNew?'✨ Retirer "Nouveau"':'✨ Marquer "Nouveau"'}</button>
               <button onclick="toggleShopItemActive('${item.id}')" style="padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:${item.active===false?'rgba(245,158,11,0.15)':'transparent'};color:${item.active===false?'#fbbf24':'var(--muted)'};cursor:pointer;font-size:.75rem;font-family:var(--font-body);">${item.active===false?'✅ Activer':'⏸ Désactiver'}</button>
               <button onclick="deleteShopItem('${item.id}')" style="padding:.35rem .8rem;border-radius:6px;border:none;background:#ef4444;color:#fff;cursor:pointer;font-size:.75rem;font-family:var(--font-body);">🗑 Supprimer</button>
             </div>
@@ -354,6 +356,18 @@ function toggleShopItemFree(id){
   renderAdminBoutique();
   renderShop();
 }
+
+function toggleShopItemNew(id){
+  const item = (DB.shop||[]).find(i=>String(i.id)===String(id));
+  if(!item) return;
+  item.isNew = !item.isNew;
+  fbSaveShopItem(item);
+  saveData();
+  toast(item.isNew?'Marquée comme nouveauté ✨':'Badge "Nouveau" retiré','ok');
+  renderAdminBoutique();
+  renderShop();
+}
+
 function editShopItem(id){
   const item = (DB.shop||[]).find(i=>String(i.id)===String(id));
   if(!item) return;
@@ -406,6 +420,10 @@ function editShopItem(id){
           <input id="es-sujet" value="${item.sujetUrl||''}" placeholder="https://drive.google.com/..." style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);box-sizing:border-box;"></div>
         <div><label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;">🔗 Lien PDF Corrigé</label>
           <input id="es-corrige" value="${item.corrigeUrl||''}" placeholder="https://drive.google.com/..." style="width:100%;padding:.6rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.85rem;font-family:var(--font-body);box-sizing:border-box;"></div>
+        <div style="display:flex;align-items:center;gap:.6rem;">
+          <input type="checkbox" id="es-isnew" ${item.isNew?'checked':''} style="width:16px;height:16px;cursor:pointer;">
+          <label for="es-isnew" style="font-size:.85rem;cursor:pointer;">✨ Marquer comme nouveau</label>
+        </div>
       </div>
       <div style="display:flex;gap:.6rem;margin-top:1.2rem;justify-content:flex-end;">
         <button onclick="document.getElementById('edit-shop-modal').remove()" style="padding:.55rem 1.2rem;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-body);font-size:.85rem;">Annuler</button>
@@ -431,6 +449,7 @@ function saveEditShopItem(id){
   item.duree = document.getElementById('es-duree').value.trim();
   item.price = parseInt(document.getElementById('es-price').value)||0;
   item.isFree = document.getElementById('es-isfree').value === '1';
+  item.isNew = document.getElementById('es-isnew').checked;
   item.description = document.getElementById('es-desc').value.trim();
   const sujet = document.getElementById('es-sujet').value.trim();
   const corrige = document.getElementById('es-corrige').value.trim();
