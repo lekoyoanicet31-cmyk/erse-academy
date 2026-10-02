@@ -17,6 +17,9 @@ function getLevelProgress(){
     const r = results.find(r=>r.examId===e.id);
     if(r){ totalScore += r.score; done++; }
   });
+  // Moyenne calculée sur TOUS les examens du niveau : un examen non encore
+  // passé compte comme 0. Il faut donc avoir fait (et réussi) la quasi-totalité
+  // des examens du niveau pour atteindre 80% et débloquer le niveau suivant.
   const avg = done>0 ? Math.round(totalScore/examsForLevel.length) : 0;
   const canPass = done>0 && avg>=80;
   return {total:examsForLevel.length, done, avg, canPass};
