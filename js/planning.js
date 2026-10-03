@@ -69,44 +69,32 @@ async function toggleReminders(enabled){
   renderPlanningResult(saved.weekTemplate, saved.meta, enabled);
 }
 
-/* ── Gabarit horaire selon le nombre d'heures/jour choisi ──
-   Chaque entrée : {time, type, label}. type: 'matiere' | 'pause' | 'dejeuner' | 'relecture' | 'soiree'
-   Les créneaux 'matiere' sont remplis dynamiquement avec une matière + une note. ── */
-function buildDayTemplate(hours, isWeekend){
-  if(hours <= 1){
-    return [
-      {time:'08:00-09:00', type:'matiere', note:'Cours + exercices'},
-      {time:'Soirée', type:'soiree'}
-    ];
-  }
-  if(hours === 2){
-    return [
-      {time:'08:00-10:00', type:'matiere', note:'Cours + exercices'},
-      {time:'Soirée', type:'soiree'}
-    ];
-  }
-  if(hours === 3){
-    return [
-      {time:'08:00-10:00', type:'matiere', note:'Cours + exercices'},
-      {time:'10:00-10:15', type:'pause'},
-      {time:'10:15-11:00', type:'matiere', note:'Révisions ciblées'},
-      {time:'Soirée', type:'soiree'}
-    ];
-  }
-  // 4h et plus : gabarit complet façon planning hebdomadaire classique
+/* ── Gabarit horaire unique : Journée complète Premium (08h00-22h30) ──
+   Chaque entrée : {time, type, note?}.
+   type 'matiere-cible' : toujours la matière la PLUS FAIBLE (révisions ciblées). ── */
+function buildDayTemplate(){
   return [
-    {time:'08:00-10:00', type:'matiere', note:'Cours'},
-    {time:'10:00-10:15', type:'pause'},
-    {time:'10:15-12:00', type:'matiere-suite', note:'Exercices / QCM'},
-    {time:'12:00-14:00', type:'dejeuner'},
-    {time:'14:00-16:00', type:'matiere', note:'Révisions ciblées'},
-    {time:'16:00-16:15', type:'pause'},
-    {time:'16:15-18:00', type:'relecture'},
-    {time:'Soirée', type:'soiree'}
+    {time:'08:00-09:30', type:'matiere', note:'Lecture active du cours'},
+    {time:'09:30-09:45', type:'pause'},
+    {time:'09:45-11:15', type:'matiere-suite', note:'Exercices / QCM'},
+    {time:'11:15-11:30', type:'pause'},
+    {time:'11:30-12:30', type:'matiere-recherche', note:'Recherche & lecture complémentaire'},
+    {time:'12:30-14:00', type:'dejeuner'},
+    {time:'14:00-15:30', type:'matiere', note:'Lecture active du cours'},
+    {time:'15:30-15:45', type:'pause'},
+    {time:'15:45-17:00', type:'matiere-suite', note:'Exercices / QCM'},
+    {time:'17:00-17:15', type:'pause'},
+    {time:'17:15-18:30', type:'matiere-cible', note:'Révisions ciblées'},
+    {time:'18:30-19:00', type:'pause'},
+    {time:'19:00-19:45', type:'repas'},
+    {time:'19:45-20:30', type:'relecture'},
+    {time:'20:30-21:30', type:'lecture-libre'},
+    {time:'21:30-22:00', type:'quiz'},
+    {time:'22:00-22:30', type:'bilan'}
   ];
 }
 
-function generateWeekPlan(hours, level){
+function generateWeekPlan(level){
   const subjects = DB.subjects.filter(s => s.active && s.level === level);
   if (!subjects.length) return null;
 
@@ -127,24 +115,38 @@ function generateWeekPlan(hours, level){
 
   let poolIdx = 0;
   const nextSubject = () => { const s = pool[poolIdx % pool.length]; poolIdx++; return s; };
+  const weakestSubject = subjectScores[0]; // toujours la matière la plus faible, pour "révisions ciblées"
+
+  const asSubjectSlot = (slot, subj) => ({
+    time: slot.time, type: 'matiere', subject: subj.name, icon: subj.icon || '📘',
+    color: subjColor(subj.name), note: slot.note, avg: subj.avg
+  });
 
   const weekTemplate = PLAN_DAYS.map((dayName, i) => {
-    const isWeekend = i >= 5; // Samedi, Dimanche
-    const template = buildDayTemplate(hours, isWeekend);
+    const isWeekend = i >= 5; // Samedi, Dimanche (conservé pour l'alternance Sport/Détente plus bas)
+    const template = buildDayTemplate();
     let lastSubject = null;
     const slots = template.map(slot => {
       if (slot.type === 'matiere') {
         const subj = nextSubject();
         lastSubject = subj;
-        return { time: slot.time, type: 'matiere', subject: subj.name, icon: subj.icon || '📘', color: subjColor(subj.name), note: slot.note, avg: subj.avg };
+        return asSubjectSlot(slot, subj);
       }
-      if (slot.type === 'matiere-suite') {
-        // Même matière que le créneau précédent (exercices de suite du cours)
-        return { time: slot.time, type: 'matiere', subject: lastSubject ? lastSubject.name : '—', icon: lastSubject ? (lastSubject.icon || '📘') : '📘', color: lastSubject ? subjColor(lastSubject.name) : '#999', note: slot.note, avg: lastSubject ? lastSubject.avg : 0 };
+      if (slot.type === 'matiere-suite' || slot.type === 'matiere-recherche') {
+        // Même matière que le dernier créneau "cours" (exercices / recherche de suite)
+        const subj = lastSubject || nextSubject();
+        return asSubjectSlot(slot, subj);
+      }
+      if (slot.type === 'matiere-cible') {
+        return asSubjectSlot(slot, weakestSubject);
       }
       if (slot.type === 'pause') return { time: slot.time, type: 'pause', label: 'Pause active' };
       if (slot.type === 'dejeuner') return { time: slot.time, type: 'dejeuner', label: 'Pause déjeuner & déconnexion' };
-      if (slot.type === 'relecture') return { time: slot.time, type: 'relecture', label: 'Relecture flash' };
+      if (slot.type === 'repas') return { time: slot.time, type: 'repas', label: 'Repas du soir & déconnexion' };
+      if (slot.type === 'relecture') return { time: slot.time, type: 'relecture', label: 'Relecture flash + fiches de synthèse' };
+      if (slot.type === 'lecture-libre') return { time: slot.time, type: 'lecture-libre', label: '📖 Lecture libre (culture générale / livre perso)' };
+      if (slot.type === 'quiz') return { time: slot.time, type: 'quiz', label: '🎯 Auto-évaluation express (flashcards / mini quiz)' };
+      if (slot.type === 'bilan') return { time: slot.time, type: 'bilan', label: '✅ Bilan du jour + préparation de demain' };
       if (slot.type === 'soiree') return { time: slot.time, type: 'soiree', label: isWeekend ? 'Détente' : (i % 2 === 1 ? 'Sport / Loisir' : 'Détente') };
       return slot;
     });
@@ -166,11 +168,15 @@ function renderPlanningResult(weekTemplate, meta, remindersEnabled){
   const rows = weekTemplate[0].slots.map(s => s.time);
 
   const typeStyle = {
-    matiere:   bg => `background:${bg}22;border-left:3px solid ${bg};color:var(--text);`,
-    pause:     ()=> `background:var(--b0);color:var(--muted);font-style:italic;`,
-    dejeuner:  ()=> `background:#fef3c7;color:#92400e;`,
-    relecture: ()=> `background:#e0f2fe;color:#075985;`,
-    soiree:    ()=> `background:#f3e8ff;color:#6b21a8;font-weight:600;`
+    matiere:       bg => `background:${bg}22;border-left:3px solid ${bg};color:var(--text);`,
+    pause:         ()=> `background:var(--b0);color:var(--muted);font-style:italic;`,
+    dejeuner:      ()=> `background:#fef3c7;color:#92400e;`,
+    repas:         ()=> `background:#fde68a;color:#78350f;`,
+    relecture:     ()=> `background:#e0f2fe;color:#075985;`,
+    'lecture-libre':()=> `background:#dcfce7;color:#166534;`,
+    quiz:          ()=> `background:#fee2e2;color:#991b1b;`,
+    bilan:         ()=> `background:#e5e7eb;color:#374151;font-weight:600;`,
+    soiree:        ()=> `background:#f3e8ff;color:#6b21a8;font-weight:600;`
   };
   const cellContent = (slot) => {
     if(slot.type==='matiere') return `<div style="font-weight:600;font-size:12px;">${slot.icon} ${slot.subject}</div><div style="font-size:10.5px;opacity:.85;margin-top:2px;">${slot.note}</div>`;
@@ -239,7 +245,6 @@ async function initPlanning() {
 
 async function generatePlanning() {
   const dateVal = document.getElementById('plan-date').value;
-  const hours = parseInt(document.getElementById('plan-hours').value);
   const level = parseInt(document.getElementById('plan-level').value);
 
   if (!dateVal) { toast('Choisis une date d\'examen', 'err'); return; }
@@ -248,10 +253,10 @@ async function generatePlanning() {
   const daysLeft = Math.floor((examDate - today) / 86400000);
   if (daysLeft < 2) { toast('Choisis une date dans au moins 2 jours', 'err'); return; }
 
-  const weekTemplate = generateWeekPlan(hours, level);
+  const weekTemplate = generateWeekPlan(level);
   if (!weekTemplate) { toast('Aucune matière trouvée pour ce niveau', 'err'); return; }
 
-  const meta = { dateVal, hours, level, generatedAt: new Date().toISOString() };
+  const meta = { dateVal, level, generatedAt: new Date().toISOString() };
   renderPlanningResult(weekTemplate, meta, false);
   const synced = await savePlanningToFirestore(weekTemplate, meta, false);
   toast(synced ? 'Planning généré et synchronisé ✅' : 'Planning généré (sauvegardé localement, sync en attente)', synced ? 'ok' : 'info');
