@@ -529,7 +529,7 @@
           <div class="eb-input-row">
             <button class="eb-icon-btn" onclick="triggerEbImage()" title="Envoyer une photo d'épreuve">📷</button>
             <button class="eb-icon-btn eb-icon-btn-desktop" onclick="summarizeEbChat()" title="Résumer la conversation">📋</button>
-            <textarea class="eb-input" id="eb-input" placeholder="Posez votre question ou envoyez une photo…" rows="1"
+            <textarea class="eb-input" id="eb-input" placeholder="Posez votre question…" rows="1"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendEbMessage();}"
               oninput="autoEbResize(this)"></textarea>
             <button class="eb-send" id="eb-send" onclick="sendEbMessage()">

@@ -46,6 +46,10 @@ html[data-theme="dark"] #pg-energybot{
   background:var(--eb-bg);
   overflow:hidden;
 }
+/* Hauteur calculée par energybot-ui.js (écran réel, barre du bas mobile, clavier).
+   !important : nav.js pose aussi une hauteur en style inline, qu'on doit surpasser. */
+#pg-energybot .eb-layout,
+#pg-energybot .eb-main{ height:var(--eb-h, calc(100vh - 62px)) !important; }
 #pg-energybot *{ -webkit-tap-highlight-color:transparent; }
 
 /* ── Fond sombre du tiroir (toutes tailles d'écran) ── */
@@ -154,8 +158,9 @@ html[data-theme="dark"] #pg-energybot{
   flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden;
 }
 #pg-energybot .eb-chat-area:not(.is-empty) .eb-messages{ flex:1; overflow-y:auto; }
-#pg-energybot .eb-chat-area.is-empty{ justify-content:center; }
-#pg-energybot .eb-chat-area.is-empty .eb-messages{ flex:none; overflow:visible; padding-bottom:0; }
+#pg-energybot .eb-chat-area.is-empty{ justify-content:flex-start; overflow-y:auto; }
+#pg-energybot .eb-chat-area.is-empty .eb-messages{ flex:none; overflow:visible; padding-bottom:0; margin-top:auto; }
+#pg-energybot .eb-chat-area.is-empty .eb-input-area{ margin-bottom:auto; }
 #pg-energybot .eb-chat-area.is-empty .eb-input-area{ position:static; box-shadow:none; }
 
 #pg-energybot .eb-messages{
@@ -269,7 +274,9 @@ html[data-theme="dark"] #pg-energybot{
 /* ═══ < 768px — ajustements mobile ═══ */
 @media (max-width:767px){
   #pg-energybot .eb-topbar{ padding:.6rem .7rem; }
-  #pg-energybot .eb-starter-grid{ grid-template-columns:1fr; }
+  #pg-energybot .eb-starter{ padding:.6rem .7rem; }
+  #pg-energybot .eb-starter-sub{ display:none; }
+  #pg-energybot .eb-welcome p{ margin-bottom:.9rem; }
   #pg-energybot .eb-input-area{ padding:.5rem .7rem calc(.7rem + env(safe-area-inset-bottom,0px)); }
   #pg-energybot .eb-input-row{ border-radius:26px; padding:.4rem .5rem .4rem .8rem; }
   #pg-energybot .eb-msg{ max-width:100%; }
@@ -282,4 +289,16 @@ html[data-theme="dark"] #pg-energybot{
   #pg-energybot .eb-messages{ padding:1.6rem 1.5rem 1rem; }
   #pg-energybot .eb-input-area{ padding:.5rem 1.5rem 1.4rem; }
   #pg-energybot .eb-send{ border-radius:10px; width:32px; }
+}
+
+/* ═══ Écrans de faible hauteur : la zone de saisie est prioritaire ═══ */
+@media (max-height:640px){
+  #pg-energybot .eb-starter-grid{ display:none; }
+  #pg-energybot .eb-welcome p{ margin-bottom:.4rem; }
+}
+@media (max-height:480px){
+  #pg-energybot .eb-welcome-avatar,
+  #pg-energybot .eb-welcome p{ display:none; }
+  #pg-energybot .eb-welcome h2{ margin-bottom:0; font-size:16px; }
+  #pg-energybot .eb-topbar{ padding-top:.35rem; padding-bottom:.35rem; }
 }
