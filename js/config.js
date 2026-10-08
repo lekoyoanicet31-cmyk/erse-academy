@@ -219,6 +219,7 @@ async function initFirebase(){
     });
 
     fbReady = true;
+    if(typeof loadChangelog==='function'){ loadChangelog().then(()=>{ if(typeof flushPendingChangelog==='function') flushPendingChangelog(); }); }
     startAutoRefresh();
     lastKnownUpdate = Date.now();
     showSyncStatus('✓ Synchronisé en temps réel', 'ok');

@@ -193,6 +193,7 @@ async function saveSubject(){
     saveData();
     if(fbReady){ try{ await fbSaveSubject(newSubj); await pushToRTDB(); }catch(e){console.warn(e);} }
     toast('Matière ajoutée et synchronisée !','ok');
+    if(typeof logChange==='function') logChange('matiere','Nouvelle matière : '+newSubj.icon+' '+newSubj.name+' (Licence '+newSubj.level+')');
   }
   closeModal('modal-subj');renderAdminSubjects();
 }
@@ -269,6 +270,7 @@ async function saveExam(){
   if(fbReady){ try{ await fbSaveExam(newExam); await pushToRTDB(); }catch(e){console.warn(e);} }
   closeModal('modal-exam');
   toast('Examen créé ('+questions.length+' questions) — synchronisé !','ok');
+  if(typeof logChange==='function'){ const sj=DB.subjects.find(x=>x.id===subjectId); logChange('examen','Nouvel examen : '+(sj?sj.name:'matière')+' — '+questions.length+' questions ('+difficulty+')'); }
   renderAdminExams();
 }
 async function deleteExam(id){
@@ -422,6 +424,7 @@ function renderAdminNotifs(){
     <div class="admin-ttl">🔔 Notifications</div>
     <div style="margin-bottom:1rem;display:flex;gap:8px;">
       <button class="btn-primary" onclick="sendPlatformNotif()">📣 Envoyer à tous</button>
+      <button class="btn-primary" onclick="addChangelogNote()">📝 Annoncer une mise à jour</button>
       <button class="act-btn del-btn" onclick="DB.notifications=[];renderAdminNotifs();renderNotifs();toast('Effacées','ok')">🗑 Tout effacer</button>
     </div>
     <table class="data-table">
