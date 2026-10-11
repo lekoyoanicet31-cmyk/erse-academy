@@ -59,8 +59,18 @@ const EJS = {
 (function(){ emailjs.init({publicKey: EJS.pubKey}); })();
 
 function ejsSend(templateId, params){
+  if(typeof emailjs==='undefined'){
+    console.warn('EmailJS non chargé');
+    toast('Email non envoyé : service indisponible','err');
+    return Promise.resolve();
+  }
   return emailjs.send(EJS.serviceId, templateId, params)
-    .catch(e=>console.warn('EmailJS error:', e));
+    .then(r=>console.log('EmailJS OK:', r.status, params.to_email))
+    .catch(e=>{
+      console.warn('EmailJS error:', e);
+      // Message court visible à l'écran, pour pouvoir diagnostiquer sans console
+      toast("L'email n'a pas pu être envoyé (erreur "+((e&&e.status)||'réseau')+')','err');
+    });
 }
 
 function sendWelcomeEmail(name, email){
