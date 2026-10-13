@@ -82,7 +82,7 @@ function sendLevelUpEmail(name, email, newLevel){
     to_name: name,
     to_email: email,
     subject: 'Félicitations ! Vous passez en Licence ' + newLevel,
-    message: 'Vous venez de valider votre niveau et passez en Licence ' + newLevel + ' sur ERSE ACADEMY.\n\nContinuez sur cette lancée !'
+    message: 'Bravo, vous venez de valider votre niveau : vous passez en Licence ' + newLevel + ' !\n\nLes cours, examens et épreuves de la Licence ' + newLevel + ' sont maintenant débloqués. Gardez ce rythme pour décrocher de nouveaux certificats.'
   });
 }
 
@@ -91,7 +91,7 @@ function sendCertEmail(name, email, subject, score){
     to_name: name,
     to_email: email,
     subject: 'Certificat obtenu — ' + subject + ' 🎓',
-    message: 'Félicitations ! Vous avez obtenu votre certificat en ' + subject + ' avec un score de ' + score + '%.'
+    message: 'Félicitations ! Vous avez obtenu votre certificat en ' + subject + ' avec un score de ' + score + '%.\n\nVous le retrouverez à tout moment dans la rubrique Certificats de la plateforme. Chaque examen réussi vous rapproche de la Licence suivante.'
   });
 }
 
