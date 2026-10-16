@@ -545,31 +545,13 @@
 
 <!-- PLANNING -->
 <div id="pg-planning" class="page">
-  <div style="max-width:700px;margin:0 auto;padding:1.5rem 1rem;">
+  <div style="max-width:1100px;margin:0 auto;padding:1.5rem 1rem;">
     <div style="font-size:1.3rem;font-weight:600;color:var(--b8);margin-bottom:1.5rem;">📅 Planning de révision</div>
 
-    <!-- Formulaire -->
-    <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:1.4rem;margin-bottom:1.5rem;">
-      <div style="font-size:13px;font-weight:600;color:var(--b8);margin-bottom:1rem;">Configurer mon planning</div>
-      <div style="display:grid;gap:12px;">
-        <div>
-          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Date de mon examen</label>
-          <input type="date" id="plan-date" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
-        </div>
-        <div style="font-size:12px;color:var(--muted);background:var(--b0);border-radius:8px;padding:9px 12px;">🌟 Journée complète Premium — 08h00 à 22h30, cours, exercices, recherche, révisions ciblées, lecture libre et bilan du jour.</div>
-        <div>
-          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Niveau à réviser</label>
-          <select id="plan-level" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:var(--font-body);font-size:13px;">
-            <option value="1">Licence 1</option>
-            <option value="2">Licence 2</option>
-            <option value="3">Licence 3</option>
-          </select>
-        </div>
-        <button onclick="generatePlanning()" style="padding:10px;border-radius:9px;border:none;background:var(--b6);color:#fff;font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;">Générer mon planning</button>
-      </div>
-    </div>
+    <!-- Formulaire (généré par js/planning.js) -->
+    <div id="plan-form" style="max-width:760px;margin:0 auto 1.5rem;"></div>
 
-    <!-- Résultat -->
+    <!-- Résultat : calendrier hebdomadaire -->
     <div id="plan-result"></div>
   </div>
 </div>

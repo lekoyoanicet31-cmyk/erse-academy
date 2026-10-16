@@ -136,7 +136,7 @@ const LEGAL_MAIL_LINK = `<a href="mailto:${LEGAL_EMAIL}" style="color:var(--b6);
 const LEGAL = {
   cgu: {
     title: "Conditions Générales d'Utilisation",
-    content: `<p><strong>Dernière mise à jour :</strong> ${LEGAL_UPDATED}</p>
+    content: `<p><strong>Dernière mise à jour :</strong> {{UPDATED}}</p>
     <br>
     <p><strong>1. Objet</strong><br>ERSE ACADEMY est une plateforme académique destinée aux étudiants en Licence 1, 2 et 3 dans le domaine des Énergies Renouvelables et Systèmes Énergétiques (ERSE), principalement au Bénin et dans la sous-région ouest-africaine. Elle propose des cours, des examens interactifs, des certificats de réussite, une boutique d'épreuves corrigées, un forum, un planning de révision et un assistant pédagogique IA (EnergyBot). En utilisant la plateforme, vous acceptez les présentes conditions.</p>
     <br>
@@ -171,15 +171,15 @@ const LEGAL = {
 
   privacy: {
     title: "Politique de Confidentialité",
-    content: `<p><strong>Dernière mise à jour :</strong> ${LEGAL_UPDATED}</p>
+    content: `<p><strong>Dernière mise à jour :</strong> {{UPDATED}}</p>
     <br>
     <p>ERSE ACADEMY s'engage à protéger la vie privée de ses utilisateurs. Cette politique explique quelles données sont collectées, pourquoi, avec qui elles sont partagées et quels sont vos droits.</p>
     <br>
     <p><strong>1. Responsable du traitement</strong><br>ERSE ACADEMY (projet académique indépendant, Bénin). Contact : ${LEGAL_MAIL_LINK}</p>
     <br>
-    <p><strong>2. Données collectées</strong><br>— <em>Compte :</em> nom, adresse email, niveau d'études (L1, L2, L3), spécialité (facultative), initiales et couleur d'avatar<br>— <em>Progression :</em> résultats et scores aux examens, certificats, badges, statistiques<br>— <em>Planning :</em> votre planning de révision et votre préférence de rappels par email<br>— <em>Contributions :</em> messages publiés sur le forum<br>— <em>EnergyBot :</em> vos questions et les photos que vous envoyez à l'assistant (voir section 6)<br>— <em>Technique :</em> informations de connexion gérées par Firebase Authentication</p>
+    <p><strong>2. Données collectées</strong><br>— <em>Compte :</em> nom, adresse email, niveau d'études (L1, L2, L3), spécialité (facultative), initiales et couleur d'avatar<br>— <em>Progression :</em> résultats et scores aux examens, certificats, badges, statistiques<br>— <em>Planning :</em> votre planning de révision (matières choisies, dates d'examen, horaires et cours à la fac que vous saisissez)<br>— <em>Contributions :</em> messages publiés sur le forum<br>— <em>EnergyBot :</em> vos questions et les photos que vous envoyez à l'assistant (voir section 6)<br>— <em>Technique :</em> informations de connexion gérées par Firebase Authentication</p>
     <br>
-    <p><strong>3. Finalités</strong><br>Vos données servent à : gérer votre compte et votre authentification ; suivre votre progression et débloquer les niveaux ; délivrer vos certificats ; afficher le classement ; faire fonctionner le forum et EnergyBot ; vous envoyer des emails (bienvenue, passage de niveau, certificats et, si vous les activez, rappels de planning). Nous n'utilisons pas vos données à des fins publicitaires.</p>
+    <p><strong>3. Finalités</strong><br>Vos données servent à : gérer votre compte et votre authentification ; suivre votre progression et débloquer les niveaux ; délivrer vos certificats ; afficher le classement ; faire fonctionner le forum et EnergyBot ; vous envoyer des emails (bienvenue, passage de niveau, certificats). Nous n'utilisons pas vos données à des fins publicitaires.</p>
     <br>
     <p><strong>4. Ce qui est visible par les autres utilisateurs</strong><br>— <em>Classement :</em> votre nom, vos initiales, votre niveau, votre score moyen et votre nombre de certificats<br>— <em>Forum :</em> votre nom et le contenu de vos publications et réponses<br>Votre email, votre planning et votre historique détaillé ne sont pas affichés aux autres étudiants.</p>
     <br>
@@ -193,7 +193,7 @@ const LEGAL = {
     <br>
     <p><strong>9. Sécurité</strong><br>Nous utilisons Firebase Authentication, des règles de sécurité Firestore et HTTPS pour protéger vos données. Aucun système n'étant infaillible, nous vous invitons à choisir un mot de passe solide et à ne pas le partager.</p>
     <br>
-    <p><strong>10. Vos droits</strong><br>Vous disposez d'un droit d'accès, de rectification, de suppression et d'opposition, ainsi que du droit de retirer votre consentement (par exemple pour les rappels par email). Pour les exercer, écrivez à ${LEGAL_MAIL_LINK}. Vous pouvez également saisir l'Autorité de Protection des Données Personnelles (APDP) du Bénin, conformément à la loi n° 2017-20 portant Code du numérique.</p>
+    <p><strong>10. Vos droits</strong><br>Vous disposez d'un droit d'accès, de rectification, de suppression et d'opposition, ainsi que du droit de retirer votre consentement. Pour les exercer, écrivez à ${LEGAL_MAIL_LINK}. Vous pouvez également saisir l'Autorité de Protection des Données Personnelles (APDP) du Bénin, conformément à la loi n° 2017-20 portant Code du numérique.</p>
     <br>
     <p><strong>11. Mineurs</strong><br>Les utilisateurs mineurs doivent utiliser la plateforme avec l'accord de leur représentant légal, qui peut à tout moment demander l'accès ou la suppression des données concernées.</p>
     <br>
@@ -245,7 +245,7 @@ const LEGAL = {
       <li>🔓 Progression par niveaux : passez en Licence supérieure avec 80 % de moyenne</li>
       <li>🛒 Boutique d'épreuves corrigées, gratuites et premium</li>
       <li>🔁 Mode révision — rejouer les questions ratées</li>
-      <li>📅 Planning de révision hebdomadaire « Journée complète », de 08h00 à 22h30</li>
+      <li>📅 Planning de révision personnalisé : une date d'examen par matière, révision espacée, export vers votre calendrier</li>
       <li>🏆 Classement et suivi de progression, avec badges</li>
       <li>⚡ EnergyBot — assistant pédagogique IA, avec envoi de photo d'exercice</li>
       <li>💬 Forum étudiant pour poser vos questions</li>
@@ -277,7 +277,8 @@ const LEGAL = {
         q("Comment payer une épreuve premium ?", "Le paiement automatisé n'est pas encore disponible. Contactez-nous (page Contact) pour connaître les modalités de règlement par Mobile Money."),
         q("EnergyBot me donne une mauvaise réponse ou ne répond pas.", "EnergyBot est une IA : elle peut se tromper, vérifiez toujours avec vos cours. S'il ne répond pas, réessayez dans un instant, puis signalez-le-nous via la page Contact."),
         q("Puis-je envoyer une photo d'exercice à EnergyBot ?", "Oui, via l'icône appareil photo. Choisissez une image nette, bien cadrée, et évitez d'y montrer des visages ou des informations personnelles."),
-        q("Comment fonctionne le planning de révision ?", "Choisissez votre date d'examen et votre niveau : un planning hebdomadaire « Journée complète » (08h00 à 22h30) est généré, avec plus de temps sur vos matières les plus faibles. Les rappels par email sont une option en cours de mise en place."),
+        q("Comment fonctionne le planning de révision ?", "Indiquez votre niveau, vos matières avec la date d'examen de chacune, vos horaires et vos cours à la fac. Le planning est daté, jour par jour jusqu'à vos examens : chaque matière passe par des phases (Découverte, Approfondissement, Révisions, Dernière ligne droite), les matières les plus faibles reviennent plus souvent, et des révisions espacées (J+1, J+3, J+7, J+14) sont ajoutées. Quand vos résultats changent, un bouton permet d'actualiser le planning."),
+        q("Comment recevoir des rappels pour mes sessions de révision ?", "Dans la page Planning, cliquez sur « Ajouter à mon calendrier » : un fichier est téléchargé. Ouvrez-le avec Google Agenda ou Apple Calendrier (sur iPhone, choisissez « Tout ajouter »). Chaque session a une alarme 10 minutes avant, et chaque examen une alarme 7 jours avant et la veille. Les rappels sonnent même quand le site est fermé. Selon l'application, ses propres réglages de notification peuvent s'appliquer."),
         q("Comment modifier mon profil ou supprimer mon compte ?", `Modifiez votre profil depuis la page Profil. Pour supprimer votre compte et vos données, écrivez à ${LEGAL_MAIL_LINK}.`),
         q("Comment signaler une erreur dans une question ?", "Écrivez-nous via la page Contact en indiquant l'examen et la question concernés.")
       ].join('');
@@ -297,9 +298,14 @@ const LEGAL = {
     <p><strong>🛡 Modération</strong><br>Les administrateurs peuvent supprimer toute publication contraire à cette charte et suspendre le compte en cas d'abus répétés. Pour signaler un message : ${LEGAL_MAIL_LINK}.</p>`
   },
 
+  updates: {
+    title: "Nouveautés & modifications",
+    content: `<p style="color:#64748b;">Chargement…</p>`
+  },
+
   mentions: {
     title: "Mentions légales",
-    content: `<p><strong>Dernière mise à jour :</strong> ${LEGAL_UPDATED}</p>
+    content: `<p><strong>Dernière mise à jour :</strong> {{UPDATED}}</p>
     <br>
     <p><strong>Éditeur du site</strong><br>ERSE ACADEMY — projet académique indépendant, Bénin.<br>Responsable de la publication : l'administrateur de la plateforme.<br>Contact : ${LEGAL_MAIL_LINK}</p>
     <br>
@@ -319,9 +325,17 @@ function showLegal(type){
   const data=LEGAL[type];
   if(!data)return;
   document.getElementById('legal-title').textContent=data.title;
-  document.getElementById('legal-content').innerHTML=data.content;
+  const box=document.getElementById('legal-content');
+  const render=()=>{ box.innerHTML=data.content.replace(/\{\{UPDATED\}\}/g, typeof getLastUpdateHtml==='function' ? getLastUpdateHtml() : LEGAL_UPDATED); };
+  render();
   const modal=document.getElementById('legal-modal');
   modal.style.display='flex';
+  if(type==='updates' && typeof loadChangelog==='function'){
+    box.innerHTML=renderChangelogHtml(changelogRead());
+    loadChangelog().then(entries=>{
+      if(document.getElementById('legal-title').textContent===data.title) box.innerHTML=renderChangelogHtml(entries);
+    });
+  }
 }
 document.addEventListener('click',e=>{
   const modal=document.getElementById('legal-modal');
