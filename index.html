@@ -172,7 +172,7 @@
       En créant un compte, vous acceptez nos 
       <span onclick="showLegal('cgu')" style="color:var(--b6);cursor:pointer;text-decoration:underline;">Conditions d'utilisation</span> 
       et notre 
-      <span onclick="showLegal('privacy')" style="color:var(--b6);cursor:pointer;text-decoration:underline;">Politique de confidentialité</span>.
+      <span onclick="showLegal('privacy')" style="color:var(--b6);cursor:pointer;text-decoration:underline;">Politique de confidentialité</span>. Les contenus du site ne remplacent pas les documents officiels de vos enseignants (<span onclick="showLegal('disclaimer')" style="color:var(--b6);cursor:pointer;text-decoration:underline;">Avertissement</span>).
     </div>
     </div>
   </div>
@@ -233,7 +233,7 @@
       <div class="hero-badge">✦ Plateforme académique · Licence 1 → 3 · 100% Gratuit</div>
       <h1 style="font-size:54px;" id="hero-title">La plateforme qui<br><span>propulse vos études</span></h1>
       <div class="hero-line"></div>
-      <p style="font-size:16px;">Téléchargez vos cours, passez des examens certifiés, obtenez vos badges et faites-vous accompagner 24h/24 par EnergyBot, votre assistant IA personnel.</p>
+      <p style="font-size:16px;">Téléchargez vos cours, passez des examens d'entraînement, obtenez vos badges et faites-vous accompagner 24h/24 par EnergyBot, votre assistant IA personnel.</p>
       <div class="hero-btns">
         <button class="btn-primary" style="font-size:15px;padding:13px 30px;" onclick="goPage('courses')">🚀 Commencer maintenant</button>
         <button class="btn-secondary" style="font-size:15px;padding:13px 30px;" onclick="goPage('energybot')">⚡ Essayer EnergyBot</button>
@@ -277,7 +277,7 @@
         </div>
         <div style="background:var(--gold-p);border-radius:14px;padding:1.4rem;text-align:center;border:1px solid rgba(200,155,60,0.3);">
           <div style="font-size:32px;margin-bottom:.8rem;">🏆</div>
-          <div style="font-size:15px;font-weight:500;color:var(--b9);margin-bottom:.4rem;">Certificats officiels</div>
+          <div style="font-size:15px;font-weight:500;color:var(--b9);margin-bottom:.4rem;">Certificats de réussite</div>
           <div style="font-size:12px;color:var(--muted);line-height:1.6;">Validez vos compétences avec des certificats reconnus et imprimables</div>
         </div>
         <div style="background:var(--g);border-radius:14px;padding:1.4rem;text-align:center;border:1px solid #97C459;">
@@ -317,6 +317,7 @@
     <div class="sec-hdr"><div class="sec-hdr-left"><div class="sec-ic">📂</div><div class="sec-ttl">Documents & cours</div></div>
       <div id="level-progress-badge"></div>
     </div>
+    <div style="background:var(--b0);border:1px solid var(--border);border-radius:10px;padding:.65rem .9rem;font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:1rem;">ℹ️ Ces contenus sont des <b>aides de révision</b>. Ils ne remplacent pas les documents officiels fournis par vos enseignants. <span onclick="showLegal('disclaimer')" style="color:var(--b6);cursor:pointer;text-decoration:underline;">En savoir plus</span></div>
     <div class="tabs" id="lvl-tabs">
       <button class="tab on" data-lvl="1" onclick="filterLevel(1,this)">📘 Licence 1</button>
       <button class="tab" data-lvl="2" onclick="filterLevel(2,this)">📗 Licence 2</button>
@@ -329,6 +330,7 @@
 <!-- EXAMS -->
 <div id="pg-exams" class="page">
   <div id="exam-list-wrap">
+    <div style="max-width:900px;margin:1rem auto 0;padding:0 1rem;"><div style="background:var(--b0);border:1px solid var(--border);border-radius:10px;padding:.65rem .9rem;font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:1rem;">ℹ️ Ces contenus sont des <b>aides de révision</b>. Ils ne remplacent pas les documents officiels fournis par vos enseignants. <span onclick="showLegal('disclaimer')" style="color:var(--b6);cursor:pointer;text-decoration:underline;">En savoir plus</span></div></div>
     <div class="wrap">
       <div class="sec-hdr"><div class="sec-hdr-left"><div class="sec-ic">📝</div><div class="sec-ttl">Examens disponibles</div></div></div>
       <p class="sec-sub">Obtenez ≥ 80% de moyenne pour valider votre niveau et passer au suivant.</p>
@@ -360,9 +362,9 @@
     <div class="shop-hero">
       <div class="shop-hero-bg"></div>
       <div class="shop-hero-content">
-        <div class="shop-hero-badge">📚 Bibliothèque officielle ERSE</div>
+        <div class="shop-hero-badge">📚 Bibliothèque d'entraînement ERSE</div>
         <h2 class="shop-hero-title">Boutique d'Épreuves</h2>
-        <p class="shop-hero-sub">Épreuves officielles UAC/FAST avec corrigés détaillés — préparez-vous avec les vrais sujets.</p>
+        <p class="shop-hero-sub">Épreuves d'entraînement avec corrigés détaillés — pour vous préparer aux examens. Elles ne remplacent pas les documents de vos enseignants.</p>
         <div class="shop-hero-stats" id="shop-stats">
           <div class="shop-stat"><span class="shop-stat-num" id="stat-total">0</span><span>Épreuves</span></div>
           <div class="shop-stat-sep"></div>
@@ -374,6 +376,7 @@
     </div>
 
     <!-- FILTRES -->
+    <div style="background:var(--b0);border:1px solid var(--border);border-radius:10px;padding:.65rem .9rem;font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:1rem;">ℹ️ Ces contenus sont des <b>aides de révision</b>. Ils ne remplacent pas les documents officiels fournis par vos enseignants. <span onclick="showLegal('disclaimer')" style="color:var(--b6);cursor:pointer;text-decoration:underline;">En savoir plus</span></div>
     <div class="shop-filters">
       <div class="shop-filter-group">
         <button class="shop-filter-btn on" onclick="filterShop('all',this)">🎓 Toutes</button>
@@ -516,7 +519,7 @@
           <div class="eb-welcome" id="eb-welcome">
             <div class="eb-welcome-avatar">⚡</div>
             <h2>Bonjour ! Je suis EnergyBot</h2>
-            <p>Posez vos questions, demandez des exercices ou envoyez une photo d'épreuve.</p>
+            <p>Posez vos questions ou envoyez une photo d'exercice. Réponses générées par IA : vérifiez toujours avec les documents officiels de vos enseignants.</p>
             <div class="eb-starter-grid">
               <button class="eb-starter" onclick="sendStarter('Explique-moi la dérivée en Mathématiques de façon simple')"><span class="eb-starter-ic">💡</span><span class="eb-starter-txt">Expliquer un concept</span><span class="eb-starter-sub">Explication claire et simple</span></button>
               <button class="eb-starter" onclick="sendStarter('Génère 5 exercices de niveau Licence 1')"><span class="eb-starter-ic">✏️</span><span class="eb-starter-txt">Exercices pratiques</span><span class="eb-starter-sub">Entraîne-toi</span></button>
@@ -637,6 +640,7 @@
       <span onclick="showLegal('faq')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">FAQ</span>
       <span onclick="showLegal('rules')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Charte de la communauté</span>
       <span onclick="showLegal('mentions')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Mentions légales</span>
+      <span onclick="showLegal('disclaimer')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Avertissement</span>
       <span onclick="showLegal('updates')" style="font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">Nouveautés</span>
       <span id="footer-updated" style="display:none;font-size:12px;color:rgba(255,255,255,0.3);"></span>
       <span style="font-size:12px;color:rgba(255,255,255,0.3);">© 2026 ERSE ACADEMY</span>

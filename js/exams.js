@@ -321,6 +321,7 @@ function addShopItem(){
   fbSaveShopItem(item);
   saveData();
   toast('Épreuve ajoutée !','ok');
+  if(typeof logChange==='function') logChange('boutique','Nouvelle épreuve en boutique : '+title+' ('+licence+')');
   renderAdminBoutique();
   renderShop();
 }
@@ -1018,7 +1019,7 @@ async function downloadCert(cert){
   // Sous-titre
   ctx.fillStyle = '#ffffff';
   ctx.font = '22px Georgia, serif';
-  ctx.fillText('Certificat Officiel de Réussite', 600, 165);
+  ctx.fillText('Certificat de Réussite', 600, 165);
 
   // Ligne
   ctx.strokeStyle = '#c89b3c';
@@ -1060,6 +1061,9 @@ async function downloadCert(cert){
   ctx.fillStyle = '#aaaaaa';
   ctx.font = '18px Georgia, serif';
   ctx.fillText('Délivré le ' + cert.date, 600, 620);
+  ctx.fillStyle = '#888888';
+  ctx.font = '16px Georgia, serif';
+  ctx.fillText('Certificat interne ERSE ACADEMY — sans valeur de diplôme officiel', 600, 665);
 
   // Watermark
   ctx.fillStyle = 'rgba(200,155,60,0.05)';
