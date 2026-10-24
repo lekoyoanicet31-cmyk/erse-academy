@@ -236,11 +236,7 @@ const DB = {
     {id:7,name:'Fatou Sané',initials:'FS',color:'#3B6D11',level:2,passed:5,avgScore:88,certs:5,email:'fatou@erse.ac'},
     {id:8,name:'Jules Akpan',initials:'JA',color:'#993C1D',level:1,passed:2,avgScore:78,certs:2,email:'jules@erse.ac'},
   ],
-  notifications:[
-    {id:1,title:'Bienvenue sur ERSE ACADEMY !',sub:'Découvrez vos cours et passez vos premiers examens.',ic:'🎓',bg:'#b0d4f4',unread:true,time:'Maintenant'},
-    {id:2,title:'Nouveau cours disponible',sub:'Cours 3 — Intégrales ajouté en Mathématiques L1.',ic:'📐',bg:'#c0dd97',unread:true,time:'Il y a 2h'},
-    {id:3,title:'EnergyBot est prêt !',sub:'Configurez votre clé API pour accéder à l\'assistant IA.',ic:'⚡',bg:'#F0C96A',unread:false,time:'Il y a 1j'},
-  ],
+  notifications:[],
   certificates:[],
   shop:[],
   bannedEmails:[],

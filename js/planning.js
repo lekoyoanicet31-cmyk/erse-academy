@@ -436,10 +436,14 @@ function planWeeks(days){
   days.forEach(d => { set[addDays(d.date, -d.dow)] = true; });
   return Object.keys(set).sort();
 }
+// Première semaine à afficher : la semaine en cours, ou la suivante si elle ne contient encore rien à faire
 function currentWeekIdx(days){
   const weeks = planWeeks(days), today = dateKey(new Date());
-  const i = weeks.findIndex(w => w <= today && today < addDays(w,7));
-  return i >= 0 ? i : 0;
+  let i = weeks.findIndex(w => w <= today && today < addDays(w,7));
+  if(i < 0) i = 0;
+  const hasStudy = w => days.some(d => d.date >= w && d.date < addDays(w,7) && d.blocks.some(b => b.type === 'study'));
+  for(let k = i; k < weeks.length; k++) if(hasStudy(weeks[k])) return k;
+  return i;
 }
 
 function planBlockHtml(b, idx, key, gs){
@@ -672,9 +676,11 @@ async function generatePlanning(){
     sessionLen:f.sessionLen, restDow:f.restDow, reading:!!f.reading, defaultDate:f.defaultDate, subjects, classes };
   const built = buildPlan(settings, stats, startKey);
   const meta = { settings, generatedAt:new Date().toISOString(), resultsSig:resultsSignature(), info:built.info, startKey };
-  PLAN_STATE = { days:built.days, meta, weekIdx:0, owner:(currentUser?.email || 'guest') };
+  PLAN_STATE = { days:built.days, meta, weekIdx:currentWeekIdx(built.days), owner:(currentUser?.email || 'guest') };
   renderPlan();
   const r = document.getElementById('plan-result'); if(r) r.scrollIntoView({ behavior:'smooth', block:'start' });
+  const lastD = built.days[built.days.length-1].date;
+  if(typeof pushNotif==='function') pushNotif('Planning de révision créé', built.info.sessions+' sessions planifiées jusqu\'au '+fmtDayLong(lastD).replace(/\.$/,'')+'. Ajoutez-le à votre calendrier pour recevoir des rappels.','📅','#b0d4f4','planning');
   const synced = await savePlanning(built.days, meta);
   toast(synced ? 'Planning généré et synchronisé ✅' : 'Planning généré (sauvegardé localement, sync en attente)', synced ? 'ok' : 'info');
 }
@@ -689,8 +695,9 @@ async function refreshPlanning(){
   const stats = subjectStats(old.level);
   const built = buildPlan(settings, stats, addDays(todayKey,1));
   const meta = { settings, generatedAt:new Date().toISOString(), resultsSig:resultsSignature(), info:built.info, startKey:addDays(todayKey,1) };
-  PLAN_STATE = { days:built.days, meta, weekIdx:0, owner:S.owner };
+  PLAN_STATE = { days:built.days, meta, weekIdx:currentWeekIdx(built.days), owner:S.owner };
   renderPlan();
+  if(typeof pushNotif==='function') pushNotif('Planning actualisé','Votre planning tient compte de vos derniers résultats : '+built.info.sessions+' sessions à venir.','🔄','#b0d4f4','planning');
   const synced = await savePlanning(built.days, meta);
   toast(synced ? 'Planning actualisé avec tes résultats ✅' : 'Planning actualisé (sauvegardé localement)', synced ? 'ok' : 'info');
 }

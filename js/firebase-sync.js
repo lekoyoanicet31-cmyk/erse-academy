@@ -222,6 +222,7 @@ function updateBottomNav(id){
 }
 
 function updateNotifDot(){
-  const hasUnread=DB.notifications.some(n=>n.unread);
+  const list=(typeof myNotifs==='function')?myNotifs():DB.notifications;
+  const hasUnread=list.some(n=>n.unread);
   document.getElementById('notif-dot').style.display=hasUnread?'block':'none';
 }

@@ -25,7 +25,7 @@ function loadData(){
     if(data.students&&data.students.length)DB.students=data.students;
     if(data.certificates)DB.certificates=data.certificates;
     if(data.subjects&&data.subjects.length)DB.subjects=data.subjects;
-    if(data.notifications)DB.notifications=data.notifications;
+    if(data.notifications)DB.notifications=data.notifications.filter(n=>n&&n.ts); // anciennes notifications sans horodatage : écartées
     if(data.nextId)DB.nextId=data.nextId;
     if(data.examResults&&data.examResults.length)DB.examResults=data.examResults;
     if(data.exams&&data.exams.length){

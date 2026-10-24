@@ -913,7 +913,7 @@ function showScore(total){
   if(passed&&currentUser){
     const ex=DB.exams.find(e=>parseInt(e.id)===parseInt(curExamId)||e.id===curExamId);
     const s=DB.subjects.find(x=>parseInt(x.id)===parseInt(ex?.subjectId)||x.id===ex?.subjectId);
-    pushNotif('Examen réussi !','Vous avez obtenu '+pct+'% en '+(s?s.name:''),'🎓','#c0dd97');
+    pushNotif('Examen validé — '+(s?s.name:'examen'),'Score obtenu : '+pct+' % (seuil de réussite : 70 %).','✅','#c0dd97','exams');
     const st=DB.students.find(x=>x.id===currentUser.id);
     if(st){
       st.passed++;
@@ -978,7 +978,7 @@ function getCert(){
         certs:currentUser.certs, passed:currentUser.passed
       },{merge:true}).catch(e=>console.warn(e));
     }
-    pushNotif('Certificat obtenu !','Certificat de réussite en '+subj+' délivré.','🎓','#F0C96A');
+    pushNotif('Certificat de réussite délivré','Matière : '+subj+' · Score : '+pct+' %. Retrouvez-le dans la rubrique Certificats.','🎓','#F0C96A','certs');
     sendCertEmail(currentUser.name, currentUser.email, subj, pct);
   }
   saveData();checkAndNotifyBadges(currentUser);toast('Certificat obtenu pour '+subj+' !','ok');

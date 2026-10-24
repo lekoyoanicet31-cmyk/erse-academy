@@ -140,15 +140,40 @@ function toggleNotifPanel(){
   panel.classList.toggle('open');
   renderNotifs();
 }
+/* ═══ NOTIFICATIONS ═══
+   Chaque notification porte : title, sub, ic, bg, go (page à ouvrir au clic),
+   ts (horodatage réel) et uid (propriétaire). L'heure est calculée à l'affichage. */
+function myNotifs(){
+  const uid = currentUser && currentUser.email;
+  return DB.notifications.filter(n => !n.uid || n.uid === uid);
+}
+function notifEsc(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// « Aujourd'hui à 14:32 » · « Hier à 09:05 » · « 21 oct. à 18:40 »
+function fmtNotifTime(ts){
+  const d = new Date(ts);
+  if(isNaN(d.getTime())) return '';
+  const hm = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  const now = new Date();
+  const day = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(now) - day(d)) / 86400000);
+  if(diff <= 0) return "Aujourd'hui à " + hm;
+  if(diff === 1) return 'Hier à ' + hm;
+  const mois = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+  return d.getDate() + ' ' + mois[d.getMonth()] + (d.getFullYear() !== now.getFullYear() ? ' ' + d.getFullYear() : '') + ' à ' + hm;
+}
 function renderNotifs(){
   const list=document.getElementById('notif-list');
-  if(!DB.notifications.length){list.innerHTML='<div class="notif-empty">Aucune notification</div>';return;}
-  list.innerHTML=DB.notifications.map(n=>`
+  const items=myNotifs().slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(!items.length){list.innerHTML='<div class="notif-empty">Aucune notification</div>';updateNotifDot();return;}
+  list.innerHTML=items.map(n=>`
     <div class="notif-item ${n.unread?'unread':''}" onclick="markRead(${n.id})">
-      <div class="notif-item-ic" style="background:${n.bg||'#b0d4f4'};">${n.ic}</div>
+      <div class="notif-item-ic" style="background:${n.bg||'#b0d4f4'};">${n.ic||'🔔'}</div>
       <div class="notif-item-txt">
-        <div class="notif-item-title">${n.title}</div>
-        <div class="notif-item-sub">${n.sub} · ${n.time}</div>
+        <div class="notif-item-title">${notifEsc(n.title)}</div>
+        <div class="notif-item-sub">${notifEsc(n.sub)}</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:3px;">🕒 ${fmtNotifTime(n.ts)}</div>
       </div>
       ${n.unread?'<div class="notif-unread-dot"></div>':''}
     </div>`).join('');
@@ -159,26 +184,12 @@ function markRead(id){
   if(!n) return;
   n.unread=false;
   saveData();
-  renderNotifs();
-  // Rediriger selon le type de notification
-  const title=(n.title||'').toLowerCase();
-  const sub=(n.sub||'').toLowerCase();
-  if(title.includes('examen') || sub.includes('examen') || n.ic==='📝'){
-    toggleNotifPanel(); goPage('exams');
-  } else if(title.includes('certificat') || n.ic==='🎓'){
-    toggleNotifPanel(); goPage('certs');
-  } else if(title.includes('discussion') || title.includes('forum') || n.ic==='💬'){
-    toggleNotifPanel(); goPage('forum');
-  } else if(title.includes('matière') || title.includes('cours') || n.ic==='📚'){
-    toggleNotifPanel(); goPage('courses');
-  } else if(title.includes('administration') || n.ic==='📣'){
-    toggleNotifPanel();
-  } else {
-    toggleNotifPanel();
-  }
+  toggleNotifPanel();           // ferme le panneau
+  if(n.go) goPage(n.go);        // ouvre directement la page concernée
 }
 function clearNotifs(){
-  DB.notifications=[];
+  const uid = currentUser && currentUser.email;
+  DB.notifications = DB.notifications.filter(n => n.uid && n.uid !== uid);
   saveData();
   renderNotifs();
   updateNotifDot();
@@ -215,21 +226,45 @@ function checkRevisionReminders(){
     }
   });
 
-  // Max 2 rappels par session pour ne pas spammer
-  reminders.slice(0,2).forEach(r=>{
+  // Max 2 rappels par session, et un seul rappel par matière et par jour
+  const todayKey = new Date().toISOString().slice(0,10);
+  const remindKey = 'erse_rev_remind_' + (currentUser.email||'');
+  let sent = {};
+  try{ sent = JSON.parse(localStorage.getItem(remindKey)||'{}'); }catch(e){}
+  const toSend = reminders.filter(r => sent[r.subj] !== todayKey).slice(0,2);
+  toSend.forEach((r,i)=>{
+    sent[r.subj] = todayKey;
     setTimeout(()=>{
       pushNotif(
-        r.urgent ? '⚠️ Révision urgente !' : '📚 Rappel de révision',
-        (r.urgent ? 'Plus de ' : '') + r.days + ' jours sans réviser ' + r.subj + '. Reprends là où tu t\'es arrêté !',
+        r.urgent ? 'Révision prioritaire' : 'Rappel de révision',
+        r.days + ' jours sans révision en ' + r.subj + '. Passez un examen d\'entraînement pour consolider vos acquis.',
         r.urgent ? '⚠️' : '📚',
-        r.urgent ? '#FAEEDA' : '#b0d4f4'
+        r.urgent ? '#FAEEDA' : '#b0d4f4',
+        'exams'
       );
-    }, (reminders.indexOf(r)+1) * 3000);
+    }, (i+1) * 3000);
   });
+  try{ localStorage.setItem(remindKey, JSON.stringify(sent)); }catch(e){}
 }
 
-function pushNotif(title,sub,ic,bg){
-  DB.notifications.unshift({id:DB.nextId++,title,sub,ic,bg,unread:true,time:'Maintenant'});
+// Message de bienvenue : une seule fois, pour un nouveau compte (jamais à chaque connexion)
+function welcomeNotifOnce(user){
+  if(!user || !user.email) return;
+  const key = 'erse_welcomed_' + user.email;
+  if(localStorage.getItem(key)) return;
+  try{ localStorage.setItem(key,'1'); }catch(e){}
+  const hasHistory = (DB.examResults||[]).some(r => r.userId === user.email) || (user.passed||0) > 0 || (user.certs||0) > 0;
+  if(hasHistory) return; // compte déjà actif : pas de message de bienvenue
+  pushNotif('Bienvenue sur ERSE ACADEMY','Votre compte est prêt. Ouvrez un cours de votre niveau, puis passez votre premier examen.','🎓','#b0d4f4','courses');
+}
+
+function pushNotif(title,sub,ic,bg,go,ts,uid){
+  DB.notifications.unshift({
+    id:DB.nextId++, title, sub, ic, bg, go:go||null, ts:ts||Date.now(),
+    uid:(uid!==undefined ? uid : ((currentUser && currentUser.email) || null)), unread:true
+  });
+  if(DB.notifications.length>60) DB.notifications.length=60;
   updateNotifDot();
+  try{ saveData(); }catch(e){}
 }
 

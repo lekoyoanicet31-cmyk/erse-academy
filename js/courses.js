@@ -70,6 +70,7 @@ async function requestLevelUp(){
   saveData();
   toast(`🎉 Félicitations ! Vous passez en Licence ${newLevel} !`,'ok');
   sendLevelUpEmail(currentUser.name, currentUser.email, newLevel);
+  pushNotif('Niveau supérieur débloqué','Vous passez en Licence '+newLevel+'. Les cours, examens et épreuves de ce niveau sont désormais accessibles.','🚀','#c0dd97','courses');
   showLevelUpModal(newLevel);
   renderLevelBadge();
   goPage('courses');

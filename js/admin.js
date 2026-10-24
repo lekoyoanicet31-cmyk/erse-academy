@@ -425,14 +425,14 @@ function renderAdminNotifs(){
     <div style="margin-bottom:1rem;display:flex;gap:8px;">
       <button class="btn-primary" onclick="sendPlatformNotif()">📣 Envoyer à tous</button>
       <button class="btn-primary" onclick="addChangelogNote()">📝 Annoncer une mise à jour</button>
-      <button class="act-btn del-btn" onclick="DB.notifications=[];renderAdminNotifs();renderNotifs();toast('Effacées','ok')">🗑 Tout effacer</button>
+      <button class="act-btn del-btn" onclick="clearNotifs();renderAdminNotifs()">🗑 Tout effacer</button>
     </div>
     <table class="data-table">
       <thead><tr><th>Icône</th><th>Titre</th><th>Message</th><th>Statut</th><th>Heure</th></tr></thead>
-      <tbody>${DB.notifications.map(n=>`<tr>
+      <tbody>${myNotifs().map(n=>`<tr>
         <td>${n.ic}</td><td style="font-weight:500;">${n.title}</td><td style="font-size:12px;color:var(--muted);">${n.sub}</td>
         <td><span class="badge" style="background:${n.unread?'var(--b0)':'var(--g)'};color:${n.unread?'var(--b8)':'var(--gc)'};border-color:${n.unread?'var(--b2)':'#97C459'}">${n.unread?'Non lu':'Lu'}</span></td>
-        <td style="font-size:12px;color:var(--muted);">${n.time}</td>
+        <td style="font-size:12px;color:var(--muted);">${fmtNotifTime(n.ts)}</td>
       </tr>`).join('')}</tbody>
     </table>`;
 }
@@ -443,21 +443,20 @@ function resetAllData(){
   setTimeout(()=>location.reload(),2000);
 }
 async function sendPlatformNotif(){
-  const msg=prompt('Message de notification à envoyer à tous les étudiants :');
-  if(!msg) return;
-  const notif={id:DB.nextId++,title:"Message de l'administration",sub:msg,ic:'📣',bg:'#b0d4f4',unread:true,time:'Maintenant'};
-  DB.notifications.unshift(notif);
-  updateNotifDot();
-  saveData();
+  const msg=prompt("Annonce à envoyer à tous les étudiants (ex : « Les examens de Thermodynamique sont disponibles ») :");
+  if(!msg||!msg.trim()) return;
+  const clean=msg.trim().slice(0,300);
+  const ts=Date.now();
+  pushNotif('Annonce ERSE ACADEMY',clean,'📢','#b0d4f4',null,ts);
   if(fbReady){
     try{
       await db.collection('meta').doc('platformNotif').set({
-        title:notif.title,sub:notif.sub,ic:notif.ic,bg:notif.bg,
-        ts:Date.now(),by:currentUser?.email||'admin'
+        title:'Annonce ERSE ACADEMY',sub:clean,ic:'📢',bg:'#b0d4f4',
+        ts,by:currentUser?.email||'admin'
       });
     }catch(e){console.warn(e);}
   }
-  toast('Notification envoyée à tous !','ok');
+  toast('Annonce envoyée à tous les étudiants','ok');
   renderAdminNotifs();
 }
 

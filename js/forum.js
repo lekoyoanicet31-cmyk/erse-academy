@@ -82,7 +82,7 @@ async function submitPost(){
     toast('Discussion publiée (hors ligne)','ok');
     renderForum(FORUM.posts);
   }
-  pushNotif('Nouvelle discussion','Votre question a été publiée dans le forum','💬','#b0d4f4');
+  pushNotif('Discussion publiée','Votre message « '+(title.length>45?title.slice(0,45)+'…':title)+' » est visible par la communauté.','💬','#b0d4f4','forum');
 }
 
 function saveForumData(){
@@ -254,7 +254,7 @@ function checkAndNotifyBadges(user){
     if(!prev.includes(b.id)){
       prev.push(b.id);
       toast('🏅 Nouveau badge : '+b.name+' '+b.icon,'ok');
-      pushNotif('Badge obtenu !','Vous avez débloqué : '+b.name+' '+b.icon,'🏅','#F0C96A');
+      pushNotif('Nouveau badge débloqué',b.icon+' '+b.name+' — '+b.desc,'🏅','#F0C96A','profile');
     }
   });
   localStorage.setItem('erse_badges_'+user.email, JSON.stringify(prev));

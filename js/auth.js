@@ -166,7 +166,7 @@ async function loginUser(user){
   // Bouton admin dans le menu mobile "Plus"
   const bnAdmin = document.getElementById('bn-admin-btn');
   if(bnAdmin) bnAdmin.style.display = user.role==='admin' ? 'block' : 'none';
-  pushNotif('Connexion réussie','Bienvenue '+user.name+' !','👋','#b0d4f4');
+  welcomeNotifOnce(user);
   setTimeout(checkRevisionReminders, 5000);
   // Lancer Firebase sync maintenant que l'utilisateur est authentifié
   if(!fbReady) initFirebase();
