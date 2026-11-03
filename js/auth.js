@@ -144,6 +144,12 @@ document.addEventListener('click',()=>{if(currentUser)resetSessionTimer();});
 document.addEventListener('keypress',()=>{if(currentUser)resetSessionTimer();});
 
 async function loginUser(user){
+  // La liste de suspension utilise des hachages ; vérifier avant d'ouvrir l'application.
+  if(typeof checkBanned === 'function' && await checkBanned(user.email)){
+    await auth.signOut();
+    toast('Votre compte a été suspendu. Contactez l\'administrateur.','err');
+    return;
+  }
   // Vérifier si l'email est banni
   if((DB.bannedEmails||[]).includes(user.email)){
     auth.signOut();
@@ -151,6 +157,9 @@ async function loginUser(user){
     return;
   }
   currentUser=user;
+  if(typeof syncPublicProfile === 'function'){
+    syncPublicProfile(user).catch(e=>console.warn('Profil public non synchronisé:',e));
+  }
   resetSessionTimer();
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('main-app').style.cssText='display:block;min-height:100vh;';
