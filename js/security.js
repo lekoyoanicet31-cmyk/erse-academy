@@ -384,10 +384,54 @@ async function doLoginGoogle(){
     else if(c === 'auth/popup-blocked') toast('Votre navigateur a bloqué la fenêtre Google. Autorisez les pop-ups pour ce site puis réessayez.','err');
     else if(c === 'auth/unauthorized-domain') secDialog('⚙️','Domaine non autorisé','Ce site n\'est pas encore autorisé pour la connexion Google. Administrateur : dans la console Firebase, Authentication › Paramètres › Domaines autorisés, ajoutez <b>' + secEsc(location.hostname) + '</b>.');
     else if(c === 'auth/operation-not-allowed') secDialog('⚙️','Connexion Google désactivée','Administrateur : activez le fournisseur « Google » dans la console Firebase (Authentication › Méthode de connexion).');
-    else if(c === 'auth/account-exists-with-different-credential') toast('Un compte existe déjà avec cet email. Connectez-vous avec votre mot de passe.','err');
+    else if(c === 'auth/account-exists-with-different-credential'){
+      const email = e.email || (e.customData && e.customData.email) || '';
+      const credential = firebase.auth.GoogleAuthProvider.credentialFromError(e);
+      if(email && credential) linkGoogleToExistingAccount(email, credential);
+      else toast('Cet email est déjà associé à un compte. Connectez-vous avec la méthode utilisée lors de l’inscription.','err');
+    }
     else if(c === 'auth/network-request-failed') toast('Connexion impossible. Vérifiez votre réseau.','err');
     else toast('Connexion Google impossible. Réessayez ou utilisez votre email.','err');
   }finally{ secGoogleBusy(false); }
+}
+
+// Associe Google à un compte ERSE existant avec confirmation du mot de passe actuel.
+function linkGoogleToExistingAccount(email, googleCredential){
+  const ov = secOverlay('google-link-overlay', `<div style="${SEC.card}width:100%;max-width:420px;border-radius:18px;padding:1.5rem 1.4rem;box-shadow:0 24px 70px rgba(0,0,0,.5);">
+      <div style="font-size:2.2rem;text-align:center;">🔐</div>
+      <div style="font-size:1.05rem;font-weight:700;text-align:center;margin:.2rem 0 .4rem;">Confirmer votre compte ERSE</div>
+      <div style="font-size:13px;line-height:1.6;${SEC.muted}text-align:center;margin-bottom:1rem;">Un compte ERSE existe déjà pour <b>${secEsc(maskEmail(email))}</b>. Saisissez une fois son mot de passe pour associer Google.</div>
+      <form id="google-link-form" novalidate>
+        <label for="google-link-password" style="font-size:12px;font-weight:600;${SEC.muted}display:block;margin-bottom:5px;">Mot de passe ERSE actuel</label>
+        <input id="google-link-password" type="password" autocomplete="current-password" style="${SEC.input}padding-right:12px;margin-bottom:10px;">
+        <div id="google-link-error" role="alert" style="display:none;color:#b91c1c;font-size:13px;margin-bottom:10px;"></div>
+        <button id="google-link-submit" type="submit" style="${SEC.btn}">Associer mon compte Google</button>
+        <button id="google-link-cancel" type="button" style="width:100%;margin-top:8px;padding:11px;border:1px solid ${SEC.border};border-radius:11px;background:transparent;color:inherit;cursor:pointer;font-family:inherit;">Annuler</button>
+      </form></div>`, { locked: () => false });
+  const form = ov.querySelector('#google-link-form');
+  const input = ov.querySelector('#google-link-password');
+  const btn = ov.querySelector('#google-link-submit');
+  const error = ov.querySelector('#google-link-error');
+  ov.querySelector('#google-link-cancel').addEventListener('click', () => ov._close());
+  form.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    if(!input.value){ error.textContent = 'Saisissez le mot de passe de votre compte ERSE.'; error.style.display = 'block'; return; }
+    btn.disabled = true; btn.textContent = 'Vérification…'; error.style.display = 'none';
+    try{
+      const signedIn = await auth.signInWithEmailAndPassword(email, input.value);
+      await signedIn.user.linkWithCredential(googleCredential);
+      ov._close();
+      toast('Compte Google associé. Vous pourrez désormais vous connecter avec Google.','ok');
+    }catch(err){
+      if(err && ['auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials'].includes(err.code)) error.textContent = 'Mot de passe ERSE incorrect.';
+      else if(err && err.code === 'auth/credential-already-in-use') error.textContent = 'Ce compte Google est déjà associé à un autre compte ERSE.';
+      else if(err && err.code === 'auth/provider-already-linked'){
+        ov._close(); toast('Google est déjà associé. Réessayez la connexion Google.','ok'); return;
+      } else error.textContent = secFriendlyAuthError(err);
+      error.style.display = 'block'; btn.disabled = false; btn.textContent = 'Associer mon compte Google'; input.focus();
+    }
+  });
+  setTimeout(() => input.focus(), 60);
 }
 
 /* ═══════════════ NIVEAU DES NOUVEAUX COMPTES GOOGLE ═══════════════ */
