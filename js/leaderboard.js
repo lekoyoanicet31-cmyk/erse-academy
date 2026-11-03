@@ -5,10 +5,11 @@
 function renderLB(students){
   const sorted=[...students].sort((a,b)=>b.avgScore-a.avgScore||(b.passed-a.passed));
   const medals=['🥇','🥈','🥉'];
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   document.getElementById('lb-body').innerHTML=sorted.map((s,i)=>`
     <tr class="${i<3?'top-'+(i+1):''}">
       <td style="font-size:17px;">${i<3?medals[i]:'#'+(i+1)}</td>
-      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="background:${s.color}22;color:${s.color};font-size:11px;font-weight:600;">${s.initials}</div><div><div style="font-weight:500;">${s.name}</div><div style="font-size:11px;color:var(--muted);">${s.email||''}</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="background:${esc(s.color)}22;color:${esc(s.color)};font-size:11px;font-weight:600;">${esc(s.initials)}</div><div><div style="font-weight:500;">${esc(s.name)}</div></div></div></td>
       <td><span class="pill-lvl l${s.level}p">L${s.level}</span></td>
       <td>${s.passed}</td>
       <td><div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${s.avgScore}%"></div></div><span style="font-size:12px;font-weight:500;color:var(--b8);min-width:32px;">${s.avgScore}%</span></div></td>
@@ -76,7 +77,7 @@ function renderProfile(){
   big.style.background=u.color+'33';
   big.style.color=u.color;
   document.getElementById('profile-fullname').textContent=u.name;
-  document.getElementById('profile-sub').textContent=(u.spec?u.spec+' · ':'')+`Licence ${u.level} · ${u.email}`;
+  document.getElementById('profile-sub').textContent=(u.spec?u.spec+' · ':'')+`Licence ${u.level}`;
   const myCerts=DB.certificates.filter(c=>c.userId===u.email||c.userId===String(u.id)||c.studentName===u.name);
   const myPassed=DB.students.find(s=>s.id===u.id)?.passed||u.passed||0;
   // Afficher XP bar

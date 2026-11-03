@@ -57,19 +57,29 @@ async function fbLoadCerts(userId){
 
 async function fbLoadAllStudents(){
   try{
-    // Charger TOUS les utilisateurs sauf l'admin
-    const snap = await db.collection('users').get();
+    // L'administrateur garde les identifiants nécessaires à la gestion des comptes;
+    // les autres utilisateurs ne lisent que la collection publique sans emails.
+    if(currentUser && currentUser.role === 'admin'){
+      const privateSnap = await db.collection('users').get();
+      const students = [];
+      privateSnap.forEach(doc => {
+        const d = doc.data();
+        if(d.role === 'admin') return;
+        students.push({id:doc.id, email:doc.id, authUid:d.authUid || '', name:d.name || 'Étudiant',
+          initials:d.initials || '??', color:d.color || '#185FA5', level:d.level || 1,
+          passed:d.passed || 0, avgScore:d.avgScore || 0, certs:d.certs || 0});
+      });
+      return students;
+    }
+    // Le classement lit exclusivement des profils publics sans email.
+    const snap = await db.collection('publicProfiles').get();
     const students = [];
     snap.forEach(doc => {
       const d = doc.data();
-      const email = doc.id;
-      if(d.role === 'admin') return;
       students.push({
-        id:doc.id, name:d.name||email.split('@')[0],
-        initials:d.initials||'??',
-        color:d.color||'#185FA5', level:d.level||1,
-        passed:d.passed||0, avgScore:d.avgScore||0,
-        certs:d.certs||0, email:email
+        id:doc.id, name:d.name||'Étudiant',
+        initials:d.initials||'??', color:d.color||'#185FA5', level:d.level||1,
+        passed:d.passed||0, avgScore:d.avgScore||0, certs:d.certs||0
       });
     });
     return students;

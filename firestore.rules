@@ -1,0 +1,102 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  ERSE ACADEMY — règles de sécurité Firestore (confidentialité des étudiants)
+//
+//  PRINCIPES
+//  • users/{email}            : profil complet (email, niveau…) → lisible par son propriétaire et l'admin SEULEMENT.
+//  • publicProfiles/{uid}     : profil PUBLIC du classement (nom, initiales, niveau, scores). Aucun email.
+//  • examResults, plannings, certificates : données personnelles → propriétaire + admin.
+//  • Contenu (matières, examens, boutique) : lecture pour tout compte connecté, écriture admin.
+//
+//  ORDRE DE DÉPLOIEMENT (important)
+//  1. Poussez d'abord le nouveau site sur GitHub (il crée les profils publics).
+//  2. Connectez-vous avec un compte étudiant de test, vérifiez que le classement s'affiche.
+//  3. Console Firebase › Firestore › Règles : copiez le contenu actuel dans un fichier de secours,
+//     puis collez ces règles et testez avec le « Simulateur de règles » avant de publier.
+//  4. Vérifiez : connexion, classement, examen, certificat, forum, planning, boutique, panneau admin.
+//  En cas de problème : recollez l'ancienne version des règles (votre fichier de secours).
+// ═══════════════════════════════════════════════════════════════════════════
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function myEmail()  { return request.auth.token.email; }
+    function isMe(email) {
+      return signedIn() && myEmail() != null && myEmail().lower() == email.lower();
+    }
+    function isAdmin() {
+      return signedIn() && myEmail() != null
+        && exists(/databases/$(database)/documents/users/$(myEmail()))
+        && get(/databases/$(database)/documents/users/$(myEmail())).data.get('role', 'student') == 'admin';
+    }
+
+    // ── Profil complet : privé ──
+    match /users/{email} {
+      allow read:   if isMe(email) || isAdmin();
+      allow create: if (isMe(email) && request.resource.data.get('role', 'student') == 'student') || isAdmin();
+      allow update: if (isMe(email)
+                        && request.resource.data.get('role', 'student') == resource.data.get('role', 'student'))
+                       || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Profil public du classement : aucun email, champs strictement limités ──
+    match /publicProfiles/{uid} {
+      allow read: if signedIn();
+      allow create, update: if (signedIn() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['name','initials','color','level','passed','avgScore','certs','updatedAt'])
+          && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+          && request.resource.data.initials is string && request.resource.data.initials.size() <= 4
+          && request.resource.data.color is string && request.resource.data.color.matches('^#[0-9A-Fa-f]{6}$')
+          && request.resource.data.level in [1, 2, 3]
+          && request.resource.data.passed is number && request.resource.data.passed >= 0
+          && request.resource.data.avgScore is number && request.resource.data.avgScore >= 0 && request.resource.data.avgScore <= 100
+          && request.resource.data.certs is number && request.resource.data.certs >= 0
+          && request.resource.data.updatedAt is number)
+        || isAdmin();
+      allow delete: if (signedIn() && request.auth.uid == uid) || isAdmin();
+    }
+
+    // ── Données personnelles ──
+    match /examResults/{email} {
+      allow read, write: if isMe(email) || isAdmin();
+      match /results/{rid} {
+        allow read, write: if isMe(email) || isAdmin();
+      }
+    }
+    match /plannings/{email} {
+      allow read, write: if isMe(email) || isAdmin();
+    }
+    match /certificates/{id} {
+      allow read:   if signedIn() && (resource.data.userId == myEmail() || isAdmin());
+      allow create: if signedIn() && request.resource.data.userId == myEmail();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Contenu pédagogique : lecture connectée, écriture admin ──
+    match /subjects/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /exams/{id}    { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /shop/{id}     { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /settings/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /meta/{id}     { allow read: if signedIn(); allow write: if isAdmin(); }
+
+    // ── Comptes suspendus : liste de HACHAGES (aucun email) ──
+    match /bannedEmails/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+
+    // ── Forum ──
+    match /forum/{id} {
+      allow read:   if signedIn();
+      allow create: if signedIn()
+                    && request.resource.data.title is string && request.resource.data.title.size() <= 300
+                    && request.resource.data.content is string && request.resource.data.content.size() <= 4000;
+      allow update: if (signedIn()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replies','likes','likedBy']))
+                       || isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.get('authorUid', '') == request.auth.uid);
+    }
+
+    // Tout le reste est refusé
+    match /{document=**} { allow read, write: if false; }
+  }
+}

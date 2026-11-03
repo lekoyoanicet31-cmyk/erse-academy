@@ -290,10 +290,9 @@ function renderAdminStudents(){
       <button class="btn-primary" onclick="openModal('modal-student')">+ Étudiant</button>
     </div>
     <table class="data-table">
-      <thead><tr><th>Étudiant</th><th>Email</th><th>Niveau</th><th>Examens</th><th>Score</th><th>Certs</th><th>Action</th></tr></thead>
+      <thead><tr><th>Étudiant</th><th>Niveau</th><th>Examens</th><th>Score</th><th>Certs</th><th>Action</th></tr></thead>
       <tbody>${DB.students.map(s=>`<tr>
         <td><div style="display:flex;align-items:center;gap:7px;"><div class="avatar" style="background:${s.color}22;color:${s.color};font-size:11px;font-weight:600;">${s.initials}</div><span style="font-weight:500;">${s.name}</span></div></td>
-        <td style="color:var(--muted);font-size:12px;">${s.email||'—'}</td>
         <td><span class="pill-lvl l${s.level}p">L${s.level}</span></td>
         <td>${s.passed}</td>
         <td><span style="font-weight:500;color:${s.avgScore>=70?'var(--gc)':'var(--rc)'};">${s.avgScore}%</span></td>
@@ -334,7 +333,8 @@ async function banStudent(id){
   if(fbReady && s.email){
     try{
       await db.collection('users').doc(s.email).delete();
-      await db.collection('bannedEmails').doc('list').set({emails: DB.bannedEmails});
+      if(s.authUid) await db.collection('publicProfiles').doc(s.authUid).delete();
+      if(typeof banEmailHash === 'function') await banEmailHash(s.email);
       const snap = await db.collection('examResults').doc(s.email).collection('results').get();
       snap.forEach(doc=>doc.ref.delete());
     }catch(e){console.warn('Erreur ban Firestore:',e);}
@@ -359,6 +359,7 @@ async function removeStudent(id){
   if(fbReady && s.email){
     try{
       await db.collection('users').doc(s.email).delete();
+      if(s.authUid) await db.collection('publicProfiles').doc(s.authUid).delete();
       const snap = await db.collection('examResults').doc(s.email).collection('results').get();
       snap.forEach(doc=>doc.ref.delete());
     }catch(e){console.warn('Erreur suppression Firestore:',e);}

@@ -922,6 +922,7 @@ function showScore(total){
     // Mettre à jour currentUser aussi
     currentUser.passed=(currentUser.passed||0)+1;
     currentUser.avgScore=Math.round(((currentUser.avgScore||0)*(currentUser.passed-1)+pct)/currentUser.passed);
+    if(typeof syncPublicProfile==='function') syncPublicProfile(currentUser).catch(e=>console.warn('Profil public non synchronisé:',e));
     if(currentUser.activity)currentUser.activity.unshift({text:'Examen réussi : '+(s?s.name:''),ic:'📝',bg:var_g(),time:new Date().toLocaleDateString('fr-FR')});
     saveData();
     // Sauvegarder dans Firestore
@@ -970,6 +971,7 @@ function getCert(){
     const newCert={subject:subj,date:new Date().toLocaleDateString('fr-FR'),score:pct,userId:userKey,studentName:currentUser.name};
     DB.certificates.push(newCert);
     currentUser.certs=(currentUser.certs||0)+1;
+    if(typeof syncPublicProfile==='function') syncPublicProfile(currentUser).catch(e=>console.warn('Profil public non synchronisé:',e));
     // Note: currentUser.passed déjà incrémenté dans showScore, on ne le reincrémente pas ici
     // Sauvegarder dans Firebase
     if(fbReady){
