@@ -3,7 +3,11 @@
    LEADERBOARD
 ═══════════════════════════════════════════ */
 function renderLB(students){
-  const sorted=[...students].sort((a,b)=>(Number(b.statsVersion>=2)-Number(a.statsVersion>=2))||(Number(b.levelProgress)||0)-(Number(a.levelProgress)||0)||(Number(b.levelDone)||0)-(Number(a.levelDone)||0));
+  const progressOf=s=>{
+    const total=Math.max(0,Number(s.levelTotal)||0), passed=Math.max(0,Number(s.levelPassed)||0);
+    return total?Math.round(Math.min(passed,total)/total*100):0;
+  };
+  const sorted=[...students].sort((a,b)=>(Number(b.statsVersion>=2)-Number(a.statsVersion>=2))||progressOf(b)-progressOf(a)||(Number(b.levelPassed)||0)-(Number(a.levelPassed)||0));
   const medals=['🥇','🥈','🥉'];
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   document.getElementById('lb-body').innerHTML=sorted.map((s,i)=>`
@@ -12,7 +16,7 @@ function renderLB(students){
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="background:${esc(s.color)}22;color:${esc(s.color)};font-size:11px;font-weight:600;">${esc(s.initials)}</div><div><div style="font-weight:500;">${esc(s.name)}</div></div></div></td>
       <td><span class="pill-lvl l${s.level}p">L${s.level}</span></td>
       <td>${s.statsVersion>=2?`${Number(s.levelPassed)||0}/${Number(s.levelTotal)||0}`:'—'}</td>
-      <td>${s.statsVersion>=2?`<div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${Math.max(0,Math.min(100,Number(s.levelProgress)||0))}%"></div></div><span style="font-size:12px;font-weight:500;color:var(--b8);min-width:32px;">${Number(s.levelProgress)||0}%</span></div>`:'<span title="Les statistiques seront recalculées à la prochaine connexion">À actualiser</span>'}</td>
+      <td>${s.statsVersion>=2?`<div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${progressOf(s)}%"></div></div><span style="font-size:12px;font-weight:500;color:var(--b8);min-width:32px;">${progressOf(s)}%</span></div>`:'<span title="Les statistiques seront recalculées à la prochaine connexion">À actualiser</span>'}</td>
       <td>${s.certs} 🎓</td>
     </tr>`).join('');
 }
@@ -39,7 +43,7 @@ async function refreshLegacyLeaderboardStats(students){
     await Promise.all(legacy.slice(i,i+8).map(async student=>{
       try{
         const snap=await db.collection('examResults').doc(student.email).collection('results').get();
-        const results=snap.docs.map(doc=>doc.data());
+        const results=snap.docs.map(doc=>({...doc.data(),userId:doc.data().userId||student.email}));
         const stats=calculateUserProgressStats(student,results);
         await Promise.all([
           db.collection('users').doc(student.email).set(stats,{merge:true}),
