@@ -12,6 +12,7 @@ function goPage(id){
   if(fbReady && id!=='admin') checkForUpdates().catch(e=>console.warn(e));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('pg-'+id).classList.add('on');
+  document.body.classList.toggle('energybot-active', id==='energybot');
   document.querySelectorAll('.np').forEach(b=>b.classList.remove('on'));
   const idx={home:0,courses:1,exams:2,leaderboard:3,certs:4,energybot:5,boutique:6,forum:7,planning:8};
   const navLinks=document.querySelectorAll('#nav-links .np');

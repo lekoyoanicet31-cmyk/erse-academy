@@ -381,7 +381,10 @@ async function doLoginGoogle(){
   }catch(e){
     const c = e && e.code;
     if(c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request'){ /* annulé : rien à dire */ }
-    else if(c === 'auth/popup-blocked') toast('Votre navigateur a bloqué la fenêtre Google. Autorisez les pop-ups pour ce site puis réessayez.','err');
+    else if(c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment'){
+      try{ await auth.signInWithRedirect(googleProvider); }
+      catch(redirectError){ toast('Connexion Google impossible. Essayez d’ouvrir le site dans Chrome ou Safari.','err'); }
+    }
     else if(c === 'auth/unauthorized-domain') secDialog('⚙️','Domaine non autorisé','Ce site n\'est pas encore autorisé pour la connexion Google. Administrateur : dans la console Firebase, Authentication › Paramètres › Domaines autorisés, ajoutez <b>' + secEsc(location.hostname) + '</b>.');
     else if(c === 'auth/operation-not-allowed') secDialog('⚙️','Connexion Google désactivée','Administrateur : activez le fournisseur « Google » dans la console Firebase (Authentication › Méthode de connexion).');
     else if(c === 'auth/account-exists-with-different-credential'){

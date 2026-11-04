@@ -72,6 +72,14 @@ const loadingFallback = setTimeout(() => {
   }
 }, 8000);
 
+// Récupère aussi les erreurs du parcours de redirection Google utilisé sur mobile.
+auth.getRedirectResult().catch(e=>{
+  const code=e&&e.code;
+  if(code==='auth/unauthorized-domain') toast('Ce domaine doit être autorisé dans Firebase pour Google.','err');
+  else if(code==='auth/network-request-failed') toast('Connexion Google interrompue : vérifiez votre réseau.','err');
+  else if(code && code!=='auth/popup-closed-by-user') toast('La connexion Google n’a pas abouti ('+code+'). Réessayez dans Chrome ou Safari.','err');
+});
+
 auth.onAuthStateChanged(async (firebaseUser) => {
   authResolved = true;
   clearTimeout(loadingFallback);

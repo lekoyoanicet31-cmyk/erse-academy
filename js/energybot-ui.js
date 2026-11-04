@@ -20,12 +20,12 @@ function fitEbLayout(){
 
   const vv = window.visualViewport;
   const vh = vv ? vv.height : window.innerHeight;
-  // Clavier virtuel ouvert : la barre du bas est cachée derrière lui, on ne la retire pas
+  // EnergyBot prend tout l'écran ; la navigation et le pied de page y sont masqués.
   const keyboardOpen = !!vv && (window.innerHeight - vv.height) > 120;
 
   let navH = 0;
   const nav = document.getElementById('bottom-nav');
-  if(nav && !keyboardOpen){
+  if(nav && !keyboardOpen && !document.body.classList.contains('energybot-active')){
     const cs = getComputedStyle(nav);
     if(cs.display !== 'none' && cs.position === 'fixed') navH = nav.offsetHeight;
   }

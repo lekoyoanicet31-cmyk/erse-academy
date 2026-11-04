@@ -241,6 +241,10 @@ html[data-theme="dark"] #pg-energybot{
   display:flex;align-items:center;justify-content:center;
 }
 #pg-energybot .eb-icon-btn:hover{ background:var(--eb-bg-3); }
+#pg-energybot .eb-icon-btn.is-listening{background:#fee2e2;color:#b91c1c;animation:eb-mic-pulse 1s ease-in-out infinite;}
+@keyframes eb-mic-pulse{50%{box-shadow:0 0 0 5px rgba(239,68,68,.15)}}
+#pg-energybot .eb-speak-btn{display:block;margin:.5rem 0 0 auto;padding:3px 7px;border:0;border-radius:8px;background:transparent;color:var(--eb-muted);cursor:pointer;font-size:14px;}
+#pg-energybot .eb-speak-btn:hover{background:var(--eb-bg-3);}
 #pg-energybot .eb-input{
   flex:1; border:none; background:transparent; resize:none; outline:none;
   color:var(--eb-text); font-family:inherit; font-size:13.5px; line-height:1.5;

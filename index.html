@@ -152,7 +152,7 @@
   <button type="button" onclick="togglePwdVisibility('login-pwd','eye-login')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;line-height:1;" id="eye-login">👁</button>
 </div></div>
       <button class="btn-auth" id="login-btn" onclick="doLogin()">Se connecter</button>
-      <button type="button" class="btn-google" onclick="doLoginGoogle()" style="width:100%;margin-top:10px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text);font:500 14px var(--font-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;"><span aria-hidden="true" style="font-weight:700;font-size:17px;color:#4285F4;">G</span><span class="g-label">Continuer avec Google</span></button>
+      <button type="button" class="btn-google" onclick="doLoginGoogle()" style="width:100%;margin-top:10px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text);font:500 14px var(--font-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-8.9 6-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.7-5.1c-1.8 1.2-4 1.9-6.8 1.9-5.2 0-9.6-3.5-11.2-8.2H5.9v5.2A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.8 27.8a12 12 0 0 1 0-7.6V15H5.9a20 20 0 0 0 0 18z"/><path fill="#EA4335" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.9-5.9C34.1 6 29.5 4 24 4A20 20 0 0 0 5.9 15l6.9 5.2c1.6-4.7 6-8.1 11.2-8.1z"/></svg><span class="g-label">Continuer avec Google</span></button>
       
     <div style="text-align:center;margin-top:.8rem;">
       <span onclick="forgotPassword()" style="font-size:12px;color:var(--b6);cursor:pointer;">Mot de passe oublié ?</span>
@@ -169,7 +169,7 @@
       <div id="pwd-strength-txt" style="font-size:11px;color:var(--muted);margin-top:3px;"></div>
     </div>
       <button class="btn-auth" onclick="doRegister()">Créer mon compte</button>
-      <button type="button" class="btn-google" onclick="doLoginGoogle()" style="width:100%;margin-top:10px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text);font:500 14px var(--font-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;"><span aria-hidden="true" style="font-weight:700;font-size:17px;color:#4285F4;">G</span><span class="g-label">S'inscrire avec Google</span></button>
+      <button type="button" class="btn-google" onclick="doLoginGoogle()" style="width:100%;margin-top:10px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text);font:500 14px var(--font-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-8.9 6-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.7-5.1c-1.8 1.2-4 1.9-6.8 1.9-5.2 0-9.6-3.5-11.2-8.2H5.9v5.2A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.8 27.8a12 12 0 0 1 0-7.6V15H5.9a20 20 0 0 0 0 18z"/><path fill="#EA4335" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.9-5.9C34.1 6 29.5 4 24 4A20 20 0 0 0 5.9 15l6.9 5.2c1.6-4.7 6-8.1 11.2-8.1z"/></svg><span class="g-label">S'inscrire avec Google</span></button>
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:.8rem;line-height:1.6;">
       En créant un compte, vous acceptez nos 
       <span onclick="showLegal('cgu')" style="color:var(--b6);cursor:pointer;text-decoration:underline;">Conditions d'utilisation</span> 
@@ -210,7 +210,8 @@
     <button class="icon-btn" onclick="toggleNotifPanel()" id="notif-btn" title="Notifications">
       🔔<span class="notif-dot" id="notif-dot"></span>
     </button>
-    <div class="user-avatar-nav" id="user-avatar-nav" onclick="goPage('profile')"></div>
+    <button class="user-name-nav" id="user-name-nav" type="button" onclick="goPage('profile')" aria-label="Ouvrir mon profil">Mon profil</button>
+    <div class="user-avatar-nav" id="user-avatar-nav" role="button" tabindex="0" aria-label="Ouvrir mon profil" title="Mon profil" onclick="goPage('profile')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goPage('profile');}"></div>
     <button class="icon-btn" onclick="doLogout()" title="Déconnexion" style="font-size:14px;">🚪</button>
     <button class="icon-btn" onclick="openSearch()" title="Recherche">🔍</button>
     <button class="hamburger" onclick="toggleMobile()">☰</button>
@@ -534,6 +535,7 @@
           <div class="eb-input-row">
             <button class="eb-icon-btn" onclick="triggerEbImage()" title="Envoyer une photo d'épreuve">📷</button>
             <button class="eb-icon-btn eb-icon-btn-desktop" onclick="summarizeEbChat()" title="Résumer la conversation">📋</button>
+            <button class="eb-icon-btn" id="eb-voice-btn" onclick="toggleEbVoiceInput()" title="Dicter une question (transcription vocale du navigateur)" aria-label="Dicter une question à voix haute">🎙️</button>
             <textarea class="eb-input" id="eb-input" placeholder="Posez votre question…" rows="1"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendEbMessage();}"
               oninput="autoEbResize(this)"></textarea>

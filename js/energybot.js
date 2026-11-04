@@ -68,14 +68,14 @@ Examens réussis : ${currentUser.passed||0}, Score moyen : ${currentUser.avgScor
 Tu aides les étudiants dans les matières suivantes : ${DB.subjects.filter(s=>s.active).map(s=>s.name).join(', ')}.
 ${studentInfo}
 RÈGLES IMPORTANTES :
-- Réponds toujours en français, de façon claire, précise et encourageante.
+- Réponds toujours en français, avec un ton humain, chaleureux, simple et encourageant, sans familiarité forcée.
 - Pour les formules mathématiques, utilise TOUJOURS la notation LaTeX : $formule$ pour inline, $$formule$$ pour display.
 - Exemple : La formule quadratique est $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$
 - Structure tes réponses avec des titres clairs.
 - Si un étudiant envoie une photo d'épreuve, fournis une correction concise et structurée.
-- Réponds de façon COURTE et DIRECTE, maximum 5-6 lignes sauf si l'étudiant demande plus.
-- Pas d'introduction, pas de blabla, va droit au but.
-- NE propose JAMAIS de questions de suivi.`
+- Reste concis : réponse courte et directe (environ 5 à 8 lignes), sauf si l'étudiant demande plus de détails.
+- Commence naturellement par une courte phrase utile, sans formule froide ni longue introduction.
+- Si cela aide vraiment l'apprentissage, termine par une seule question simple ou propose une prochaine étape. N'en ajoute pas systématiquement.`
   };
 
   DB.subjects.filter(s=>s.active).forEach(s=>{
@@ -83,13 +83,13 @@ RÈGLES IMPORTANTES :
 ${s.desc ? 'Description : '+s.desc+'.' : ''}
 ${studentInfo}
 RÈGLES IMPORTANTES :
-- Réponds toujours en français avec des explications claires et des exemples concrets.
+- Réponds toujours en français, avec un ton humain, chaleureux, simple et encourageant, et des exemples concrets.
 - Pour les formules mathématiques, utilise TOUJOURS LaTeX : $formule$ pour inline, $$formule$$ pour display.
 - Exemple : $F = ma$, $$E = mc^2$$, $\\int_0^\\infty e^{-x} dx = 1$
 - Si tu reçois une photo d'épreuve, fournis une correction concise étape par étape.
-- Réponds de façon COURTE et DIRECTE, maximum 5-6 lignes sauf demande explicite.
-- Pas d'introduction inutile, va droit au but.
-- NE propose JAMAIS de questions de suivi.`;
+- Reste concis (environ 5 à 8 lignes), sauf si l'étudiant demande plus de détails.
+- Commence naturellement, sans formule froide ni longue introduction.
+- Si cela aide vraiment l'apprentissage, termine par une seule question simple ou propose une prochaine étape. N'en ajoute pas systématiquement.`;
   });
   return prompts;
 }
@@ -275,7 +275,7 @@ function addEbMsg(role, content){
   if(role === 'bot'){
     // Détecter les questions de suivi et les rendre cliquables
     const formattedContent = fmtEb(content);
-    div.innerHTML = `<div class="eb-msg-avatar">⚡</div><div class="eb-bubble">${formattedContent}</div>`;
+    div.innerHTML = `<div class="eb-msg-avatar">⚡</div><div class="eb-bubble">${formattedContent}<button class="eb-speak-btn" type="button" onclick="speakEbReply(this)" title="Écouter la réponse" aria-label="Écouter la réponse">🔊</button></div>`;
     msgs.appendChild(div);
 
     // Rendu KaTeX après insertion dans le DOM
@@ -334,6 +334,52 @@ function showEbTyping(){
 function removeEbTyping(){
   const t = document.getElementById('eb-typing-ind');
   if(t) t.remove();
+}
+
+// La dictée est reconnue par le navigateur, puis envoyée comme un message texte.
+let ebSpeechRecognition = null;
+function toggleEbVoiceInput(){
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = document.getElementById('eb-voice-btn');
+  if(!Rec){ toast('La dictée vocale n’est pas disponible dans ce navigateur. Essayez Chrome.','err'); return; }
+  if(ebSpeechRecognition){ ebSpeechRecognition.stop(); return; }
+  const recognition = new Rec();
+  ebSpeechRecognition = recognition;
+  recognition.lang = 'fr-FR';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  if(btn){ btn.textContent='⏹️'; btn.classList.add('is-listening'); btn.title='Arrêter la dictée'; }
+  toast('Je vous écoute. La reconnaissance vocale est assurée par votre navigateur.','ok');
+  recognition.onresult = event => {
+    const said = event.results?.[0]?.[0]?.transcript?.trim();
+    if(!said) return;
+    const input = document.getElementById('eb-input');
+    input.value = [input.value.trim(), said].filter(Boolean).join(' ');
+    autoEbResize(input);
+    sendEbMessage();
+  };
+  recognition.onerror = event => {
+    if(event.error !== 'aborted' && event.error !== 'no-speech') toast('La dictée vocale a échoué. Vérifiez l’autorisation du micro.','err');
+  };
+  recognition.onend = () => {
+    ebSpeechRecognition = null;
+    if(btn){ btn.textContent='🎙️'; btn.classList.remove('is-listening'); btn.title='Poser une question à voix haute'; }
+  };
+  try{ recognition.start(); }
+  catch(e){ ebSpeechRecognition=null; if(btn){btn.textContent='🎙️';btn.classList.remove('is-listening');} toast('Impossible de démarrer le micro. Réessayez.','err'); }
+}
+
+function speakEbReply(button){
+  if(!('speechSynthesis' in window)){ toast('La lecture vocale n’est pas disponible sur cet appareil.','err'); return; }
+  if(window.speechSynthesis.speaking){ window.speechSynthesis.cancel(); button.textContent='🔊'; return; }
+  const bubbleCopy = button.closest('.eb-bubble')?.cloneNode(true);
+  bubbleCopy?.querySelectorAll('button').forEach(el=>el.remove());
+  const utterance = new SpeechSynthesisUtterance(bubbleCopy?.innerText || '');
+  utterance.lang = 'fr-FR';
+  utterance.onend = () => button.textContent='🔊';
+  utterance.onerror = () => button.textContent='🔊';
+  button.textContent='⏹️';
+  window.speechSynthesis.speak(utterance);
 }
 
 // ── Envoi de message (texte + image) ──

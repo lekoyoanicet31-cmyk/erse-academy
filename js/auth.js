@@ -171,6 +171,8 @@ async function loginUser(user){
   const avatar=document.getElementById('user-avatar-nav');
   avatar.textContent=user.initials;
   avatar.style.background=user.color;
+  const navName=document.getElementById('user-name-nav');
+  if(navName) navName.textContent=user.name;
   document.querySelectorAll('.admin-nav-btn').forEach(b=>b.style.setProperty('display', user.role==='admin' ? 'inline-block' : 'none', 'important'));
   // Bouton admin dans le menu mobile "Plus"
   const bnAdmin = document.getElementById('bn-admin-btn');
