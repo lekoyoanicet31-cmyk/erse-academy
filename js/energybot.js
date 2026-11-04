@@ -446,11 +446,6 @@ async function sendEbMessage(){
   document.getElementById('eb-input').focus();
 }
 
-function promptApiKey(){
-  const key = prompt('Entrez votre clé API Groq (gsk_...) :\n\n1. Allez sur console.groq.com\n2. Créez un compte GRATUIT\n3. API Keys → Create API Key\n4. Copiez et collez ici', ebApiKey);
-  if(key !== null){ ebApiKey = key.trim() || GROQ_DEFAULT_KEY; localStorage.setItem('erse_api_key', ebApiKey); toast('Clé API mise à jour !', 'ok'); }
-}
-
 function autoEbResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,110)+'px'; }
 function sendStarter(text){ document.getElementById('eb-input').value=text; sendEbMessage(); }
 

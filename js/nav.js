@@ -32,8 +32,6 @@ function goPage(id){
     filterLevel(userLvl,targetTab);
     renderLevelBadge();
   },exams:()=>{ document.getElementById('quiz-wrap').style.display='none'; document.getElementById('exam-list-wrap').style.display=''; renderExamList(); renderLevelBadge(); },leaderboard:()=>refreshLeaderboard(),certs:renderCerts,profile:renderProfile,boutique:()=>loadShop(),energybot:()=>{
-    const keyBtn=document.getElementById('eb-key-btn');
-    if(keyBtn) keyBtn.style.display=currentUser?.role==='admin'?'':'none';
     // Recalcul explicite du layout EnergyBot
     const layout=document.querySelector('.eb-layout');
     const main=document.querySelector('.eb-main');
