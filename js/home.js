@@ -17,18 +17,19 @@ function renderHome(){
   animateCounter('hero-count-2', DB.students.reduce((a,s)=>a+s.certs,0)+DB.certificates.length);
   animateCounter('hero-count-3', DB.subjects.reduce((a,s)=>a+s.docs,0));
   animateCounter('hero-count-4', DB.exams.length);
-  const progressOf=s=>{
-    const total=Math.max(0,Number(s.levelTotal)||0),passed=Math.max(0,Number(s.levelPassed)||0);
-    return total?Math.round(Math.min(passed,total)/total*100):0;
-  };
-  const top3=[...DB.students].sort((a,b)=>(Number(b.statsVersion>=2)-Number(a.statsVersion>=2))||progressOf(b)-progressOf(a)||(Number(b.levelPassed)||0)-(Number(a.levelPassed)||0)).slice(0,3);
+  const withProgress=DB.students.map(s=>{
+    const total=Math.max(0,Number(s.statsVersion>=2?s.levelTotal:DB.exams.length)||0);
+    const passed=Math.min(total,Math.max(0,Number(s.statsVersion>=2?s.levelPassed:s.passed)||0));
+    return {...s,boardProgress:{total,passed,percent:total?Math.round(passed/total*100):0}};
+  });
+  const top3=withProgress.sort((a,b)=>b.boardProgress.percent-a.boardProgress.percent||b.boardProgress.passed-a.boardProgress.passed).slice(0,3);
   const medals=['🥇','🥈','🥉'];
   document.getElementById('home-top3').innerHTML=top3.map((s,i)=>`
     <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:1.1rem;display:flex;align-items:center;gap:12px;">
       <span style="font-size:22px;">${medals[i]}</span>
       <div class="avatar" style="background:${s.color}22;color:${s.color};font-size:11px;font-weight:600;">${s.initials}</div>
       <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${s.name}</div><div style="font-size:11px;color:var(--muted);">${s.certs} certs · L${s.level}</div></div>
-      <div style="font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--gold-d);text-align:right;">${s.statsVersion>=2?`${progressOf(s)}%<div style="font-size:10px;color:var(--muted);font-weight:400;">${Number(s.levelPassed)||0}/${Number(s.levelTotal)||0} examens</div>`:'À actualiser'}</div>
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--gold-d);text-align:right;">${s.boardProgress.percent}%<div style="font-size:10px;color:var(--muted);font-weight:400;">${s.boardProgress.passed}/${s.boardProgress.total} examens validés</div></div>
     </div>`).join('');
   // Afficher les examens disponibles avec minuteur de session
   renderExamCountdowns();
