@@ -341,32 +341,50 @@ let ebSpeechRecognition = null;
 function toggleEbVoiceInput(){
   const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
   const btn = document.getElementById('eb-voice-btn');
-  if(!Rec){ toast('La dictée vocale n’est pas disponible dans ce navigateur. Essayez Chrome.','err'); return; }
-  if(ebSpeechRecognition){ ebSpeechRecognition.stop(); return; }
+  if(!Rec){ toast('La dictée vocale nécessite Chrome ou Edge à jour.','err'); return; }
+  if(!window.isSecureContext){ toast('Le micro nécessite une connexion HTTPS. Ouvrez EnergyBot depuis son adresse sécurisée.','err'); return; }
+  if(ebSpeechRecognition){ ebSpeechRecognition.__stoppedByUser=true; ebSpeechRecognition.stop(); return; }
   const recognition = new Rec();
   ebSpeechRecognition = recognition;
   recognition.lang = 'fr-FR';
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
-  if(btn){ btn.textContent='⏹️'; btn.classList.add('is-listening'); btn.title='Arrêter la dictée'; }
-  toast('Je vous écoute. La reconnaissance vocale est assurée par votre navigateur.','ok');
+  let heardSpeech=false,hadError=false;
+  if(btn){ btn.textContent='⏹️'; btn.classList.add('is-listening'); btn.title='Arrêter la dictée'; btn.setAttribute('aria-pressed','true'); }
+  recognition.onstart = () => toast('Je vous écoute. Parlez maintenant.','ok');
   recognition.onresult = event => {
     const said = event.results?.[0]?.[0]?.transcript?.trim();
     if(!said) return;
+    heardSpeech=true;
     const input = document.getElementById('eb-input');
     input.value = [input.value.trim(), said].filter(Boolean).join(' ');
     autoEbResize(input);
     sendEbMessage();
   };
   recognition.onerror = event => {
-    if(event.error !== 'aborted' && event.error !== 'no-speech') toast('La dictée vocale a échoué. Vérifiez l’autorisation du micro.','err');
+    hadError=true;
+    const messages={
+      'not-allowed':'Accès au micro refusé. Autorisez le micro pour ce site dans les réglages du navigateur, puis réessayez.',
+      'service-not-allowed':'La reconnaissance vocale est bloquée par le navigateur. Essayez Chrome ou Edge à jour.',
+      'audio-capture':'Aucun micro utilisable détecté. Vérifiez le micro choisi dans Windows et dans le navigateur.',
+      'network':'Le service de reconnaissance vocale est inaccessible. Vérifiez la connexion Internet puis réessayez.',
+      'no-speech':'Aucune voix détectée. Parlez après l’apparition de l’indicateur d’écoute.',
+      'language-not-supported':'La reconnaissance vocale en français n’est pas disponible dans ce navigateur.'
+    };
+    if(event.error !== 'aborted') toast(messages[event.error]||'La reconnaissance vocale a échoué ('+event.error+'). Réessayez dans Chrome ou Edge.','err');
   };
   recognition.onend = () => {
     ebSpeechRecognition = null;
-    if(btn){ btn.textContent='🎙️'; btn.classList.remove('is-listening'); btn.title='Poser une question à voix haute'; }
+    if(btn){ btn.textContent='🎙️'; btn.classList.remove('is-listening'); btn.title='Dicter une question'; btn.setAttribute('aria-pressed','false'); }
+    if(!heardSpeech&&!hadError&&!recognition.__stoppedByUser) toast('Je n’ai pas entendu de voix. Réessayez en parlant distinctement près du micro.','err');
   };
-  try{ recognition.start(); }
-  catch(e){ ebSpeechRecognition=null; if(btn){btn.textContent='🎙️';btn.classList.remove('is-listening');} toast('Impossible de démarrer le micro. Réessayez.','err'); }
+  try{
+    recognition.start();
+  }catch(e){
+    ebSpeechRecognition=null;
+    if(btn){btn.textContent='🎙️';btn.classList.remove('is-listening');btn.setAttribute('aria-pressed','false');}
+    toast(e.name==='InvalidStateError'?'La dictée est déjà en cours.':'Impossible de démarrer la dictée. Vérifiez les réglages du micro et réessayez.','err');
+  }
 }
 
 function speakEbReply(button){
