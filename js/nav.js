@@ -70,7 +70,9 @@ function toggleMobile(){document.getElementById('mobile-menu').classList.toggle(
 function toggleDark(){
   darkMode=!darkMode;
   document.documentElement.setAttribute('data-theme',darkMode?'dark':'light');
-  document.getElementById('dm-btn').textContent=darkMode?'☀️ Light':'🌙 Dark';
+  try{localStorage.setItem('erse_theme',darkMode?'dark':'light');}catch(e){}
+  const btn=document.getElementById('dm-btn');
+  if(btn) btn.textContent=darkMode?'☀️ Clair':'🌙 Sombre';
 }
 
 /* ═══════════════════════════════════════════ */

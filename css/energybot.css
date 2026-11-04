@@ -144,6 +144,8 @@ html[data-theme="dark"] #pg-energybot{
    mais n'est plus affiché — le brief demande de ne plus voir les matières. */
 #pg-energybot .eb-topbar-ctx{ display:none; }
 #pg-energybot .eb-topbar-actions{ display:flex; gap:6px; flex-shrink:0; }
+#pg-energybot .eb-home-btn{display:flex;align-items:center;gap:6px;height:34px;padding:0 11px;border:1px solid var(--eb-border);border-radius:9px;background:var(--eb-bg-2);color:var(--eb-text);font:600 12px var(--font-body);white-space:nowrap;cursor:pointer;}
+#pg-energybot .eb-home-btn:hover{background:var(--eb-bg-3);}
 #pg-energybot .eb-action-btn{
   display:flex; align-items:center; justify-content:center;
   width:34px; height:34px; border-radius:9px; border:1px solid var(--eb-border);

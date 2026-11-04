@@ -114,7 +114,7 @@
   <div class="modal-box" style="max-width:560px;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
       <span style="font-size:18px;">🔍</span>
-      <input id="global-search-input" placeholder="Rechercher une matière, un examen..." 
+      <input id="global-search-input" placeholder="Rechercher un cours, document, examen…"
         style="flex:1;padding:10px 14px;border:1.5px solid var(--b4);border-radius:10px;font-size:14px;font-family:var(--font-body);background:var(--card-bg);color:var(--text);outline:none;"
         oninput="doGlobalSearch(this.value)" autofocus>
       <button onclick="closeModal('modal-search')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">✕</button>
@@ -202,11 +202,7 @@
     <button class="np admin-nav-btn" onclick="goPage('admin')" style="display:none !important;">⚙ Admin</button>
   </div>
   <div class="nav-right">
-    <button class="dm-btn" onclick="toggleDark()" id="dm-btn">🌙 Dark</button>
-    <button class="icon-btn" onclick="syncFromFirebase()" title="Synchroniser" style="font-size:13px;padding:5px 10px;display:flex;align-items:center;gap:4px;">
-      <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3);transition:background .3s;flex-shrink:0;"></span>
-      <span style="font-size:11px;color:rgba(255,255,255,0.5);">Sync</span>
-    </button>
+    <button class="dm-btn" onclick="toggleDark()" id="dm-btn">🌙 Sombre</button>
     <button class="icon-btn" onclick="toggleNotifPanel()" id="notif-btn" title="Notifications">
       🔔<span class="notif-dot" id="notif-dot"></span>
     </button>
@@ -513,6 +509,7 @@
           <div><div class="eb-ctx-name" id="eb-ctx-name">Toutes matières</div><div class="eb-ctx-sub" id="eb-ctx-sub">Assistant général ERSE ACADEMY</div></div>
         </div>
         <div class="eb-topbar-actions">
+          <button class="eb-home-btn" onclick="goPage('home');updateBottomNav('home')" title="Retour à l’accueil"><span aria-hidden="true">🏠</span><span>Accueil</span></button>
           <button class="eb-action-btn" onclick="clearEbChat()" title="Nouvelle conversation">🗑</button>
           <button class="eb-action-btn" onclick="promptApiKey()" id="eb-key-btn" style="display:none;" title="Clé API">🔑</button>
         </div>

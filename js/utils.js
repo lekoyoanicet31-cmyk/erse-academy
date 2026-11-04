@@ -8,46 +8,102 @@ function openSearch(){
   },100);
 }
 
+let globalSearchItems=[];
+function normalizeSearchText(value){
+  return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr');
+}
+function escapeSearchHTML(value){
+  return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function doGlobalSearch(q){
   const el=document.getElementById('search-results');
-  if(!q.trim()){
-    el.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:1rem;">Tapez pour rechercher...</div>';
+  const query=normalizeSearchText(q).trim();
+  if(!query){
+    globalSearchItems=[];
+    el.innerHTML='<div class="global-search-empty">Recherchez des cours, documents, examens ou rubriques…</div>';
     return;
   }
-  const ql=q.toLowerCase();
+  const terms=query.split(/\s+/).filter(Boolean);
   const results=[];
+  const add=(item,searchable)=>{
+    const haystack=normalizeSearchText(searchable);
+    if(terms.every(term=>haystack.includes(term))) results.push({...item,rank:normalizeSearchText(item.title)===query?0:normalizeSearchText(item.title).startsWith(query)?1:normalizeSearchText(item.title).includes(query)?2:3});
+  };
 
-  // Matières
-  DB.subjects.filter(s=>s.active&&(s.name.toLowerCase().includes(ql)||s.desc?.toLowerCase().includes(ql))).forEach(s=>{
-    results.push({type:'subject',icon:s.icon,title:s.name,sub:`Licence ${s.level} · ${s.docs} documents`,action:`goPage('courses');closeModal('modal-search')`});
+  // Pages et grandes rubriques de la plateforme.
+  [
+    ['home','Accueil','🏠'],['courses','Cours et documents','📂'],['exams','Examens et entraînements','📝'],
+    ['leaderboard','Classement des étudiants','🏆'],['certs','Certificats','🎓'],['energybot','EnergyBot, assistant pédagogique','⚡'],
+    ['boutique','Boutique des épreuves','🛍'],['forum','Forum d’entraide','💬'],['planning','Planning de révision','📅']
+  ].forEach(([id,title,icon])=>add({kind:'page',id,title,sub:'Rubrique ERSE ACADEMY',icon},title));
+
+  // Matières et fichiers de cours.
+  (DB.subjects||[]).filter(s=>s.active).forEach(s=>{
+    add({kind:'subject',subjectId:s.id,title:s.name,sub:`Matière · Licence ${s.level}`,icon:s.icon||'📚'},`${s.name} ${s.desc||''} licence ${s.level}`);
+    (s.files||[]).forEach((file,index)=>{
+      const name=file&&typeof file==='object'?(file.name||'Document'):String(file||'Document');
+      add({kind:'document',subjectId:s.id,fileIndex:index,title:name,sub:`Document · ${s.name} · Licence ${s.level}`,icon:'📄'},`${name} ${s.name} ${s.desc||''}`);
+    });
   });
 
-  // Examens
-  DB.exams.filter(e=>{
-    const s=DB.subjects.find(x=>x.id===e.subjectId);
-    return s&&s.name.toLowerCase().includes(ql);
-  }).forEach(e=>{
-    const s=DB.subjects.find(x=>x.id===e.subjectId);
-    results.push({type:'exam',icon:'📝',title:`Examen — ${s?.name}`,sub:`${e.difficulty} · ${e.questions.length} questions`,action:`startQuiz(${e.id});closeModal('modal-search')`});
+  // Examens : titre, matière, difficulté, questions et choix de réponse.
+  (DB.exams||[]).forEach(exam=>{
+    const subject=(DB.subjects||[]).find(s=>String(s.id)===String(exam.subjectId));
+    if(!subject) return;
+    const title=exam.title||`Examen — ${subject.name}`;
+    const questionText=(exam.questions||[]).map(item=>[item.q,...(item.opts||[])].join(' ')).join(' ');
+    add({kind:'exam',examId:exam.id,level:subject.level,title,sub:`Examen · ${subject.name} · ${exam.difficulty||'Entraînement'} · ${(exam.questions||[]).length} questions`,icon:'📝'},`${title} ${subject.name} ${exam.difficulty||''} ${questionText}`);
   });
 
-  // Certificats
-  const userKey=currentUser?.email||String(currentUser?.id);
-  DB.certificates.filter(c=>(c.userId===userKey||c.studentName===currentUser?.name)&&c.subject.toLowerCase().includes(ql)).forEach(c=>{
-    results.push({type:'cert',icon:'🎓',title:`Certificat — ${c.subject}`,sub:`Obtenu le ${c.date} · ${c.score}%`,action:`goPage('certs');closeModal('modal-search')`});
+  if(currentUser){
+    const userKey=currentUser.email||String(currentUser.id);
+    (DB.certificates||[]).filter(c=>c.userId===userKey||c.studentName===currentUser.name).forEach(c=>add({kind:'page',id:'certs',title:`Certificat — ${c.subject}`,sub:`Obtenu le ${c.date} · ${c.score}%`,icon:'🎓'},`${c.subject} certificat`));
+  }
+
+  (DB.shop||[]).forEach(item=>{
+    const title=item.name||item.title||item.subject||'Épreuve en boutique';
+    add({kind:'page',id:'boutique',title,sub:'Boutique · Épreuves et corrigés',icon:'🛍'},`${title} ${item.description||item.desc||''} boutique corrigé épreuve`);
+  });
+  if(typeof FORUM!=='undefined') (FORUM.posts||[]).forEach(post=>{
+    const title=post.title||'Discussion du forum';
+    add({kind:'page',id:'forum',title,sub:'Forum · Discussion',icon:'💬'},`${title} ${post.content||post.body||''} ${post.subject||''}`);
   });
 
-  if(!results.length){
-    el.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px;">Aucun résultat pour "'+q+'"</div>';
+  globalSearchItems=results.sort((a,b)=>a.rank-b.rank||a.title.localeCompare(b.title,'fr')).slice(0,30);
+  if(!globalSearchItems.length){
+    el.innerHTML=`<div class="global-search-empty">Aucun résultat pour « ${escapeSearchHTML(q)} »</div>`;
     return;
   }
 
-  el.innerHTML=results.map(r=>`
-    <div onclick="${r.action}" style="display:flex;align-items:center;gap:10px;padding:.8rem;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:4px;" onmouseover="this.style.background='var(--b0)'" onmouseout="this.style.background='none'">
-      <div style="width:36px;height:36px;border-radius:9px;background:var(--b0);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${r.icon}</div>
-      <div><div style="font-size:13px;font-weight:500;">${r.title}</div><div style="font-size:11px;color:var(--muted);">${r.sub}</div></div>
-      <span style="margin-left:auto;font-size:11px;color:var(--b6);">→</span>
-    </div>`).join('');
+  el.innerHTML=globalSearchItems.map((item,index)=>`
+    <button type="button" class="global-search-result" onclick="openGlobalSearchResult(${index})">
+      <span class="global-search-icon">${escapeSearchHTML(item.icon)}</span>
+      <span class="global-search-copy"><span class="global-search-title">${escapeSearchHTML(item.title)}</span><span class="global-search-sub">${escapeSearchHTML(item.sub)}</span></span>
+      <span class="global-search-arrow" aria-hidden="true">→</span>
+    </button>`).join('');
+}
+
+function openGlobalSearchResult(index){
+  const item=globalSearchItems[index];
+  if(!item) return;
+  closeModal('modal-search');
+  if(item.kind==='page'){goPage(item.id);return;}
+  if(item.kind==='exam'){
+    if(item.level>getUserLevel()&&currentUser?.role!=='admin'){goPage('exams');toast('Cet examen est verrouillé jusqu’au déblocage de la Licence correspondante.','info');return;}
+    goPage('exams');
+    startQuiz(item.examId);
+    return;
+  }
+  const subject=(DB.subjects||[]).find(s=>String(s.id)===String(item.subjectId));
+  if(!subject) return;
+  if(subject.level>getUserLevel()&&currentUser?.role!=='admin'){goPage('courses');toast('Ces documents sont verrouillés jusqu’au déblocage de la Licence correspondante.','info');return;}
+  goPage('courses');
+  const tab=document.querySelector(`#lvl-tabs [data-lvl="${subject.level}"]`);
+  filterLevel(subject.level,tab);
+  const section=document.getElementById('pdf-section-'+subject.id);
+  if(section&&!section.classList.contains('open')) togglePdfSection(subject.id);
+  requestAnimationFrame(()=>document.getElementById('pdf-section-'+subject.id)?.scrollIntoView({behavior:'smooth',block:'center'}));
 }
 
 document.addEventListener('keydown',e=>{

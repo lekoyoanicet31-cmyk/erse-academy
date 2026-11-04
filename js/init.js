@@ -62,6 +62,12 @@ function openModalStudent(){
    INIT
 ═══════════════════════════════════════════ */
 loadData();
+try{
+  darkMode=localStorage.getItem('erse_theme')==='dark';
+  document.documentElement.setAttribute('data-theme',darkMode?'dark':'light');
+}catch(e){darkMode=false;}
+const themeButton=document.getElementById('dm-btn');
+if(themeButton) themeButton.textContent=darkMode?'☀️ Clair':'🌙 Sombre';
 updateNotifDot();
 
 let authResolved = false;
