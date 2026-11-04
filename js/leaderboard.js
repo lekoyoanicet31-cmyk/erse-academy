@@ -3,7 +3,7 @@
    LEADERBOARD
 ═══════════════════════════════════════════ */
 function renderLB(students){
-  const sorted=[...students].sort((a,b)=>b.avgScore-a.avgScore||(b.passed-a.passed));
+  const sorted=[...students].sort((a,b)=>(Number(b.statsVersion>=2)-Number(a.statsVersion>=2))||(Number(b.levelProgress)||0)-(Number(a.levelProgress)||0)||(Number(b.levelDone)||0)-(Number(a.levelDone)||0));
   const medals=['🥇','🥈','🥉'];
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   document.getElementById('lb-body').innerHTML=sorted.map((s,i)=>`
@@ -11,15 +11,16 @@ function renderLB(students){
       <td style="font-size:17px;">${i<3?medals[i]:'#'+(i+1)}</td>
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="background:${esc(s.color)}22;color:${esc(s.color)};font-size:11px;font-weight:600;">${esc(s.initials)}</div><div><div style="font-weight:500;">${esc(s.name)}</div></div></div></td>
       <td><span class="pill-lvl l${s.level}p">L${s.level}</span></td>
-      <td>${s.passed}</td>
-      <td><div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${s.avgScore}%"></div></div><span style="font-size:12px;font-weight:500;color:var(--b8);min-width:32px;">${s.avgScore}%</span></div></td>
+      <td>${s.statsVersion>=2?`${Number(s.levelPassed)||0}/${Number(s.levelTotal)||0}`:'—'}</td>
+      <td>${s.statsVersion>=2?`<div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${Math.max(0,Math.min(100,Number(s.levelProgress)||0))}%"></div></div><span style="font-size:12px;font-weight:500;color:var(--b8);min-width:32px;">${Number(s.levelProgress)||0}%</span></div>`:'<span title="Les statistiques seront recalculées à la prochaine connexion">À actualiser</span>'}</td>
       <td>${s.certs} 🎓</td>
     </tr>`).join('');
 }
 async function refreshLeaderboard(){
   if(fbReady){
     try{
-      const fbStudents = await fbLoadAllStudents();
+      let fbStudents = await fbLoadAllStudents();
+      fbStudents = await refreshLegacyLeaderboardStats(fbStudents);
       if(fbStudents.length > 0){
         // Remplacer complètement DB.students par les données Firestore
         DB.students = fbStudents;
@@ -27,6 +28,28 @@ async function refreshLeaderboard(){
     }catch(e){console.warn(e);}
   }
   renderLB(DB.students);
+}
+
+// Les comptes anciens sont recalculés par l’administrateur depuis leurs résultats privés.
+// Les profils publics ne reçoivent que les totaux de progression, jamais les notes par examen.
+async function refreshLegacyLeaderboardStats(students){
+  if(!fbReady||currentUser?.role!=='admin') return students;
+  const legacy=students.filter(s=>s.email&&s.authUid&&Number(s.statsVersion)<2);
+  for(let i=0;i<legacy.length;i+=8){
+    await Promise.all(legacy.slice(i,i+8).map(async student=>{
+      try{
+        const snap=await db.collection('examResults').doc(student.email).collection('results').get();
+        const results=snap.docs.map(doc=>doc.data());
+        const stats=calculateUserProgressStats(student,results);
+        await Promise.all([
+          db.collection('users').doc(student.email).set(stats,{merge:true}),
+          db.collection('publicProfiles').doc(student.authUid).set({...stats,updatedAt:Date.now()},{merge:true})
+        ]);
+        Object.assign(student,stats);
+      }catch(e){console.warn('Progress migration skipped for one student:',e);}
+    }));
+  }
+  return students;
 }
 function filterLB(q){renderLB(DB.students.filter(s=>s.name.toLowerCase().includes(q.toLowerCase())&&(lbFilter===0||s.level===lbFilter)));}
 function filterLBLevel(l,btn){lbFilter=l;document.querySelectorAll('#pg-leaderboard .tab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');filterLB(document.getElementById('lb-search').value);}

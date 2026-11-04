@@ -414,14 +414,15 @@
   <div class="wrap">
     <div class="sec-hdr"><div class="sec-hdr-left"><div class="sec-ic">🏆</div><div class="sec-ttl">Classement général</div></div></div>
     <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Rechercher un étudiant..." oninput="filterLB(this.value)" id="lb-search"></div>
-    <div style="display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;">
+    <div style="display:flex;gap:6px;margin-bottom:.6rem;flex-wrap:wrap;">
       <button class="tab on" onclick="filterLBLevel(0,this)">Tous</button>
       <button class="tab" onclick="filterLBLevel(1,this)">L1</button>
       <button class="tab" onclick="filterLBLevel(2,this)">L2</button>
       <button class="tab" onclick="filterLBLevel(3,this)">L3</button>
     </div>
+    <p class="lb-score-help">La progression correspond aux examens validés (au moins 70 %) sur l’ensemble du cursus. Chaque examen ne compte qu’une fois, avec la meilleure tentative. Le passage au niveau supérieur reste calculé sur les résultats de la Licence actuelle.</p>
     <div class="lb-wrap"><table class="lb-table">
-      <thead><tr><th style="width:55px">Rang</th><th>Étudiant</th><th>Niveau</th><th>Examens</th><th>Score moyen</th><th>Certificats</th></tr></thead>
+      <thead><tr><th style="width:55px">Rang</th><th>Étudiant</th><th>Niveau</th><th>Examens validés</th><th>Progression cursus</th><th>Certificats</th></tr></thead>
       <tbody id="lb-body"></tbody>
     </table></div>
   </div>

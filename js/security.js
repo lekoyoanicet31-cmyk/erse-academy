@@ -39,6 +39,11 @@ async function syncPublicProfile(user){
     level: [1,2,3].includes(Number(profile.level)) ? Number(profile.level) : 1,
     passed: Math.max(0, Number(profile.passed) || 0),
     avgScore: Math.max(0, Math.min(100, Number(profile.avgScore) || 0)),
+    levelProgress: Math.max(0, Math.min(100, Number(profile.levelProgress) || 0)),
+    levelDone: Math.max(0, Number(profile.levelDone) || 0),
+    levelPassed: Math.max(0, Number(profile.levelPassed) || 0),
+    levelTotal: Math.max(0, Number(profile.levelTotal) || 0),
+    statsVersion: 2,
     certs: Math.max(0, Number(profile.certs) || 0),
     updatedAt: Date.now()
   }, { merge: true });

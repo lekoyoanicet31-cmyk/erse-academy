@@ -67,7 +67,9 @@ async function fbLoadAllStudents(){
         if(d.role === 'admin') return;
         students.push({id:doc.id, email:doc.id, authUid:d.authUid || '', name:d.name || 'Étudiant',
           initials:d.initials || '??', color:d.color || '#185FA5', level:d.level || 1,
-          passed:d.passed || 0, avgScore:d.avgScore || 0, certs:d.certs || 0});
+          passed:d.passed || 0, avgScore:d.avgScore || 0, levelProgress:d.levelProgress || 0,
+          levelDone:d.levelDone || 0, levelPassed:d.levelPassed || 0,
+          levelTotal:d.levelTotal || 0, statsVersion:d.statsVersion || 0, certs:d.certs || 0});
       });
       return students;
     }
@@ -79,7 +81,9 @@ async function fbLoadAllStudents(){
       students.push({
         id:doc.id, name:d.name||'Étudiant',
         initials:d.initials||'??', color:d.color||'#185FA5', level:d.level||1,
-        passed:d.passed||0, avgScore:d.avgScore||0, certs:d.certs||0
+        passed:d.passed||0, avgScore:d.avgScore||0, levelProgress:d.levelProgress||0,
+        levelDone:d.levelDone||0, levelPassed:d.levelPassed||0,
+        levelTotal:d.levelTotal||0, statsVersion:d.statsVersion||0, certs:d.certs||0
       });
     });
     return students;

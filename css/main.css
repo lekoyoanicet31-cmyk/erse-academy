@@ -355,6 +355,7 @@ body.energybot-active #bottom-nav{display:none!important;}
 .score-bar-wrap{display:flex;align-items:center;gap:8px;}
 .score-bar-bg{flex:1;height:5px;background:var(--b0);border-radius:3px;overflow:hidden;min-width:60px;}
 .score-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--b4));}
+.lb-score-help{color:var(--muted);font-size:12px;line-height:1.55;margin:0 0 1rem;padding:.7rem .85rem;border:1px solid var(--border);border-radius:9px;background:var(--card-bg);}
 
 /* ── SEARCH ── */
 .search-wrap{position:relative;margin-bottom:1rem;}

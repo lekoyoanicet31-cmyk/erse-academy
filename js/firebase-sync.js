@@ -123,7 +123,7 @@ async function syncFromFirebase(){
           if(!DB.examResults) DB.examResults = [];
           snapResults.forEach(doc=>{
             const r = doc.data();
-            const idx = DB.examResults.findIndex(x=>String(x.examId)===String(r.examId)&&x.userId===r.userId);
+            const idx = DB.examResults.findIndex(x=>String(x.examId)===String(r.examId)&&String(x.userId)===String(r.userId));
             if(idx!==-1) DB.examResults[idx] = r;
             else DB.examResults.push(r);
           });
@@ -147,8 +147,20 @@ async function syncFromFirebase(){
           currentUser.avgScore = d.avgScore || currentUser.avgScore || 0;
           currentUser.certs = d.certs || currentUser.certs || 0;
           currentUser.level = d.level || currentUser.level || 1;
+          currentUser.levelProgress = d.levelProgress || currentUser.levelProgress || 0;
+          currentUser.levelDone = d.levelDone || currentUser.levelDone || 0;
+          currentUser.levelPassed = d.levelPassed || currentUser.levelPassed || 0;
+          currentUser.levelTotal = d.levelTotal || currentUser.levelTotal || 0;
+          currentUser.statsVersion = d.statsVersion || currentUser.statsVersion || 0;
         }
       }catch(e){ console.warn('Sync user data error:', e); }
+      const before=[currentUser.levelProgress,currentUser.levelDone,currentUser.levelPassed,currentUser.levelTotal,currentUser.statsVersion].join('|');
+      const progressStats=syncUserProgressStats(currentUser);
+      const after=[currentUser.levelProgress,currentUser.levelDone,currentUser.levelPassed,currentUser.levelTotal,currentUser.statsVersion].join('|');
+      if(before!==after){
+        db.collection('users').doc(currentUser.email).set(progressStats,{merge:true}).catch(e=>console.warn('Progress sync error:',e));
+        if(typeof syncPublicProfile==='function') syncPublicProfile(currentUser).catch(e=>console.warn('Public progress sync error:',e));
+      }
     }
 
     // Rafraîchir la page active

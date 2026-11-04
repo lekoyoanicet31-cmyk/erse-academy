@@ -914,34 +914,27 @@ function showScore(total){
     const ex=DB.exams.find(e=>parseInt(e.id)===parseInt(curExamId)||e.id===curExamId);
     const s=DB.subjects.find(x=>parseInt(x.id)===parseInt(ex?.subjectId)||x.id===ex?.subjectId);
     pushNotif('Examen validé — '+(s?s.name:'examen'),'Score obtenu : '+pct+' % (seuil de réussite : 70 %).','✅','#c0dd97','exams');
-    const st=DB.students.find(x=>x.id===currentUser.id);
+    const st=DB.students.find(x=>(currentUser.email&&x.email===currentUser.email)||String(x.id)===String(currentUser.id));
     if(st){
-      st.passed++;
-      st.avgScore=Math.round((st.avgScore*(st.passed-1)+pct)/st.passed);
+      st.passed=(st.passed||0)+1;
+      st.avgScore=Math.round((((st.avgScore||0)*(st.passed-1))+pct)/st.passed);
     }
-    // Mettre à jour currentUser aussi
     currentUser.passed=(currentUser.passed||0)+1;
-    currentUser.avgScore=Math.round(((currentUser.avgScore||0)*(currentUser.passed-1)+pct)/currentUser.passed);
-    if(typeof syncPublicProfile==='function') syncPublicProfile(currentUser).catch(e=>console.warn('Profil public non synchronisé:',e));
+    currentUser.avgScore=Math.round((((currentUser.avgScore||0)*(currentUser.passed-1))+pct)/currentUser.passed);
     if(currentUser.activity)currentUser.activity.unshift({text:'Examen réussi : '+(s?s.name:''),ic:'📝',bg:var_g(),time:new Date().toLocaleDateString('fr-FR')});
-    saveData();
-    // Sauvegarder dans Firestore
-    if(fbReady && currentUser.email){
-      db.collection('users').doc(currentUser.email).set({
-        passed: currentUser.passed,
-        avgScore: currentUser.avgScore
-      },{merge:true}).catch(e=>console.warn(e));
-    }
   }
   // Toujours sauvegarder le résultat pour le suivi de progression
   if(currentUser){
     if(!DB.examResults) DB.examResults = [];
-    const existing = DB.examResults.findIndex(r=>r.examId===curExamId&&r.userId===(currentUser.email||currentUser.id));
+    const userKey=String(currentUser.email||currentUser.id);
+    const existing = DB.examResults.findIndex(r=>String(r.examId)===String(curExamId)&&String(r.userId)===userKey);
+    const previous=existing!==-1?DB.examResults[existing]:null;
     const ex_=DB.exams.find(e=>e.id===curExamId||parseInt(e.id)===parseInt(curExamId));
     const subj_=ex_?DB.subjects.find(s=>s.id===ex_.subjectId||parseInt(s.id)===parseInt(ex_.subjectId)):null;
-    const result = {examId:curExamId, userId:currentUser.email||currentUser.id, score:pct, date:new Date().toISOString(), subjectId:ex_?ex_.subjectId:null, subjectName:subj_?subj_.name:null};
+    const result = {examId:curExamId,userId:userKey,score:Math.max(pct,Number(previous?.score)||0),latestScore:pct,attempts:(Number(previous?.attempts)||(previous?1:0))+1,date:new Date().toISOString(),subjectId:ex_?ex_.subjectId:null,subjectName:subj_?subj_.name:null};
     if(existing!==-1) DB.examResults[existing] = result;
     else DB.examResults.push(result);
+    const stats=syncUserProgressStats(currentUser);
     saveData();
     // Sauvegarder dans Firestore (source de vérité principale)
     if(fbReady && currentUser.email){
@@ -949,7 +942,9 @@ function showScore(total){
         .collection('results').doc(String(curExamId))
         .set(result, {merge:true})
         .catch(e=>console.warn('fbSaveResult error:',e));
+      db.collection('users').doc(currentUser.email).set({passed:currentUser.passed,avgScore:currentUser.avgScore,...stats},{merge:true}).catch(e=>console.warn('Score profile sync error:',e));
     }
+    if(typeof syncPublicProfile==='function') syncPublicProfile(currentUser).catch(e=>console.warn('Profil public non synchronisé:',e));
     // Vérifier si l'étudiant peut passer au niveau supérieur
     const prog = getLevelProgress();
     if(prog.canPass){

@@ -4,26 +4,63 @@
 ═══════════════════════════════════════════ */
 function getUserLevel(){ return currentUser ? (currentUser.level||1) : 1; }
 
-function getLevelProgress(){
-  const lvl = getUserLevel();
-  const examsForLevel = DB.exams.filter(e=>{
-    const s = DB.subjects.find(x=>x.id===e.subjectId);
-    return s && s.level===lvl;
+function getUserExamResultMap(user, results=DB.examResults||[]){
+  const userKey=String(user?.email||user?.id||'');
+  const bestByExam=new Map();
+  if(!userKey) return bestByExam;
+  results.forEach(result=>{
+    if(!result||String(result.userId||'')!==userKey||result.examId==null) return;
+    const key=String(result.examId), score=Math.max(0,Math.min(100,Number(result.score)||0));
+    const prior=bestByExam.get(key);
+    if(!prior||score>prior.score) bestByExam.set(key,{...result,score});
   });
-  if(examsForLevel.length===0) return {total:0,done:0,avg:0,canPass:false};
-  const results = DB.examResults || [];
-  let totalScore = 0, done = 0;
-  examsForLevel.forEach(e=>{
-    const r = results.find(r=>r.examId===e.id);
-    if(r){ totalScore += r.score; done++; }
-  });
-  // Moyenne calculée sur TOUS les examens du niveau : un examen non encore
-  // passé compte comme 0. Il faut donc avoir fait (et réussi) la quasi-totalité
-  // des examens du niveau pour atteindre 80% et débloquer le niveau suivant.
-  const avg = done>0 ? Math.round(totalScore/examsForLevel.length) : 0;
-  const canPass = done>0 && avg>=80;
-  return {total:examsForLevel.length, done, avg, canPass};
+  return bestByExam;
 }
+
+function getLevelProgressForUser(user, results=DB.examResults||[]){
+  const level=Number(user?.level)||1;
+  const exams=DB.exams.filter(exam=>{
+    const subject=DB.subjects.find(s=>String(s.id)===String(exam.subjectId));
+    return subject&&Number(subject.level)===level;
+  });
+  const bestByExam=getUserExamResultMap(user,results);
+  if(!exams.length) return {level,total:0,done:0,passed:0,avg:0,canPass:false};
+  let totalScore=0,done=0,passed=0;
+  exams.forEach(exam=>{
+    const result=bestByExam.get(String(exam.id));
+    if(result){done++;totalScore+=result.score;if(result.score>=70)passed++;}
+  });
+  // La note de progression est la moyenne sur tous les examens de la Licence.
+  // Les examens non commencés valent zéro; les reprises gardent le meilleur score.
+  const avg=Math.round(totalScore/exams.length);
+  return {level,total:exams.length,done,passed,avg,canPass:done>0&&avg>=80};
+}
+
+function calculateUserProgressStats(user, results=DB.examResults||[]){
+  const exams=DB.exams||[];
+  const bestByExam=getUserExamResultMap(user,results);
+  let done=0,passed=0;
+  exams.forEach(exam=>{
+    const result=bestByExam.get(String(exam.id));
+    if(result){done++;if(result.score>=70)passed++;}
+  });
+  // Le classement mesure les examens validés sur tout le cursus, pas les notes obtenues.
+  const progress=exams.length?Math.round(passed/exams.length*100):0;
+  return {levelProgress:progress,levelDone:done,levelPassed:passed,levelTotal:exams.length,statsVersion:2};
+}
+
+function syncUserProgressStats(user=currentUser){
+  if(!user) return null;
+  const stats=calculateUserProgressStats(user);
+  Object.assign(user,stats);
+  const account=DB.users.find(u=>(user.email&&u.email===user.email)||String(u.id)===String(user.id));
+  if(account) Object.assign(account,stats,{level:user.level});
+  const student=DB.students.find(s=>(user.email&&s.email===user.email)||String(s.id)===String(user.id));
+  if(student) Object.assign(student,stats,{level:user.level});
+  return stats;
+}
+
+function getLevelProgress(){return getLevelProgressForUser(currentUser||{level:1});}
 
 function checkLevelAccess(targetLevel){
   if(currentUser && currentUser.role==='admin') return true;
@@ -60,13 +97,15 @@ async function requestLevelUp(){
   const newLevel = lvl + 1;
   if(newLevel > 3){ toast('Vous êtes déjà au niveau maximum !','ok'); return; }
   currentUser.level = newLevel;
+  syncUserProgressStats(currentUser);
   const stuIdx = DB.students.findIndex(s=>s.email===currentUser.email||s.id===currentUser.id);
   if(stuIdx!==-1) DB.students[stuIdx].level = newLevel;
   const usrIdx = DB.users.findIndex(u=>u.email===currentUser.email||u.id===currentUser.id);
   if(usrIdx!==-1) DB.users[usrIdx].level = newLevel;
   if(fbReady && currentUser.email){
-    await firebase.firestore().collection('users').doc(currentUser.email).update({level: newLevel});
+    await firebase.firestore().collection('users').doc(currentUser.email).update({level:newLevel,levelProgress:currentUser.levelProgress,levelDone:currentUser.levelDone,levelPassed:currentUser.levelPassed,levelTotal:currentUser.levelTotal,statsVersion:currentUser.statsVersion});
   }
+  if(typeof syncPublicProfile==='function') syncPublicProfile(currentUser).catch(e=>console.warn('Profil public non synchronisé:',e));
   saveData();
   toast(`🎉 Félicitations ! Vous passez en Licence ${newLevel} !`,'ok');
   sendLevelUpEmail(currentUser.name, currentUser.email, newLevel);

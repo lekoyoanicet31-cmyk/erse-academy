@@ -45,13 +45,18 @@ service cloud.firestore {
     match /publicProfiles/{uid} {
       allow read: if signedIn();
       allow create, update: if (signedIn() && request.auth.uid == uid
-          && request.resource.data.keys().hasOnly(['name','initials','color','level','passed','avgScore','certs','updatedAt'])
+          && request.resource.data.keys().hasOnly(['name','initials','color','level','passed','avgScore','levelProgress','levelDone','levelPassed','levelTotal','statsVersion','certs','updatedAt'])
           && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
           && request.resource.data.initials is string && request.resource.data.initials.size() <= 4
           && request.resource.data.color is string && request.resource.data.color.matches('^#[0-9A-Fa-f]{6}$')
           && request.resource.data.level in [1, 2, 3]
           && request.resource.data.passed is number && request.resource.data.passed >= 0
           && request.resource.data.avgScore is number && request.resource.data.avgScore >= 0 && request.resource.data.avgScore <= 100
+          && request.resource.data.levelProgress is number && request.resource.data.levelProgress >= 0 && request.resource.data.levelProgress <= 100
+          && request.resource.data.levelDone is number && request.resource.data.levelDone >= 0
+          && request.resource.data.levelPassed is number && request.resource.data.levelPassed >= 0
+          && request.resource.data.levelTotal is number && request.resource.data.levelTotal >= 0
+          && request.resource.data.statsVersion == 2
           && request.resource.data.certs is number && request.resource.data.certs >= 0
           && request.resource.data.updatedAt is number)
         || isAdmin();

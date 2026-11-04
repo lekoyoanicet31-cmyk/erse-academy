@@ -157,9 +157,6 @@ async function loginUser(user){
     return;
   }
   currentUser=user;
-  if(typeof syncPublicProfile === 'function'){
-    syncPublicProfile(user).catch(e=>console.warn('Profil public non synchronisé:',e));
-  }
   resetSessionTimer();
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('main-app').style.cssText='display:block;min-height:100vh;';
@@ -199,6 +196,11 @@ async function loginUser(user){
         currentUser.passed = d.passed||0;
         currentUser.avgScore = d.avgScore||0;
         currentUser.certs = d.certs||0;
+        currentUser.levelProgress = d.levelProgress||0;
+        currentUser.levelDone = d.levelDone||0;
+        currentUser.levelPassed = d.levelPassed||0;
+        currentUser.levelTotal = d.levelTotal||0;
+        currentUser.statsVersion = d.statsVersion||0;
       }
       // Charger la liste des emails bannis
       try{
@@ -211,7 +213,7 @@ async function loginUser(user){
         if(!DB.examResults) DB.examResults = [];
         resultsSnap.forEach(doc=>{
           const r = doc.data();
-          const existing = DB.examResults.findIndex(x=>x.examId===r.examId&&x.userId===r.userId);
+          const existing = DB.examResults.findIndex(x=>String(x.examId)===String(r.examId)&&String(x.userId)===String(r.userId));
           if(existing!==-1) DB.examResults[existing] = r;
           else DB.examResults.push(r);
         });
@@ -228,6 +230,12 @@ async function loginUser(user){
         }
       }catch(e){ console.warn('Erreur chargement planning:', e); }
     }catch(e){console.warn('Erreur chargement Firebase:',e);}
+  }
+  const scoreStats=syncUserProgressStats(currentUser);
+  saveData();
+  if(fbReady&&user.email){
+    db.collection('users').doc(user.email).set(scoreStats,{merge:true}).catch(e=>console.warn('Score profile sync error:',e));
+    if(typeof syncPublicProfile==='function') syncPublicProfile(currentUser).catch(e=>console.warn('Profil public non synchronisé:',e));
   }
   renderHome();
   goPage('home');
