@@ -78,9 +78,9 @@ const loadingFallback = setTimeout(() => {
   }
 }, 8000);
 
-// Récupère aussi les erreurs du parcours de redirection Google utilisé sur mobile.
-auth.getRedirectResult().catch(e=>{
+function handleGoogleRedirectError(e){
   const code=e&&e.code;
+  try{ sessionStorage.removeItem('erse-google-redirect-pending'); }catch(storageError){}
   if(code==='auth/unauthorized-domain') toast('Ce domaine doit être autorisé dans Firebase pour Google.','err');
   else if(code==='auth/network-request-failed') toast('Connexion Google interrompue : vérifiez votre réseau.','err');
   else if(code==='auth/account-exists-with-different-credential'){
@@ -90,9 +90,9 @@ auth.getRedirectResult().catch(e=>{
     else toast('Cette adresse possède déjà un compte. Connectez-vous avec votre mot de passe ERSE, puis réessayez avec Google.','err');
   }
   else if(code && code!=='auth/popup-closed-by-user') toast('La connexion Google n’a pas abouti ('+code+'). Réessayez dans Chrome ou Safari.','err');
-});
+}
 
-auth.onAuthStateChanged(async (firebaseUser) => {
+async function handleFirebaseAuthState(firebaseUser){
   authResolved = true;
   clearTimeout(loadingFallback);
   hideLoadingScreen();
@@ -172,7 +172,7 @@ auth.onAuthStateChanged(async (firebaseUser) => {
       }catch(e){ console.warn('Erreur rechargement Firestore:', e); }
     }
     saveData();
-    loginUser(user);
+    await loginUser(user);
   } else {
     if(currentUser){
       currentUser=null;
@@ -181,7 +181,32 @@ auth.onAuthStateChanged(async (firebaseUser) => {
       document.getElementById('main-app').style.display='none';
     }
   }
-});
+}
+
+let authWorkUid='',authWorkPromise=null;
+function processFirebaseAuthState(firebaseUser){
+  if(firebaseUser&&currentUser&&currentUser.email===firebaseUser.email) return Promise.resolve();
+  const key=firebaseUser?.uid||'signed-out';
+  if(authWorkPromise&&authWorkUid===key) return authWorkPromise;
+  authWorkUid=key;
+  authWorkPromise=handleFirebaseAuthState(firebaseUser).finally(()=>{authWorkPromise=null;});
+  return authWorkPromise;
+}
+
+auth.onAuthStateChanged(processFirebaseAuthState);
+// Traiter explicitement le compte rendu Google : selon le navigateur, le résultat
+// de redirection et l'événement d'état Firebase peuvent arriver dans un ordre différent.
+let googleRedirectWasPending=false;
+try{
+  googleRedirectWasPending=sessionStorage.getItem('erse-google-redirect-pending')==='1';
+}catch(e){}
+auth.getRedirectResult().then(result=>{
+  try{ sessionStorage.removeItem('erse-google-redirect-pending'); }catch(e){}
+  if(result&&result.user) return processFirebaseAuthState(result.user);
+  if(googleRedirectWasPending&&!auth.currentUser){
+    toast('Google n’a pas confirmé la connexion. Vérifiez que les cookies du navigateur sont autorisés, puis réessayez.','err');
+  }
+}).catch(handleGoogleRedirectError);
 
 function installPWA(){ toast('Pour installer : utilisez le menu de votre navigateur → Ajouter à l\'écran d\'accueil','ok'); }
 function showInstallButton(){}
