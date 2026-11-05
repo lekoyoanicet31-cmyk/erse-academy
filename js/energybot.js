@@ -109,8 +109,8 @@ function renderEbChips(){
     if(!byLevel[l].length) return;
     html += `<div class="eb-section-lbl">Licence ${l}</div>`;
     byLevel[l].forEach(s=>{
-      html += `<button class="eb-chip" onclick="setEbCtx('${s.id}','','${s.name} L${s.level}','${(s.desc||s.name).replace(/'/g,"\\'")}',this)">
-        <span class="eb-chip-ic eb-level-mark">L${s.level}</span>${s.name}
+      html += `<button class="eb-chip" onclick="setEbCtx('${s.id}','${s.icon}','${s.name} L${s.level}','${(s.desc||s.name).replace(/'/g,"\\'")}',this)">
+        <span class="eb-chip-ic">${s.icon}</span>${s.name}
       </button>`;
     });
   });

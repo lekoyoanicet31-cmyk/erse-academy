@@ -83,6 +83,12 @@ auth.getRedirectResult().catch(e=>{
   const code=e&&e.code;
   if(code==='auth/unauthorized-domain') toast('Ce domaine doit être autorisé dans Firebase pour Google.','err');
   else if(code==='auth/network-request-failed') toast('Connexion Google interrompue : vérifiez votre réseau.','err');
+  else if(code==='auth/account-exists-with-different-credential'){
+    const email=e.email||(e.customData&&e.customData.email)||'';
+    const credential=firebase.auth.GoogleAuthProvider.credentialFromError(e);
+    if(email&&credential) linkGoogleToExistingAccount(email,credential);
+    else toast('Cette adresse possède déjà un compte. Connectez-vous avec votre mot de passe ERSE, puis réessayez avec Google.','err');
+  }
   else if(code && code!=='auth/popup-closed-by-user') toast('La connexion Google n’a pas abouti ('+code+'). Réessayez dans Chrome ou Safari.','err');
 });
 
