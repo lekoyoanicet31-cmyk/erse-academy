@@ -149,7 +149,7 @@
 </div></div>
       <div class="form-group"><label class="form-label">Mot de passe</label><div style="position:relative;">
   <input class="form-input" id="login-pwd" type="password" placeholder="••••••••" style="width:100%;padding-right:40px;">
-  <button type="button" onclick="togglePwdVisibility('login-pwd','eye-login')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;line-height:1;" id="eye-login">👁</button>
+  <button type="button" onclick="togglePwdVisibility('login-pwd','eye-login')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;line-height:1;display:flex;align-items:center;" id="eye-login" aria-label="Afficher le mot de passe" title="Afficher le mot de passe"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
 </div></div>
       <button class="btn-auth" id="login-btn" onclick="doLogin()">Se connecter</button>
       <button type="button" class="btn-google" onclick="doLoginGoogle()" style="width:100%;margin-top:10px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text);font:500 14px var(--font-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-8.9 6-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.7-5.1c-1.8 1.2-4 1.9-6.8 1.9-5.2 0-9.6-3.5-11.2-8.2H5.9v5.2A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.8 27.8a12 12 0 0 1 0-7.6V15H5.9a20 20 0 0 0 0 18z"/><path fill="#EA4335" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.9-5.9C34.1 6 29.5 4 24 4A20 20 0 0 0 5.9 15l6.9 5.2c1.6-4.7 6-8.1 11.2-8.1z"/></svg><span class="g-label">Continuer avec Google</span></button>
@@ -452,7 +452,7 @@
         <p id="profile-sub"></p>
         <div id="profile-xp-bar" style="margin-bottom:.5rem;min-width:280px;"></div><div class="profile-stats" id="profile-stats"></div>
         <button class="edit-profile-btn" onclick="openEditProfile()">✏ Modifier le profil</button>
-        <button class="edit-profile-btn" onclick="changePassword()" style="margin-left:8px;">🔒 Mot de passe</button>
+        <button class="edit-profile-btn" onclick="changePassword()" style="margin-left:8px;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg>Mot de passe</button>
         <button class="edit-profile-btn" onclick="doLogout()" style="margin-left:8px;background:#ef4444;color:#fff;border-color:#ef4444;">🚪 Déconnexion</button>
       </div>
     </div>
@@ -484,18 +484,18 @@
     <div class="eb-sidebar" id="eb-sidebar">
       <div class="eb-sidebar-top">
         <button class="eb-sidebar-close" onclick="toggleEbSidebar(false)" aria-label="Fermer le menu">✕</button>
-        <div class="eb-bot-avatar">⚡</div>
+        <div class="eb-bot-avatar">E</div>
         <div class="eb-bot-name">EnergyBot</div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:3px;"><div class="eb-dot"></div><span class="eb-status-txt">Assistant pédagogique IA</span></div>
       </div>
       <div class="eb-sidebar-mid">
         <div class="eb-section-lbl">Contexte</div>
-        <button class="eb-chip on" onclick="setEbCtx('general','🎓','Toutes matières','Assistant général');toggleEbSidebar(false)">
-          <span class="eb-chip-ic">🎓</span>Toutes les matières
+        <button class="eb-chip on" onclick="setEbCtx('general','','Toutes matières','Assistant général');toggleEbSidebar(false)">
+          <span class="eb-chip-ic eb-level-mark">ER</span>Toutes les matières
         </button>
         <div id="eb-subject-chips"></div>
         <div class="eb-section-lbl">Options</div>
-        <button class="eb-chip" onclick="clearEbChat()"><span class="eb-chip-ic">🗑</span>Effacer conversation</button>
+        <button class="eb-chip" onclick="clearEbChat()"><span class="eb-chip-ic eb-level-mark">×</span>Effacer conversation</button>
       </div>
       <div class="eb-sidebar-bottom">
         <div class="eb-model-badge"><div class="eb-model-dot"></div>IA via Groq (gratuit)</div>
@@ -504,35 +504,35 @@
     <div class="eb-main">
       <div class="eb-topbar">
         <button class="eb-hamburger" onclick="toggleEbSidebar()" aria-label="Ouvrir le menu">☰</button>
-        <div class="eb-brand"><span class="eb-brand-ic">⚡</span>EnergyBot</div>
+        <div class="eb-brand"><span class="eb-brand-ic">E</span>EnergyBot</div>
         <div class="eb-topbar-ctx" id="eb-topbar-ctx">
-          <div class="eb-ctx-ic" id="eb-ctx-ic">🎓</div>
+          <div class="eb-ctx-ic" id="eb-ctx-ic"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M4 17a2.5 2.5 0 0 1 2.5-2.5H20"/></svg></div>
           <div><div class="eb-ctx-name" id="eb-ctx-name">Toutes matières</div><div class="eb-ctx-sub" id="eb-ctx-sub">Assistant général ERSE ACADEMY</div></div>
         </div>
         <div class="eb-topbar-actions">
-          <button class="eb-home-btn" onclick="goPage('home');updateBottomNav('home')" title="Retour à l’accueil"><span aria-hidden="true">🏠</span><span>Accueil</span></button>
-          <button class="eb-action-btn" onclick="clearEbChat()" title="Nouvelle conversation">🗑</button>
+          <button class="eb-home-btn" onclick="goPage('home');updateBottomNav('home')" title="Retour à l’accueil"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></svg><span>Accueil</span></button>
+          <button class="eb-action-btn" onclick="clearEbChat()" title="Nouvelle conversation" aria-label="Nouvelle conversation"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 14h12l1-14M9 7V4h6v3"/></svg></button>
         </div>
       </div>
       <div class="eb-chat-area is-empty" id="eb-chat-area">
         <div class="eb-messages" id="eb-messages">
           <div class="eb-welcome" id="eb-welcome">
-            <div class="eb-welcome-avatar">⚡</div>
+            <div class="eb-welcome-avatar">E</div>
             <h2>Bonjour ! Je suis EnergyBot</h2>
             <p>Posez vos questions ou envoyez une photo d'exercice. Réponses générées par IA : vérifiez toujours avec les documents officiels de vos enseignants.</p>
             <div class="eb-starter-grid">
-              <button class="eb-starter" onclick="sendStarter('Explique-moi la dérivée en Mathématiques de façon simple')"><span class="eb-starter-ic">💡</span><span class="eb-starter-txt">Expliquer un concept</span><span class="eb-starter-sub">Explication claire et simple</span></button>
-              <button class="eb-starter" onclick="sendStarter('Génère 5 exercices de niveau Licence 1')"><span class="eb-starter-ic">✏️</span><span class="eb-starter-txt">Exercices pratiques</span><span class="eb-starter-sub">Entraîne-toi</span></button>
-              <button class="eb-starter" onclick="sendStarter('Fais un résumé des points clés à retenir')"><span class="eb-starter-ic">📋</span><span class="eb-starter-txt">Résumé de cours</span><span class="eb-starter-sub">Points essentiels</span></button>
-              <button class="eb-starter" onclick="sendStarter('Quels sujets tombent souvent aux examens ?')"><span class="eb-starter-ic">🎯</span><span class="eb-starter-txt">Conseils examen</span><span class="eb-starter-sub">Sujets fréquents</span></button>
+              <button class="eb-starter" onclick="sendStarter('Explique-moi la dérivée en Mathématiques de façon simple')"><span class="eb-starter-ic"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M4 17a2.5 2.5 0 0 1 2.5-2.5H20M8 7h8M8 10h6"/></svg></span><span class="eb-starter-txt">Expliquer un concept</span><span class="eb-starter-sub">Explication claire et simple</span></button>
+              <button class="eb-starter" onclick="sendStarter('Génère 5 exercices de niveau Licence 1')"><span class="eb-starter-ic"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m16 4 4 4M4 20l4.5-1 11-11a2.8 2.8 0 0 0-4-4l-11 11L4 20Z"/></svg></span><span class="eb-starter-txt">Exercices pratiques</span><span class="eb-starter-sub">Entraîne-toi</span></button>
+              <button class="eb-starter" onclick="sendStarter('Fais un résumé des points clés à retenir')"><span class="eb-starter-ic"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg></span><span class="eb-starter-txt">Résumé de cours</span><span class="eb-starter-sub">Points essentiels</span></button>
+              <button class="eb-starter" onclick="sendStarter('Quels sujets tombent souvent aux examens ?')"><span class="eb-starter-ic"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><span class="eb-starter-txt">Conseils examen</span><span class="eb-starter-sub">Sujets fréquents</span></button>
             </div>
           </div>
         </div>
         <div class="eb-input-area">
           <div class="eb-input-row">
-            <button class="eb-icon-btn" onclick="triggerEbImage()" title="Envoyer une photo d'épreuve">📷</button>
-            <button class="eb-icon-btn eb-icon-btn-desktop" onclick="summarizeEbChat()" title="Résumer la conversation">📋</button>
-            <button class="eb-icon-btn" id="eb-voice-btn" onclick="toggleEbVoiceInput()" title="Dicter une question (transcription vocale du navigateur)" aria-label="Dicter une question à voix haute">🎙️</button>
+            <button class="eb-icon-btn" onclick="triggerEbImage()" title="Envoyer une photo d'épreuve" aria-label="Envoyer une photo"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><circle cx="10" cy="10" r="2"/><path d="m20 14-4-4L7 20M16 3h6M19 0v6"/></svg></button>
+            <button class="eb-icon-btn eb-icon-btn-desktop" onclick="summarizeEbChat()" title="Résumer la conversation" aria-label="Résumer la conversation"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg></button>
+            <button class="eb-icon-btn" id="eb-voice-btn" onclick="toggleEbVoiceInput()" title="Dicter une question" aria-label="Dicter une question" aria-pressed="false"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg></button>
             <textarea class="eb-input" id="eb-input" placeholder="Posez votre question…" rows="1"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendEbMessage();}"
               oninput="autoEbResize(this)"></textarea>

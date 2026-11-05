@@ -81,6 +81,19 @@ const SEC = {
   input:'width:100%;box-sizing:border-box;padding:11px 44px 11px 12px;border:1px solid var(--border,#e2e8f0);border-radius:10px;background:var(--input-bg,#fff);color:var(--text,#1e293b);font-size:14px;font-family:inherit;outline:none;',
   btn:'width:100%;padding:13px;border:none;border-radius:11px;background:linear-gradient(90deg,#185FA5,#0b2b5c);color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit;'
 };
+function secIcon(name,size=20){
+  const paths={
+    shield:'<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/>',
+    lock:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/><path d="M12 14v3"/>',
+    eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+    eyeOff:'<path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a15.8 15.8 0 0 1-3.1 4.1"/><path d="M6.2 6.2C3.5 8 2 12 2 12s3.5 7 10 7c1 0 1.9-.2 2.8-.5"/>',
+    key:'<circle cx="8" cy="15" r="5"/><path d="m11.5 11.5 8-8L22 6l-2 2 2 2-3 3-2-2-2 2"/>',
+    check:'<path d="m5 12 4 4L19 6"/>',
+    mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/>',
+    stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>'
+  };
+  return `<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name]||paths.lock}</svg>`;
+}
 function secEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function secOverlay(id, html, opts){
@@ -180,7 +193,7 @@ function openPasswordPanel(){
   const head = `<div style="background:linear-gradient(135deg,#0b2b5c,#185FA5);padding:1.3rem 1.4rem;color:#fff;position:relative;">
       <button id="pw-x" aria-label="Fermer" style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.18);color:#fff;font-size:15px;cursor:pointer;">✕</button>
       <div style="display:flex;align-items:center;gap:12px;">
-        <div style="width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:22px;">🛡️</div>
+        <div style="width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;">${secIcon('shield',22)}</div>
         <div><div id="pw-title" style="font-size:1.05rem;font-weight:700;">Sécurité du compte</div>
         <div style="font-size:12px;opacity:.8;margin-top:2px;">Compte : ${masked}</div></div>
       </div></div>`;
@@ -188,7 +201,7 @@ function openPasswordPanel(){
   if(!hasPassword){
     const ov = secOverlay('pw-overlay', `<div style="${SEC.card}width:100%;max-width:440px;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.5);">${head}
       <div style="padding:1.4rem;text-align:center;">
-        <div style="font-size:2rem;margin-bottom:.4rem;">🔐</div>
+        <div style="display:flex;justify-content:center;margin-bottom:.6rem;color:var(--b6,#185FA5);">${secIcon('lock',30)}</div>
         <div style="font-weight:700;margin-bottom:.4rem;">Vous vous connectez avec Google</div>
         <div style="font-size:13.5px;line-height:1.65;${SEC.muted}">Votre mot de passe est géré par votre compte Google : il n'existe pas de mot de passe ERSE ACADEMY à modifier. Pour renforcer la sécurité, activez la validation en deux étapes sur votre compte Google.</div>
         <a href="https://myaccount.google.com/security" target="_blank" rel="noopener" style="display:block;margin-top:1rem;${SEC.btn}text-decoration:none;box-sizing:border-box;">Gérer la sécurité de mon compte Google</a>
@@ -197,7 +210,7 @@ function openPasswordPanel(){
     return;
   }
 
-  const eye = id => `<button type="button" data-eye="${id}" aria-label="Afficher ou masquer" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:transparent;font-size:17px;cursor:pointer;padding:6px 8px;">👁</button>`;
+  const eye = id => `<button type="button" data-eye="${id}" aria-label="Afficher le mot de passe" title="Afficher le mot de passe" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:var(--muted,#64748b);cursor:pointer;padding:6px 8px;display:flex;align-items:center;">${secIcon('eye',18)}</button>`;
   const field = (id, label, auto, extra) => `<div style="margin-bottom:12px;">
       <label for="${id}" style="font-size:12px;font-weight:600;${SEC.muted}display:block;margin-bottom:5px;">${label}</label>
       <div style="position:relative;"><input id="${id}" type="password" autocomplete="${auto}" style="${SEC.input}"${extra||''}>${eye(id)}</div></div>`;
@@ -210,7 +223,7 @@ function openPasswordPanel(){
         <div style="margin-bottom:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
             <label for="pw-new" style="font-size:12px;font-weight:600;${SEC.muted}">Nouveau mot de passe</label>
-            <button type="button" id="pw-gen" style="border:none;background:transparent;color:var(--b6,#185FA5);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">🎲 Suggérer un mot de passe fort</button>
+            <button type="button" id="pw-gen" style="border:none;background:transparent;color:var(--b6,#185FA5);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Générer un mot de passe</button>
           </div>
           <div style="position:relative;"><input id="pw-new" type="password" autocomplete="new-password" style="${SEC.input}">${eye('pw-new')}</div>
           <div style="display:flex;gap:5px;margin-top:8px;" aria-hidden="true">${[0,1,2,3].map(i => `<div class="pw-bar" style="flex:1;height:5px;border-radius:99px;background:var(--border,#e2e8f0);transition:background .2s;"></div>`).join('')}</div>
@@ -228,7 +241,7 @@ function openPasswordPanel(){
       </form>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;flex-wrap:wrap;gap:6px;">
         <button id="pw-forgot" type="button" style="border:none;background:transparent;color:var(--b6,#185FA5);cursor:pointer;font-size:12px;font-family:inherit;text-decoration:underline;padding:0;">Mot de passe actuel oublié ?</button>
-        <span style="${SEC.muted}">🔒 Connexion chiffrée</span>
+        <span style="${SEC.muted}display:inline-flex;align-items:center;gap:5px;">${secIcon('lock',14)} Connexion sécurisée</span>
       </div>
       <div style="margin-top:14px;padding:.75rem .85rem;border-radius:10px;background:var(--b0,#f0f7ff);font-size:12px;line-height:1.6;${SEC.muted}">
         <b style="color:var(--b8,#0b2b5c);">Conseils :</b> n'utilisez pas le même mot de passe que sur d'autres sites, évitez votre nom ou votre date de naissance, et ne le partagez jamais. Un gestionnaire de mots de passe vous aide à en avoir un différent par site.
@@ -250,8 +263,8 @@ function openPasswordPanel(){
     bars.forEach((b,i) => { b.style.background = (nw && i < Math.max(1, ev.score)) ? colors[Math.max(0, ev.score - 1)] : 'var(--border,#e2e8f0)'; });
     const st = $('pw-strength'); st.textContent = nw ? 'Force : ' + ev.label : ''; st.style.color = nw ? colors[Math.max(0, ev.score - 1)] : '';
     const warn = $('pw-warn');
-    if(nw && ev.checks.common){ warn.textContent = '⚠ Ce mot de passe est trop courant ou répétitif.'; warn.style.display = 'block'; }
-    else if(nw && ev.checks.personal){ warn.textContent = '⚠ Évitez d\'utiliser votre adresse email dans le mot de passe.'; warn.style.display = 'block'; }
+    if(nw && ev.checks.common){ warn.textContent = 'Attention : ce mot de passe est trop courant ou répétitif.'; warn.style.display = 'block'; }
+    else if(nw && ev.checks.personal){ warn.textContent = 'Conseil : évitez d\'utiliser votre adresse email dans le mot de passe.'; warn.style.display = 'block'; }
     else warn.style.display = 'none';
     const m = $('pw-match');
     if(cf){ const same = nw === cf; m.textContent = same ? '✓ Les mots de passe correspondent' : '✗ Les mots de passe ne correspondent pas'; m.style.color = same ? '#15803d' : '#b91c1c'; }
@@ -262,14 +275,18 @@ function openPasswordPanel(){
 
   ['pw-cur','pw-new','pw-cf'].forEach(id => $(id).addEventListener('input', () => { showErr(''); refresh(); }));
   ov.querySelectorAll('[data-eye]').forEach(b => b.addEventListener('click', () => {
-    const i = $(b.dataset.eye); i.type = i.type === 'password' ? 'text' : 'password'; b.textContent = i.type === 'password' ? '👁' : '🙈';
+    const i = $(b.dataset.eye), visible = i.type === 'password';
+    i.type = visible ? 'text' : 'password';
+    b.innerHTML = secIcon(visible?'eyeOff':'eye',18);
+    b.setAttribute('aria-label',visible?'Masquer le mot de passe':'Afficher le mot de passe');
+    b.title=visible?'Masquer le mot de passe':'Afficher le mot de passe';
   }));
   $('pw-x').addEventListener('click', () => { if(!pwBusy) ov._close(); });
   $('pw-gen').addEventListener('click', () => {
     const g = generatePassword();
     $('pw-new').value = g; $('pw-cf').value = g;
     $('pw-new').type = 'text'; $('pw-cf').type = 'text';
-    ov.querySelectorAll('[data-eye="pw-new"],[data-eye="pw-cf"]').forEach(b => b.textContent = '🙈');
+    ov.querySelectorAll('[data-eye="pw-new"],[data-eye="pw-cf"]').forEach(b => { b.innerHTML=secIcon('eyeOff',18); b.setAttribute('aria-label','Masquer le mot de passe'); b.title='Masquer le mot de passe'; });
     refresh();
     if(navigator.clipboard) navigator.clipboard.writeText(g).then(() => toast('Mot de passe copié : conservez-le dans un endroit sûr','ok')).catch(()=>{});
   });
@@ -316,7 +333,7 @@ function secPasswordChanged(ov, user){
       });
     }
   }catch(e){}
-  if(typeof pushNotif === 'function') pushNotif('Mot de passe modifié', 'Votre mot de passe a été mis à jour. Si vous n\'êtes pas à l\'origine de cette modification, réinitialisez-le immédiatement.', '🔒', '#c0dd97', 'profile');
+  if(typeof pushNotif === 'function') pushNotif('Mot de passe modifié', 'Votre mot de passe a été mis à jour. Si vous n\'êtes pas à l\'origine de cette modification, réinitialisez-le immédiatement.', '✓', '#c0dd97', 'profile');
   const body = ov.querySelector('#pw-body');
   body.innerHTML = `<div style="text-align:center;padding:.8rem .2rem 0;">
       <div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;color:#15803d;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 12px;">✓</div>
@@ -331,7 +348,7 @@ function secPasswordChanged(ov, user){
 function forgotPassword(){
   const prefill = (document.getElementById('login-email') || {}).value || '';
   const ov = secOverlay('fp-overlay', `<div style="${SEC.card}width:100%;max-width:400px;border-radius:18px;padding:1.5rem 1.4rem;box-shadow:0 20px 60px rgba(0,0,0,.45);">
-      <div style="font-size:2.2rem;text-align:center;">🔑</div>
+      <div style="display:flex;justify-content:center;margin-bottom:.5rem;color:var(--b6,#185FA5);">${secIcon('key',28)}</div>
       <div style="font-size:1.05rem;font-weight:700;text-align:center;margin:.2rem 0 .4rem;">Mot de passe oublié ?</div>
       <div style="font-size:13px;line-height:1.6;${SEC.muted}text-align:center;margin-bottom:1rem;">Saisissez l'adresse email de votre compte. Si elle correspond à un compte, vous recevrez un lien pour choisir un nouveau mot de passe.</div>
       <form id="fp-form" novalidate>
@@ -406,7 +423,7 @@ async function doLoginGoogle(){
 // Associe Google à un compte ERSE existant avec confirmation du mot de passe actuel.
 function linkGoogleToExistingAccount(email, googleCredential){
   const ov = secOverlay('google-link-overlay', `<div style="${SEC.card}width:100%;max-width:420px;border-radius:18px;padding:1.5rem 1.4rem;box-shadow:0 24px 70px rgba(0,0,0,.5);">
-      <div style="font-size:2.2rem;text-align:center;">🔐</div>
+      <div style="display:flex;justify-content:center;margin-bottom:.5rem;color:var(--b6,#185FA5);">${secIcon('shield',28)}</div>
       <div style="font-size:1.05rem;font-weight:700;text-align:center;margin:.2rem 0 .4rem;">Confirmer votre compte ERSE</div>
       <div style="font-size:13px;line-height:1.6;${SEC.muted}text-align:center;margin-bottom:1rem;">Un compte ERSE existe déjà pour <b>${secEsc(maskEmail(email))}</b>. Saisissez une fois son mot de passe pour associer Google.</div>
       <form id="google-link-form" novalidate>

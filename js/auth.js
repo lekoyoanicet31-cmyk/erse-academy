@@ -299,9 +299,9 @@ function togglePwdVisibility(inputId, eyeId){
   if(!input) return;
   if(input.type === 'password'){
     input.type = 'text';
-    if(eye) eye.textContent = '🙈';
+    if(eye){ eye.innerHTML = secIcon('eyeOff',17); eye.setAttribute('aria-label','Masquer le mot de passe'); eye.title='Masquer le mot de passe'; }
   } else {
     input.type = 'password';
-    if(eye) eye.textContent = '👁';
+    if(eye){ eye.innerHTML = secIcon('eye',17); eye.setAttribute('aria-label','Afficher le mot de passe'); eye.title='Afficher le mot de passe'; }
   }
 }

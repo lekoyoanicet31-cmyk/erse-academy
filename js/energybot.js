@@ -109,8 +109,8 @@ function renderEbChips(){
     if(!byLevel[l].length) return;
     html += `<div class="eb-section-lbl">Licence ${l}</div>`;
     byLevel[l].forEach(s=>{
-      html += `<button class="eb-chip" onclick="setEbCtx('${s.id}','${s.icon}','${s.name} L${s.level}','${(s.desc||s.name).replace(/'/g,"\\'")}',this)">
-        <span class="eb-chip-ic">${s.icon}</span>${s.name}
+      html += `<button class="eb-chip" onclick="setEbCtx('${s.id}','','${s.name} L${s.level}','${(s.desc||s.name).replace(/'/g,"\\'")}',this)">
+        <span class="eb-chip-ic eb-level-mark">L${s.level}</span>${s.name}
       </button>`;
     });
   });
@@ -134,14 +134,14 @@ function restoreEbMessages(){
   msgs.innerHTML = '';
   // Afficher l'entête
   msgs.innerHTML = `<div style="text-align:center;padding:.5rem;margin-bottom:.5rem;background:rgba(99,102,241,0.1);border-radius:8px;font-size:12px;color:var(--b8);">
-    🔄 Conversation restaurée · <button onclick="clearEbChat()" style="background:none;border:none;color:var(--b6);cursor:pointer;font-size:12px;text-decoration:underline;">Effacer</button>
+    Conversation restaurée · <button onclick="clearEbChat()" style="background:none;border:none;color:var(--b6);cursor:pointer;font-size:12px;text-decoration:underline;">Effacer</button>
   </div>`;
   ebHistory.forEach(m=>{
     if(m.role === 'user'){
       // Vérifier si c'est un message avec image
       if(Array.isArray(m.content)){
         const text = m.content.find(c=>c.type==='text')?.text || '';
-        addEbMsg('user', text + ' 📷');
+        addEbMsg('user', text + ' [Photo jointe]');
       } else {
         addEbMsg('user', m.content);
       }
@@ -155,7 +155,7 @@ function setEbCtx(id, icon, name, desc, el){
   ebCtx={id, icon, name, desc};
   ebHistory=[];
   clearEbHistory();
-  document.getElementById('eb-ctx-ic').textContent = icon;
+  document.getElementById('eb-ctx-ic').innerHTML = ebIcon('book',16);
   document.getElementById('eb-ctx-name').textContent = name;
   document.getElementById('eb-ctx-sub').textContent = desc;
   document.querySelectorAll('.eb-chip').forEach(c=>c.classList.remove('on'));
@@ -164,14 +164,14 @@ function setEbCtx(id, icon, name, desc, el){
   if(chatArea) chatArea.classList.add('is-empty');
   const msgs = document.getElementById('eb-messages');
   msgs.innerHTML = `<div class="eb-welcome" id="eb-welcome">
-    <div class="eb-welcome-avatar">⚡</div>
+    <div class="eb-welcome-avatar">${ebIcon('bolt',26)}</div>
     <h2>EnergyBot — ${name}</h2>
     <p>Prêt à vous aider sur <strong>${name}</strong>. Posez vos questions ou envoyez une photo d'épreuve !</p>
     <div class="eb-starter-grid">
-      <button class="eb-starter" onclick="sendStarter('Explique un concept clé de ${name} avec des formules')"><span class="eb-starter-ic">💡</span><span class="eb-starter-txt">Expliquer</span><span class="eb-starter-sub">Avec formules</span></button>
-      <button class="eb-starter" onclick="sendStarter('Génère 5 exercices sur ${name} avec solutions détaillées')"><span class="eb-starter-ic">✏️</span><span class="eb-starter-txt">Exercices</span><span class="eb-starter-sub">Avec solutions</span></button>
-      <button class="eb-starter" onclick="startQuizMode('${name}')"><span class="eb-starter-ic">🎯</span><span class="eb-starter-txt">Quiz</span><span class="eb-starter-sub">Mode interactif</span></button>
-      <button class="eb-starter" onclick="sendStarter('Quels sont les sujets d\\'examen les plus fréquents en ${name} ?')"><span class="eb-starter-ic">📋</span><span class="eb-starter-txt">Examen</span><span class="eb-starter-sub">Sujets fréquents</span></button>
+      <button class="eb-starter" onclick="sendStarter('Explique un concept clé de ${name} avec des formules')"><span class="eb-starter-ic">${ebIcon('book',19)}</span><span class="eb-starter-txt">Expliquer</span><span class="eb-starter-sub">Avec formules</span></button>
+      <button class="eb-starter" onclick="sendStarter('Génère 5 exercices sur ${name} avec solutions détaillées')"><span class="eb-starter-ic">${ebIcon('pencil',19)}</span><span class="eb-starter-txt">Exercices</span><span class="eb-starter-sub">Avec solutions</span></button>
+      <button class="eb-starter" onclick="startQuizMode('${name}')"><span class="eb-starter-ic">${ebIcon('target',19)}</span><span class="eb-starter-txt">Quiz</span><span class="eb-starter-sub">Mode interactif</span></button>
+      <button class="eb-starter" onclick="sendStarter('Quels sont les sujets d\\'examen les plus fréquents en ${name} ?')"><span class="eb-starter-ic">${ebIcon('file',19)}</span><span class="eb-starter-txt">Examen</span><span class="eb-starter-sub">Sujets fréquents</span></button>
     </div>
   </div>`;
 }
@@ -236,7 +236,7 @@ function showEbImagePreview(base64){
   }
   preview.innerHTML = `
     <img src="${base64}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">
-    <div style="flex:1;font-size:12px;color:var(--muted);">📷 Image prête à envoyer</div>
+    <div style="flex:1;font-size:12px;color:var(--muted);">Image prête à envoyer</div>
     <button onclick="cancelEbImage()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:18px;">✕</button>
   `;
 }
@@ -257,8 +257,22 @@ function fmtEb(t){
     .replace(/^# (.*)/gm,'<div style="font-size:15px;font-weight:800;color:var(--b9);margin:.7rem 0 .3rem;">$1</div>')
     .replace(/^- (.*)/gm,'<li style="margin:.2rem 0;">$1</li>')
     .replace(/^(\d+)\. (.*)/gm,'<li style="margin:.2rem 0;list-style-type:decimal;">$2</li>')
-    .replace(/💡 \*\*Questions de suivi :\*\*/g,'<div class="eb-followup-title">💡 Questions de suivi</div>')
+    .replace(/💡?\s*\*\*Questions de suivi :\*\*/g,'<div class="eb-followup-title">Questions de suivi</div>')
     .replace(/\n/g,'<br>');
+}
+
+function ebIcon(name,size=17){
+  const paths={
+    mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/>',
+    stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>',
+    speaker:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
+    bolt:'<path d="m13 2-3 8h7l-6 12 2-9H6l7-11Z"/>',
+    book:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M4 17a2.5 2.5 0 0 1 2.5-2.5H20M8 7h8M8 10h6"/>',
+    pencil:'<path d="m16 4 4 4M4 20l4.5-1 11-11a2.8 2.8 0 0 0-4-4l-11 11L4 20Z"/>',
+    target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/>'
+  };
+  return `<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name]||paths.mic}</svg>`;
 }
 
 function addEbMsg(role, content){
@@ -275,7 +289,7 @@ function addEbMsg(role, content){
   if(role === 'bot'){
     // Détecter les questions de suivi et les rendre cliquables
     const formattedContent = fmtEb(content);
-    div.innerHTML = `<div class="eb-msg-avatar">⚡</div><div class="eb-bubble">${formattedContent}<button class="eb-speak-btn" type="button" onclick="speakEbReply(this)" title="Écouter la réponse" aria-label="Écouter la réponse">🔊</button></div>`;
+    div.innerHTML = `<div class="eb-msg-avatar">E</div><div class="eb-bubble">${formattedContent}<button class="eb-speak-btn" type="button" onclick="speakEbReply(this)" title="Écouter la réponse" aria-label="Écouter la réponse">${ebIcon('speaker')}</button></div>`;
     msgs.appendChild(div);
 
     // Rendu KaTeX après insertion dans le DOM
@@ -326,7 +340,7 @@ function showEbTyping(){
   const div = document.createElement('div');
   div.className = 'eb-msg bot';
   div.id = 'eb-typing-ind';
-  div.innerHTML = `<div class="eb-msg-avatar">⚡</div><div class="eb-bubble"><div class="eb-typing"><span></span><span></span><span></span></div></div>`;
+  div.innerHTML = `<div class="eb-msg-avatar">E</div><div class="eb-bubble"><div class="eb-typing"><span></span><span></span><span></span></div></div>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -350,7 +364,7 @@ function toggleEbVoiceInput(){
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
   let heardSpeech=false,hadError=false;
-  if(btn){ btn.textContent='⏹️'; btn.classList.add('is-listening'); btn.title='Arrêter la dictée'; btn.setAttribute('aria-pressed','true'); }
+  if(btn){ btn.innerHTML=ebIcon('stop'); btn.classList.add('is-listening'); btn.title='Arrêter la dictée'; btn.setAttribute('aria-label','Arrêter la dictée'); btn.setAttribute('aria-pressed','true'); }
   recognition.onstart = () => toast('Je vous écoute. Parlez maintenant.','ok');
   recognition.onresult = event => {
     const said = event.results?.[0]?.[0]?.transcript?.trim();
@@ -375,28 +389,28 @@ function toggleEbVoiceInput(){
   };
   recognition.onend = () => {
     ebSpeechRecognition = null;
-    if(btn){ btn.textContent='🎙️'; btn.classList.remove('is-listening'); btn.title='Dicter une question'; btn.setAttribute('aria-pressed','false'); }
+    if(btn){ btn.innerHTML=ebIcon('mic'); btn.classList.remove('is-listening'); btn.title='Dicter une question'; btn.setAttribute('aria-label','Dicter une question'); btn.setAttribute('aria-pressed','false'); }
     if(!heardSpeech&&!hadError&&!recognition.__stoppedByUser) toast('Je n’ai pas entendu de voix. Réessayez en parlant distinctement près du micro.','err');
   };
   try{
     recognition.start();
   }catch(e){
     ebSpeechRecognition=null;
-    if(btn){btn.textContent='🎙️';btn.classList.remove('is-listening');btn.setAttribute('aria-pressed','false');}
+    if(btn){btn.innerHTML=ebIcon('mic');btn.classList.remove('is-listening');btn.setAttribute('aria-label','Dicter une question');btn.setAttribute('aria-pressed','false');}
     toast(e.name==='InvalidStateError'?'La dictée est déjà en cours.':'Impossible de démarrer la dictée. Vérifiez les réglages du micro et réessayez.','err');
   }
 }
 
 function speakEbReply(button){
   if(!('speechSynthesis' in window)){ toast('La lecture vocale n’est pas disponible sur cet appareil.','err'); return; }
-  if(window.speechSynthesis.speaking){ window.speechSynthesis.cancel(); button.textContent='🔊'; return; }
+  if(window.speechSynthesis.speaking){ window.speechSynthesis.cancel(); button.innerHTML=ebIcon('speaker'); return; }
   const bubbleCopy = button.closest('.eb-bubble')?.cloneNode(true);
   bubbleCopy?.querySelectorAll('button').forEach(el=>el.remove());
   const utterance = new SpeechSynthesisUtterance(bubbleCopy?.innerText || '');
   utterance.lang = 'fr-FR';
-  utterance.onend = () => button.textContent='🔊';
-  utterance.onerror = () => button.textContent='🔊';
-  button.textContent='⏹️';
+  utterance.onend = () => button.innerHTML=ebIcon('speaker');
+  utterance.onerror = () => button.innerHTML=ebIcon('speaker');
+  button.innerHTML=ebIcon('stop');
   window.speechSynthesis.speak(utterance);
 }
 
@@ -424,7 +438,7 @@ async function sendEbMessage(){
       { type: 'text', text: msg || 'Analyse cette épreuve et fournis une correction complète et détaillée.' },
       { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Data}` } }
     ];
-    displayMsg = (msg || 'Analyse cette épreuve') + ' 📷';
+    displayMsg = (msg || 'Analyse cette épreuve') + ' [Photo jointe]';
     cancelEbImage();
   } else {
     userContent = msg;
