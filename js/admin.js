@@ -12,32 +12,55 @@ function adminTab(tab,el){
   if(renders[tab])renders[tab]();
 }
 
-function renderAdminDash(){
+async function loadAdminExamResults(){
+  const byStudentExam=new Map();
+  (DB.examResults||[]).forEach(r=>byStudentExam.set(String(r.userId||'')+'|'+String(r.examId),r));
+  if(fbReady&&currentUser?.role==='admin'){
+    const students=DB.students.filter(s=>s.email);
+    for(let i=0;i<students.length;i+=8){
+      await Promise.all(students.slice(i,i+8).map(async student=>{
+        try{
+          const snap=await db.collection('examResults').doc(student.email).collection('results').get();
+          snap.forEach(doc=>{
+            const r=doc.data();
+            const key=student.email+'|'+String(r.examId||doc.id);
+            byStudentExam.set(key,{...r,examId:r.examId||doc.id,userId:student.email,studentName:student.name});
+          });
+        }catch(e){console.warn('Résultats indisponibles pour un étudiant:',e&&e.code);}
+      }));
+    }
+  }
+  return [...byStudentExam.values()];
+}
+
+async function renderAdminDash(){
   const totalDocs=DB.subjects.reduce((a,s)=>a+s.docs,0);
   const totalCerts=DB.students.reduce((a,s)=>a+s.certs,0)+DB.certificates.length;
   const avg=DB.students.length?Math.round(DB.students.reduce((a,s)=>a+s.avgScore,0)/DB.students.length):0;
 
   // Analytics
-  const results = DB.examResults || [];
+  const results = await loadAdminExamResults();
   const totalExamsTaken = results.length;
 
   // Taux de complétion par matière
   const subjectStats = DB.subjects.filter(s=>s.active).map(s=>{
-    const examsForSubj = DB.exams.filter(e=>e.subjectId===s.id);
+    const examsForSubj = DB.exams.filter(e=>String(e.subjectId)===String(s.id));
     if(!examsForSubj.length) return null;
-    const subjResults = results.filter(r=>examsForSubj.some(e=>e.id===r.examId));
+    const subjResults = results.filter(r=>examsForSubj.some(e=>String(e.id)===String(r.examId)));
     const scores = subjResults.map(r=>r.score);
     const avgScore = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
-    const passRate = scores.length ? Math.round(scores.filter(sc=>sc>=50).length/scores.length*100) : 0;
-    return {name:s.name, icon:s.icon, level:s.level, avgScore, passRate, total:subjResults.length};
+    const passRate = scores.length ? Math.round(scores.filter(sc=>sc>=70).length/scores.length*100) : 0;
+    const perStudent=new Map();
+    subjResults.forEach(r=>{const key=String(r.userId||r.studentName||'');if(!perStudent.has(key))perStudent.set(key,{name:r.studentName||DB.students.find(x=>x.email===r.userId)?.name||'Étudiant',scores:[]});perStudent.get(key).scores.push(Number(r.score)||0);});
+    return {name:s.name, icon:s.icon, level:s.level, avgScore, passRate, total:subjResults.length, perStudent:[...perStudent.values()].map(x=>({...x,score:Math.round(x.scores.reduce((a,b)=>a+b,0)/x.scores.length)})).sort((a,b)=>a.name.localeCompare(b.name,'fr'))};
   }).filter(Boolean).sort((a,b)=>a.avgScore-b.avgScore);
 
   // Examens les plus ratés
   const examFailStats = DB.exams.map(e=>{
-    const er = results.filter(r=>r.examId===e.id);
+    const er = results.filter(r=>String(r.examId)===String(e.id));
     if(!er.length) return null;
     const avgS = Math.round(er.reduce((a,r)=>a+r.score,0)/er.length);
-    const subj = DB.subjects.find(s=>s.id===e.subjectId);
+    const subj = DB.subjects.find(s=>String(s.id)===String(e.subjectId));
     return {name:e.title||('Examen #'+e.id), subject:subj?subj.name:'', avgScore:avgS, attempts:er.length};
   }).filter(Boolean).sort((a,b)=>a.avgScore-b.avgScore).slice(0,5);
 
@@ -78,7 +101,8 @@ function renderAdminDash(){
       +'<div style="background:var(--border);border-radius:99px;height:6px;">'
       +'<div style="background:'+bc+';width:'+s.avgScore+'%;height:6px;border-radius:99px;"></div>'
       +'</div>'
-      +'<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+s.total+' tentative'+(s.total>1?'s':'')+' · '+s.passRate+'% réussite</div>'
+      +'<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+s.total+' résultats · '+s.passRate+'% des résultats ≥ 70%</div>'
+      +(s.perStudent.length?'<details style="margin-top:7px;font-size:11px;color:var(--muted);"><summary style="cursor:pointer;">Voir les '+s.perStudent.length+' étudiants</summary>'+s.perStudent.map(st=>'<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>'+String(st.name).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</span><strong style="color:'+(st.score>=70?'var(--gc)':'var(--rc)')+';">'+st.score+'%</strong></div>').join('')+'</details>':'<div style="font-size:10px;color:var(--muted);margin-top:5px;">Aucun résultat étudiant pour cette matière</div>')
       +'</div></div>';
   }).join('') : '<div style="color:var(--muted);font-size:13px;text-align:center;padding:1rem;">Aucun résultat d\'examen encore</div>';
 
@@ -313,63 +337,51 @@ function saveStudent(){
   saveData();closeModal('modal-student');toast(name+' ajouté !','ok');renderAdminStudents();
 }
 
+async function removeStudentDataFromFirestore(student){
+  if(!fbReady||!student.email)return;
+  const email=student.email;
+  const jobs=[db.collection('users').doc(email).delete()];
+  if(student.authUid)jobs.push(db.collection('publicProfiles').doc(student.authUid).delete());
+  const [resultsSnap,certsSnap]=await Promise.all([
+    db.collection('examResults').doc(email).collection('results').get(),
+    db.collection('certificates').where('userId','==',email).get()
+  ]);
+  jobs.push(...resultsSnap.docs.map(doc=>doc.ref.delete()),...certsSnap.docs.map(doc=>doc.ref.delete()));
+  await Promise.all(jobs);
+}
+function removeStudentFromLocal(student){
+  DB.students=DB.students.filter(x=>String(x.id)!==String(student.id)&&x.email!==student.email);
+  DB.users=DB.users.filter(x=>x.email!==student.email&&String(x.id)!==String(student.id));
+  DB.certificates=(DB.certificates||[]).filter(c=>c.userId!==student.email&&String(c.userId)!==String(student.id));
+  DB.examResults=(DB.examResults||[]).filter(r=>r.userId!==student.email&&String(r.userId)!==String(student.id));
+}
 async function banStudent(id){
-  const s = DB.students.find(x=>x.id===id||x.id===String(id)||Number(x.id)===Number(id));
+  const s=DB.students.find(x=>String(x.id)===String(id));
   if(!s){toast('Étudiant introuvable','err');return;}
-  if(!await platformConfirm('Le compte de '+s.name+' sera retiré et son adresse bloquée.',{title:'Bannir cet étudiant',confirmText:'Bannir',danger:true})) return;
-
-  // Bannir l'email
-  if(!DB.bannedEmails) DB.bannedEmails = [];
-  if(!DB.bannedEmails.includes(s.email)) DB.bannedEmails.push(s.email);
-
-  // Supprimer de DB local
-  DB.students = DB.students.filter(x=>Number(x.id)!==Number(id)&&x.id!==id&&x.id!==String(id));
-  DB.users = DB.users.filter(x=>x.email!==s.email);
-  DB.certificates = DB.certificates.filter(c=>c.userId!==s.email&&c.userId!==id);
-  DB.examResults = (DB.examResults||[]).filter(r=>r.userId!==s.email&&String(r.userId)!==String(id));
-
-  // Supprimer de Firestore + sauvegarder liste bannis
-  if(fbReady && s.email){
-    try{
-      await db.collection('users').doc(s.email).delete();
-      if(s.authUid) await db.collection('publicProfiles').doc(s.authUid).delete();
-      if(typeof banEmailHash === 'function') await banEmailHash(s.email);
-      const snap = await db.collection('examResults').doc(s.email).collection('results').get();
-      snap.forEach(doc=>doc.ref.delete());
-    }catch(e){console.warn('Erreur ban Firestore:',e);}
-  }
-
-  saveData();
-  pushToRTDB();
-  toast(s.name+' banni et supprimé. Il peut recréer un compte avec une autre adresse.','ok');
-  renderAdminStudents();
+  if(!await platformConfirm('Le compte de '+s.name+' sera retiré et son adresse bloquée.',{title:'Bannir cet étudiant',confirmText:'Bannir',danger:true}))return;
+  try{
+    if(fbReady&&s.email){
+      if(typeof banEmailHash==='function')await banEmailHash(s.email);
+      await removeStudentDataFromFirestore(s);
+    }
+    DB.bannedEmails=DB.bannedEmails||[];
+    if(s.email&&!DB.bannedEmails.includes(s.email))DB.bannedEmails.push(s.email);
+    removeStudentFromLocal(s);saveData();
+    toast(s.name+' banni et retiré de la liste.','ok');
+    renderAdminStudents();renderAdminDash();
+  }catch(e){console.error('Bannissement étudiant échoué:',e);toast('Le bannissement a échoué. Aucune donnée locale n’a été retirée.','err');}
 }
-
 async function removeStudent(id){
-  const s = DB.students.find(x=>x.id===id || x.id===String(id) || Number(x.id)===Number(id));
+  const s=DB.students.find(x=>String(x.id)===String(id));
   if(!s){toast('Étudiant introuvable','err');return;}
-  if(!await platformConfirm('Le profil de '+s.name+' et ses données associées seront supprimés. Il pourra se réinscrire.',{title:'Supprimer cet étudiant',confirmText:'Supprimer',danger:true})) return;
-
-  DB.students = DB.students.filter(x=>Number(x.id)!==Number(id)&&x.id!==id&&x.id!==String(id));
-  DB.users = DB.users.filter(x=>x.email!==s.email);
-  DB.certificates = DB.certificates.filter(c=>c.userId!==s.email&&c.userId!==id);
-  DB.examResults = (DB.examResults||[]).filter(r=>r.userId!==s.email&&String(r.userId)!==String(id));
-
-  if(fbReady && s.email){
-    try{
-      await db.collection('users').doc(s.email).delete();
-      if(s.authUid) await db.collection('publicProfiles').doc(s.authUid).delete();
-      const snap = await db.collection('examResults').doc(s.email).collection('results').get();
-      snap.forEach(doc=>doc.ref.delete());
-    }catch(e){console.warn('Erreur suppression Firestore:',e);}
-  }
-
-  saveData();
-  pushToRTDB();
-  toast(s.name+' supprimé. Il peut se réinscrire avec la même adresse.','ok');
-  renderAdminStudents();
+  if(!await platformConfirm('Le profil et les données de '+s.name+' seront supprimés. Son compte de connexion pourra toujours exister.',{title:'Supprimer cet étudiant',confirmText:'Supprimer',danger:true}))return;
+  try{
+    await removeStudentDataFromFirestore(s);
+    removeStudentFromLocal(s);saveData();
+    toast(s.name+' et ses données de plateforme ont été supprimés.','ok');
+    renderAdminStudents();renderAdminDash();
+  }catch(e){console.error('Suppression étudiant échouée:',e);toast('La suppression a échoué. Aucune donnée locale n’a été retirée.','err');}
 }
-
 
 function renderAdminLB(){
   const sorted=[...DB.students].sort((a,b)=>b.avgScore-a.avgScore);
