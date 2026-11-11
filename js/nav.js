@@ -2,12 +2,35 @@
 /* ═══════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════ */
-function goPage(id){
+let appHistoryReady=false;
+function initAppHistory(){
+  if(appHistoryReady||!window.history||!window.history.pushState)return;
+  appHistoryReady=true;
+  const active=document.querySelector('.page.on');
+  const initialPage=active?active.id.replace('pg-',''):'home';
+  try{
+    history.replaceState({erseApp:true,page:initialPage},'',location.href);
+    history.pushState({erseApp:true,page:initialPage,guard:true},'',location.href);
+  }catch(e){console.warn('Navigation history unavailable:',e);}
+  window.addEventListener('popstate',event=>{
+    const page=event.state&&event.state.erseApp&&event.state.page;
+    if(page){goPage(page,true);return;}
+    const current=document.querySelector('.page.on');
+    const currentPage=current?current.id.replace('pg-',''):'home';
+    try{history.pushState({erseApp:true,page:currentPage,guard:true},'',location.href);}catch(e){}
+    if(currentPage!=='home')goPage('home',true);
+  });
+}
+function goPage(id,fromHistory=false){
+  initAppHistory();
   if(id==='admin'){
     if(!currentUser){toast('Connectez-vous d\'abord','err');return;}
     if(currentUser.role!=='admin'){toast('Accès non autorisé','err');goPage('home');return;}
   }
   if(!currentUser && !['home','energybot','forum','leaderboard','certs'].includes(id)){return;}
+  const activePageNow=document.querySelector('.page.on');
+  const currentPageId=activePageNow?activePageNow.id.replace('pg-',''):'';
+  if(!fromHistory&&currentPageId&&currentPageId!==id){try{history.pushState({erseApp:true,page:id},'',location.href);}catch(e){}}
   // Sync Firebase à chaque changement de page
   if(fbReady && id!=='admin') checkForUpdates().catch(e=>console.warn(e));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
