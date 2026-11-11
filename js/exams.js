@@ -176,7 +176,7 @@ async function loadShop(){
   if(!fbReady){ renderShop(); return; }
   try{
     const snap = await firebase.firestore().collection('shop').get();
-    if(!snap.empty) DB.shop = snap.docs.map(d=>({...d.data(),id:parseInt(d.id)||d.id}));
+    DB.shop = snap.docs.map(d=>({...d.data(),id:parseInt(d.id)||d.id}));
     // Charger le mode payant
     const settingSnap = await firebase.firestore().collection('settings').doc('shop').get();
     if(settingSnap.exists){

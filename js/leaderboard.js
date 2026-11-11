@@ -27,10 +27,8 @@ async function refreshLeaderboard(){
       let fbStudents = await fbLoadAllStudents();
       fbStudents = await refreshLegacyLeaderboardStats(fbStudents);
       if(fbStudents.length > 0){
-        // Fusionner les profils Firebase avec le cache local pour garder les comptes historiques.
-        const merged=new Map(DB.students.map(s=>[String(s.email||s.id),s]));
-        fbStudents.forEach(s=>merged.set(String(s.email||s.id),{...merged.get(String(s.email||s.id)),...s}));
-        DB.students=[...merged.values()];
+        // Remplacer complètement DB.students par les données Firestore
+        DB.students = fbStudents;
       }
     }catch(e){console.warn(e);}
   }
