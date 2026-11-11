@@ -646,7 +646,3 @@ body.energybot-active #bottom-nav{display:none!important;}
   .cert-wrap,.page.on .cert-wrap{display:block!important;}
   body{background:white;}
 }
-
-.platform-dialog-backdrop{position:fixed;inset:0;z-index:20000;background:rgba(7,21,37,.62);display:grid;place-items:center;padding:16px;backdrop-filter:blur(3px)}
-.platform-dialog{box-sizing:border-box;width:min(100%,430px);padding:22px;border:1px solid var(--border);border-radius:16px;background:var(--card-bg,#fff);color:var(--text,#172033);box-shadow:0 20px 60px #0004}
-.platform-dialog h2{margin:0 0 8px;font-size:19px}.platform-dialog p{color:var(--muted);line-height:1.5;margin:0 0 14px}.platform-dialog label{display:block;margin:12px 0;font-size:13px}.platform-dialog textarea{display:block;box-sizing:border-box;width:100%;margin-top:6px;padding:11px;border:1px solid var(--border);border-radius:9px;background:var(--input-bg);color:var(--text);font:inherit;resize:vertical}.platform-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.platform-dialog-actions button{padding:10px 14px;border-radius:9px;border:1px solid var(--border);background:#185fa5;color:#fff;cursor:pointer}.platform-dialog-actions button:first-child{background:transparent;color:inherit}.platform-dialog-actions button.danger{background:#b42318;border-color:#b42318}
