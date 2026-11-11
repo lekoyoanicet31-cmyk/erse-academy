@@ -550,7 +550,7 @@ function addDoc(){
 function deleteDoc(subjId, idx){
   const s = DB.subjects.find(x=>x.id===subjId);
   if(!s||!s.files) return;
-  if(!await platformConfirm('Ce document sera supprimé.',{title:'Supprimer le document',danger:true})) return;
+  if(!confirm('Supprimer ce document ?')) return;
   s.files.splice(idx, 1);
   s.docs = s.files.length;
   if(fbReady) fbSaveSubject(s).catch(e=>console.warn(e));
@@ -563,7 +563,7 @@ function editDoc(subjId, idx){
   const s = DB.subjects.find(x=>x.id===subjId);
   if(!s||!s.files) return;
   const current = typeof s.files[idx]==='object' ? s.files[idx].name : s.files[idx];
-  const newName = await platformPrompt('Renommer le document','Saisis le nouveau nom.','Nom',current);
+  const newName = prompt('Nouveau nom :', current);
   if(!newName||!newName.trim()) return;
   if(typeof s.files[idx]==='object') s.files[idx].name = newName.trim();
   else s.files[idx] = newName.trim();
@@ -577,7 +577,7 @@ function editDocUrl(subjId, idx){
   const s = DB.subjects.find(x=>x.id===subjId);
   if(!s||!s.files) return;
   const current = typeof s.files[idx]==='object' ? (s.files[idx].driveId||'') : '';
-  const newUrl = await platformPrompt('Modifier le lien','Saisis le nouveau lien Google Drive.','Lien',current);
+  const newUrl = prompt('Lien Google Drive :', current);
   if(newUrl===null) return;
   if(typeof s.files[idx]==='object'){
     if(newUrl.trim()){

@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════ */
 function renderHome(){
   const total=DB.subjects.reduce((a,s)=>a+s.docs,0);
-  const totalCerts=Math.max(DB.certificates.length,DB.students.reduce((a,s)=>a+(Number(s.certs)||0),0));
+  const totalCerts=DB.students.reduce((a,s)=>a+s.certs,0)+(currentUser?DB.certificates.length:0);
   document.getElementById('stats-bar').innerHTML=[
     {n:DB.subjects.filter(s=>s.active).length,l:'Matières actives'},
     {n:DB.exams.length,l:'Examens disponibles'},
@@ -14,16 +14,15 @@ function renderHome(){
   document.getElementById('home-cards').innerHTML=DB.subjects.filter(s=>s.active).slice(0,6).map(cardHtml).join('');
   // Animer les compteurs hero
   animateCounter('hero-count-1', DB.students.length);
-  animateCounter('hero-count-2', totalCerts);
+  animateCounter('hero-count-2', DB.students.reduce((a,s)=>a+s.certs,0)+DB.certificates.length);
   animateCounter('hero-count-3', DB.subjects.reduce((a,s)=>a+s.docs,0));
   animateCounter('hero-count-4', DB.exams.length);
-  const realStudents=DB.students.filter(s=>s.email&&DB.users.some(u=>u.email===s.email&&u.role==='student'));
-  const withProgress=realStudents.map(s=>{
+  const withProgress=DB.students.map(s=>{
     const total=Math.max(0,Number(s.statsVersion>=2?s.levelTotal:DB.exams.length)||0);
     const passed=Math.min(total,Math.max(0,Number(s.statsVersion>=2?s.levelPassed:s.passed)||0));
     return {...s,boardProgress:{total,passed,percent:total?Math.round(passed/total*100):0}};
   });
-  const top3=withProgress.sort((a,b)=>b.boardProgress.percent-a.boardProgress.percent||b.boardProgress.passed-a.boardProgress.passed).filter(s=>s.boardProgress.total>0).slice(0,3);
+  const top3=withProgress.sort((a,b)=>b.boardProgress.percent-a.boardProgress.percent||b.boardProgress.passed-a.boardProgress.passed).slice(0,3);
   const medals=['🥇','🥈','🥉'];
   document.getElementById('home-top3').innerHTML=top3.map((s,i)=>`
     <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:1.1rem;display:flex;align-items:center;gap:12px;">

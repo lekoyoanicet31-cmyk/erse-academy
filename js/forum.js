@@ -175,7 +175,7 @@ function renderForum(posts){
 }
 
 async function deletePost(postId){
-  if(!await platformConfirm('Cette discussion sera supprimée.',{title:'Supprimer la discussion',danger:true})) return;
+  if(!confirm('Supprimer cette discussion ?')) return;
   if(fbReady){
     try{
       await db.collection('forum').doc(String(postId)).delete();
