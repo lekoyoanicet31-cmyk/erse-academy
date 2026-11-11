@@ -38,6 +38,9 @@ function loadData(){
 /* ═══════════════════════════════════════════
    UTILS
 ═══════════════════════════════════════════ */
+function platformDialog({title,message,fields=[],confirmText="Valider",danger=false}={}){return new Promise(resolve=>{const ov=document.createElement('div');ov.className='platform-dialog-backdrop';const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));ov.innerHTML=`<section class="platform-dialog" role="dialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(message)}</p>${fields.map(f=>`<label>${esc(f.label)}<textarea data-id="${esc(f.id)}" rows="3" maxlength="${f.max||300}">${esc(f.value||'')}</textarea></label>`).join('')}<div class="platform-dialog-actions"><button data-cancel>Annuler</button><button data-ok class="${danger?'danger':''}">${esc(confirmText)}</button></div></section>`;document.body.appendChild(ov);const close=v=>{ov.remove();resolve(v)};ov.querySelector('[data-cancel]').onclick=()=>close(null);ov.querySelector('[data-ok]').onclick=()=>close(Object.fromEntries(fields.map(f=>[f.id,ov.querySelector(`[data-id="${f.id}"]`).value])));ov.addEventListener('click',e=>{if(e.target===ov)close(null)});ov.addEventListener('keydown',e=>{if(e.key==='Escape')close(null)});});}
+async function platformConfirm(message,opts={}){return !!(await platformDialog({title:opts.title||'Confirmer',message,confirmText:opts.confirmText||'Confirmer',danger:opts.danger}));}
+async function platformPrompt(title,message,label,value=''){const r=await platformDialog({title,message,fields:[{id:'value',label,value,max:500}],confirmText:'Enregistrer'});return r?.value?.trim()||null;}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open');});

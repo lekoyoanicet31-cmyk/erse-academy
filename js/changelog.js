@@ -190,9 +190,9 @@ function escapeChangelog(s){
 
 // Ajout manuel d'une note (pour les changements faits hors du panel admin)
 async function addChangelogNote(){
-  const msg = prompt('Décris la mise à jour (ex : « Nouveaux documents de Thermodynamique L2 ») :');
-  if(!msg || !msg.trim()) return;
-  await logChange('note', msg.trim());
+  const form=await platformDialog({title:'Annoncer une mise à jour',message:'Décris brièvement ce qui a changé.',fields:[{id:'message',label:'Message',max:300}],confirmText:'Publier'});
+  const msg=(form?.message||'').trim(); if(!msg)return;
+  await logChange('note', msg);
   toast('Mise à jour enregistrée et annoncée !', 'ok');
 }
 

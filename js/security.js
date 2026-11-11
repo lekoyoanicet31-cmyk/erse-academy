@@ -353,7 +353,7 @@ function forgotPassword(){
       <div style="font-size:13px;line-height:1.6;${SEC.muted}text-align:center;margin-bottom:1rem;">Saisissez l'adresse email de votre compte. Si elle correspond à un compte, vous recevrez un lien pour choisir un nouveau mot de passe.</div>
       <form id="fp-form" novalidate>
         <input id="fp-email" type="email" autocomplete="email" placeholder="votre@email.com" value="${secEsc(prefill)}" style="${SEC.input}padding-right:12px;margin-bottom:12px;">
-        <div id="fp-msg" role="status" style="font-size:13px;min-height:18px;margin-bottom:8px;"></div>
+        <div id="fp-msg" role="status" aria-live="polite" style="font-size:13px;min-height:18px;margin-bottom:8px;"></div>
         <button id="fp-send" type="submit" style="${SEC.btn}">Envoyer le lien</button>
         <button id="fp-cancel" type="button" style="width:100%;margin-top:8px;padding:11px;border:1px solid ${SEC.border};border-radius:11px;background:transparent;color:inherit;cursor:pointer;font-family:inherit;">Annuler</button>
       </form></div>`);
@@ -365,13 +365,26 @@ function forgotPassword(){
     const msg = $('fp-msg');
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.style.color = '#b91c1c'; msg.textContent = 'Adresse email invalide.'; return; }
     const btn = $('fp-send'); btn.disabled = true; btn.textContent = 'Envoi…';
-    try{ await auth.sendPasswordResetEmail(email); }catch(err){
-      if(err && err.code === 'auth/too-many-requests'){ msg.style.color = '#b91c1c'; msg.textContent = 'Trop de demandes. Patientez quelques minutes.'; btn.disabled = false; btn.textContent = 'Envoyer le lien'; return; }
+    try{
+      await auth.sendPasswordResetEmail(email);
+      // Message générique pour ne pas révéler si l'adresse correspond à un compte.
+      msg.style.color = '#15803d';
+      msg.textContent = 'Si cette adresse correspond à un compte avec mot de passe ERSE, un email vient d’être envoyé. Ouvrez votre boîte de réception ou vos spams, puis cliquez sur le lien « Réinitialiser le mot de passe ». Le lien n’apparaît pas dans cette fenêtre.';
+      btn.textContent = 'Demande envoyée';
+    }catch(err){
+      const messages={
+        'auth/too-many-requests':'Trop de demandes. Patientez quelques minutes avant de réessayer.',
+        'auth/network-request-failed':'Connexion impossible. Vérifiez votre Internet puis réessayez.',
+        'auth/invalid-email':'Cette adresse email n’est pas valide.',
+        'auth/operation-not-allowed':'La réinitialisation par email est désactivée. Contactez l’administrateur.',
+        'auth/unauthorized-continue-uri':'Le domaine de retour du lien doit être autorisé dans Firebase.',
+        'auth/invalid-continue-uri':'Le lien de retour configuré dans Firebase est invalide.'
+      };
+      console.warn('Échec de l’envoi du lien de réinitialisation:',err&&err.code);
+      msg.style.color = '#b91c1c';
+      msg.textContent = messages[err&&err.code]||'Firebase n’a pas pu envoyer le lien. Réessayez plus tard ou contactez l’administrateur.';
+      btn.disabled = false; btn.textContent = 'Réessayer';
     }
-    // Même message quel que soit le résultat : on ne révèle pas si un compte existe
-    msg.style.color = '#15803d';
-    msg.textContent = 'Si un compte existe avec cette adresse, un email vient d\'être envoyé. Pensez à vérifier vos courriers indésirables.';
-    btn.textContent = 'Email envoyé ✓';
   });
   setTimeout(() => { const f = ov.querySelector('#fp-email'); if(f) f.focus(); }, 60);
 }

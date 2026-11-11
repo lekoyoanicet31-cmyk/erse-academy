@@ -275,7 +275,7 @@ async function saveExam(){
 }
 async function deleteExam(id){
   if(!await verifyAdmin()) return;
-  if(!confirm('Supprimer cet examen ?')) return;
+  if(!await platformConfirm('Cet examen sera retiré de la plateforme.',{title:'Supprimer l’examen',danger:true})) return;
   DB.exams=DB.exams.filter(e=>e.id!==id);
   saveData();
   if(fbReady){ try{ await fbDeleteExam(id); await pushToRTDB(); }catch(e){console.warn(e);} }
@@ -300,7 +300,6 @@ function renderAdminStudents(){
         <td style="display:flex;gap:4px;">
           <button class="act-btn del-btn" onclick="removeStudent('${s.id}')">Retirer</button>
           <button class="act-btn" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);" onclick="banStudent('${s.id}')">🚫 Bannir</button>
-          <button class="act-btn" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);" onclick="banStudent('${s.id}')">🚫 Bannir</button>
         </td>
       </tr>`).join('')}</tbody>
     </table>`;
@@ -317,7 +316,7 @@ function saveStudent(){
 async function banStudent(id){
   const s = DB.students.find(x=>x.id===id||x.id===String(id)||Number(x.id)===Number(id));
   if(!s){toast('Étudiant introuvable','err');return;}
-  if(!confirm('Supprimer et bannir '+s.name+' ? Il pourra recréer un compte avec une autre adresse.')) return;
+  if(!await platformConfirm('Le compte de '+s.name+' sera retiré et son adresse bloquée.',{title:'Bannir cet étudiant',danger:true,confirmText:'Bannir'})) return;
 
   // Bannir l'email
   if(!DB.bannedEmails) DB.bannedEmails = [];
@@ -336,20 +335,20 @@ async function banStudent(id){
       if(s.authUid) await db.collection('publicProfiles').doc(s.authUid).delete();
       if(typeof banEmailHash === 'function') await banEmailHash(s.email);
       const snap = await db.collection('examResults').doc(s.email).collection('results').get();
-      snap.forEach(doc=>doc.ref.delete());
+      await Promise.all(snap.docs.map(doc=>doc.ref.delete()));
     }catch(e){console.warn('Erreur ban Firestore:',e);}
   }
 
   saveData();
-  pushToRTDB();
-  toast(s.name+' banni et supprimé. Il peut recréer un compte avec une autre adresse.','ok');
+  await pushToRTDB();
+  toast(s.name+' banni et supprimé.','ok');
   renderAdminStudents();
 }
 
 async function removeStudent(id){
   const s = DB.students.find(x=>x.id===id || x.id===String(id) || Number(x.id)===Number(id));
   if(!s){toast('Étudiant introuvable','err');return;}
-  if(!confirm('Supprimer le compte de '+s.name+' ?\nIl perdra toutes ses données mais pourra se réinscrire avec la même adresse.')) return;
+  if(!await platformConfirm('Le profil de '+s.name+' et ses données associées seront supprimés. Il pourra se réinscrire.',{title:'Supprimer cet étudiant',danger:true,confirmText:'Supprimer'})) return;
 
   DB.students = DB.students.filter(x=>Number(x.id)!==Number(id)&&x.id!==id&&x.id!==String(id));
   DB.users = DB.users.filter(x=>x.email!==s.email);
@@ -361,12 +360,12 @@ async function removeStudent(id){
       await db.collection('users').doc(s.email).delete();
       if(s.authUid) await db.collection('publicProfiles').doc(s.authUid).delete();
       const snap = await db.collection('examResults').doc(s.email).collection('results').get();
-      snap.forEach(doc=>doc.ref.delete());
+      await Promise.all(snap.docs.map(doc=>doc.ref.delete()));
     }catch(e){console.warn('Erreur suppression Firestore:',e);}
   }
 
   saveData();
-  pushToRTDB();
+  await pushToRTDB();
   toast(s.name+' supprimé. Il peut se réinscrire avec la même adresse.','ok');
   renderAdminStudents();
 }
@@ -438,15 +437,14 @@ function renderAdminNotifs(){
     </table>`;
 }
 function resetAllData(){
-  if(!confirm('⚠️ Réinitialiser TOUTES les données ? (étudiants ajoutés, certificats, examens créés)\nCette action est irréversible.'))return;
+  if(!await platformConfirm('Les étudiants ajoutés, certificats et examens créés seront effacés.',{title:'Réinitialiser les données',danger:true,confirmText:'Tout effacer'}))return;
   localStorage.removeItem('erse_db');
   toast('Données réinitialisées. Rechargez la page.','ok');
   setTimeout(()=>location.reload(),2000);
 }
 async function sendPlatformNotif(){
-  const msg=prompt("Annonce à envoyer à tous les étudiants (ex : « Les examens de Thermodynamique sont disponibles ») :");
-  if(!msg||!msg.trim()) return;
-  const clean=msg.trim().slice(0,300);
+  const form=await platformDialog({title:'Envoyer une annonce',message:'Cette annonce sera visible dans les notifications des étudiants.',fields:[{id:'message',label:'Message',max:300}],confirmText:'Envoyer'});
+  const clean=(form?.message||'').trim(); if(!clean) return;
   const ts=Date.now();
   pushNotif('Annonce ERSE ACADEMY',clean,'📢','#b0d4f4',null,ts);
   if(fbReady){
