@@ -327,7 +327,7 @@ function addShopItem(){
 }
 
 function deleteShopItem(id){
-  if(!confirm('Supprimer cette épreuve définitivement ?')) return;
+  if(!await platformConfirm('Cette épreuve sera supprimée définitivement.',{title:'Supprimer cette épreuve',danger:true})) return;
   DB.shop = (DB.shop||[]).filter(i=>String(i.id)!==String(id));
   fbDeleteShopItem(id);
   saveData();

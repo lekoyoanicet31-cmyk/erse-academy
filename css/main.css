@@ -646,3 +646,8 @@ body.energybot-active #bottom-nav{display:none!important;}
   .cert-wrap,.page.on .cert-wrap{display:block!important;}
   body{background:white;}
 }
+
+/* Panneaux légers et cohérents pour les actions qui demandent une saisie ou confirmation */
+.app-dialog-backdrop{position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:16px;background:rgba(7,21,37,.56);backdrop-filter:blur(2px)}
+.app-dialog{box-sizing:border-box;width:min(100%,400px);padding:20px;border:1px solid var(--border);border-radius:14px;background:var(--card-bg,#fff);color:var(--text,#172033);box-shadow:0 18px 50px #0003}
+.app-dialog h2{margin:0 0 7px;font-size:18px}.app-dialog p{margin:0 0 14px;color:var(--muted);font-size:13px;line-height:1.5}.app-dialog label{display:block;margin:10px 0;font-size:12px;color:var(--muted)}.app-dialog textarea{display:block;box-sizing:border-box;width:100%;margin-top:5px;padding:10px;border:1px solid var(--border);border-radius:9px;background:var(--input-bg);color:var(--text);font:inherit;resize:vertical}.app-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.app-dialog-actions button{padding:9px 13px;border:1px solid var(--border);border-radius:8px;background:#185fa5;color:white;font:inherit;font-size:13px;cursor:pointer}.app-dialog-actions button:first-child{background:transparent;color:var(--text)}.app-dialog-actions button.is-danger{border-color:#b42318;background:#b42318}

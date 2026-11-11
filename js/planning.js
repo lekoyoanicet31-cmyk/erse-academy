@@ -61,7 +61,7 @@ async function loadPlanning(){
 }
 
 async function deletePlanning(){
-  if (!confirm('Supprimer ton planning définitivement ?')) return;
+  if (!await platformConfirm('Ton planning sera supprimé définitivement.',{title:'Supprimer le planning',danger:true})) return;
   if (fbReady && currentUser?.email) {
     try { await firebase.firestore().collection('plannings').doc(currentUser.email).delete(); }
     catch(e) { console.warn('deletePlanning error:', e); }
