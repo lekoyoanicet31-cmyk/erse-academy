@@ -9,6 +9,8 @@ function saveData(){
       exams:DB.exams.filter(e=>e.id>=200),
       subjects:DB.subjects,
       notifications:DB.notifications.slice(0,20),
+      shop:DB.shop||[],
+      shopPayMode:!!DB.shopPayMode,
       nextId:DB.nextId,
       examResults:DB.examResults||[]
     };
@@ -26,6 +28,8 @@ function loadData(){
     if(data.certificates)DB.certificates=data.certificates;
     if(data.subjects&&data.subjects.length)DB.subjects=data.subjects;
     if(data.notifications)DB.notifications=data.notifications.filter(n=>n&&n.ts); // anciennes notifications sans horodatage : écartées
+    if(data.shop)DB.shop=data.shop;
+    if(typeof data.shopPayMode==='boolean')DB.shopPayMode=data.shopPayMode;
     if(data.nextId)DB.nextId=data.nextId;
     if(data.examResults&&data.examResults.length)DB.examResults=data.examResults;
     if(data.exams&&data.exams.length){

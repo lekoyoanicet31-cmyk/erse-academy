@@ -436,7 +436,7 @@ function renderAdminNotifs(){
       </tr>`).join('')}</tbody>
     </table>`;
 }
-function resetAllData(){
+async function resetAllData(){
   if(!await platformConfirm('Les étudiants ajoutés, certificats et examens créés seront effacés.',{title:'Réinitialiser les données',danger:true,confirmText:'Tout effacer'}))return;
   localStorage.removeItem('erse_db');
   toast('Données réinitialisées. Rechargez la page.','ok');
