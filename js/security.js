@@ -365,13 +365,36 @@ function forgotPassword(){
     const msg = $('fp-msg');
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.style.color = '#b91c1c'; msg.textContent = 'Adresse email invalide.'; return; }
     const btn = $('fp-send'); btn.disabled = true; btn.textContent = 'Envoi…';
-    try{ await auth.sendPasswordResetEmail(email); }catch(err){
-      if(err && err.code === 'auth/too-many-requests'){ msg.style.color = '#b91c1c'; msg.textContent = 'Trop de demandes. Patientez quelques minutes.'; btn.disabled = false; btn.textContent = 'Envoyer le lien'; return; }
+    try{
+      auth.languageCode = 'fr';
+      await auth.sendPasswordResetEmail(email);
+      // Réponse générique pour ne pas révéler si l’adresse est inscrite.
+      msg.style.color = '#15803d';
+      msg.textContent = 'Demande traitée. Si cette adresse correspond à un compte avec mot de passe, Firebase enverra un lien. Vérifiez la boîte de réception et les courriers indésirables.';
+      btn.textContent = 'Demande envoyée';
+    }catch(err){
+      const code = err && err.code || '';
+      const messages = {
+        'auth/too-many-requests':'Trop de demandes. Patientez quelques minutes avant de réessayer.',
+        'auth/network-request-failed':'Connexion interrompue. Vérifiez Internet puis réessayez.',
+        'auth/invalid-email':'Cette adresse email n’est pas valide.',
+        'auth/operation-not-allowed':'La réinitialisation par email est désactivée dans Firebase Authentication.',
+        'auth/unauthorized-continue-uri':'Le domaine utilisé pour le lien n’est pas autorisé dans Firebase.',
+        'auth/invalid-continue-uri':'La configuration du lien de retour Firebase est invalide.'
+      };
+      console.warn('Échec de l’envoi du lien de réinitialisation:', code);
+      // Ne pas distinguer une adresse inconnue pour préserver la confidentialité.
+      if(code === 'auth/user-not-found' || code === 'auth/invalid-login-credentials'){
+        msg.style.color = '#15803d';
+        msg.textContent = 'Demande traitée. Si cette adresse correspond à un compte avec mot de passe, Firebase enverra un lien. Vérifiez aussi les courriers indésirables.';
+        btn.textContent = 'Demande envoyée';
+        return;
+      }
+      msg.style.color = '#b91c1c';
+      msg.textContent = messages[code] || 'Firebase n’a pas pu traiter la demande. Réessayez plus tard ou contactez l’administrateur.';
+      btn.disabled = false;
+      btn.textContent = 'Réessayer';
     }
-    // Même message quel que soit le résultat : on ne révèle pas si un compte existe
-    msg.style.color = '#15803d';
-    msg.textContent = 'Si un compte existe avec cette adresse, un email vient d\'être envoyé. Pensez à vérifier vos courriers indésirables.';
-    btn.textContent = 'Email envoyé ✓';
   });
   setTimeout(() => { const f = ov.querySelector('#fp-email'); if(f) f.focus(); }, 60);
 }
